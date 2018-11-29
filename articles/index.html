@@ -1,0 +1,47 @@
+---
+permalink: /articles
+---
+<!DOCTYPE html>
+<html>
+  <head>
+    {% include meta.html %}
+    <link rel="stylesheet" href="{{ site.url }}/assets/css/base.css">
+  </head>
+
+  <body>
+    {% include nav.html %}
+
+    <div class="page-content">
+      <div class="content-wrap">
+        {% assign article_count = 0 %}
+        {% for post in site.categories.articles %}
+          {% assign article_count = article_count | plus:1 %}
+          {% if article_count > 1 %}
+          <hr>
+          {% endif %}
+          <article class="post-preview">
+            <a href="{{ post.url }}">
+              <div class="center-cropped"
+                 style="background-image: url('{{ post.featured-image }}');">
+              </div>
+            </a>
+            <div class="info-preview">
+              <div class="post-preview-title">
+                <h1><a href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a></h1>
+              </div>
+              <div class="post-preview-excerpt">
+              {{ post.excerpt }}
+              </div>
+              <div class="post-preview-inline-tags">
+                {% for tag in post.tags %}
+                  <a href="{{ page.url }}/#{{ tag }}">#{{ tag }}</a>
+                {% endfor %}
+              </div>
+            </div><!-- info-preview -->
+          </article>
+        {% endfor %}
+
+      </div><!-- content-wrap -->
+    </div><!-- page-content -->
+  </body>
+</html>

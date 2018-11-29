@@ -1,0 +1,15 @@
+<div class="portfolio-section">
+  <h3>About</h3>
+  <div class="portfolio-about-content">
+    <div class="portfolio-about-ava">
+      <span class="profile-img"
+          style="background-image: url(/assets/img/myface.jpg)" />
+    </div>
+    <div class="portfolio-about-bio">
+      {% capture my_include %}
+        {% include_relative sections/about.md %}
+      {% endcapture %}
+      {{ my_include | markdownify }}
+    </div>
+  </div>
+</div>

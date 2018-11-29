@@ -1,0 +1,44 @@
+<div class="portfolio-header">
+  <div class="header-left">
+    <h1>{{ site.name }}</h1>
+    <h2>{{ site.title }}</h2>
+  </div>
+  <div class="header-right">
+    <ul class="icons">
+      {% if site.github_username %}
+        <li>
+          <a target="_blank" href="https://github.com/{{ site.github_username }}" class="button button--sacnite button--round-l">
+            <i class="fab fa-github"></i>
+          </a>
+        </li>
+      {% endif %}
+      {% if site.facebook_username %}
+        <li>
+          <a target="_blank" href="https://facebook.com/{{ site.facebook_username }}" class="button button--sacnite button--round-l">
+            <i class="fab fa-facebook-f"></i>
+          </a>
+        </li>
+      {% endif %}
+      {% if site.linkedin_username %}
+        <li>
+          <a target="_blank" href="https://linkedin.com/in/{{ site.linkedin_username }}" class="button button--sacnite button--round-l">
+            <i class="fab fa-linkedin-in"></i>
+          </a>
+        </li>
+      {% endif %}
+      {% if site.stackoverflow_id %}
+        <li>
+          <a target="_blank" href="https://stackoverflow.com/users/{{ site.stackoverflow_id }}" class="button button--sacnite button--round-l">
+            <i class="fab fa-stack-overflow"></i>
+          </a>
+        </li>
+      {% endif %}
+    </ul>
+    {% if site.email %}
+      <p>
+        Email:
+        <a href="mailto:{{ site.email }}">{{ site.email }}</a>
+      </p>
+    {% endif %}
+  </div>
+</div>

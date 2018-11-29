@@ -1,0 +1,15 @@
+---
+layout: post
+title: "Weekends in Rome"
+date: 2016-08-23
+mapinfo:
+  city: "Rome"
+  latitude: 41.9028
+  longtitude: 12.4964
+image:
+  feature: assets/img/2016-08-23-rome/IMG_5985.jpg
+
+excerpt: ""
+comments: true
+---
+

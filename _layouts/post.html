@@ -1,0 +1,34 @@
+---
+---
+<head>
+  {% include meta.html %}
+  <!-- CSS -->
+  <link rel="stylesheet" href="{{ site.url }}/assets/css/base.css">
+  <link rel="stylesheet" href="{{ site.url }}/assets/css/post.css">
+
+  {% if page.featured-image %}
+  {% capture feature %}{{ page.featured-image }}{% endcapture %}
+  {% capture feature %}{{ site.url }}/{{ feature }}{% endcapture %}
+  <style type="text/css">.feature {background-image:url({{ feature }}) !important; background-size:cover; background-position: center center;}</style>
+  {% endif %}
+</head>
+
+<body>
+  {% include nav.html %}
+
+  <header class="header" role="banner">
+    <div class="wrapper">
+      <div class="content">
+        <div class="post-title {% if page.featured-image %} feature {% endif %}">
+          <h1>{{ page.title }}</h1>
+          <h4>{{ page.date | date_to_string }}</h4>
+        </div>
+        {{ page.excerpt }}
+        {{ content }}
+      </div>
+    </div>
+  </header><!-- header -->
+
+
+</body>
+

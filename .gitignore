@@ -1,0 +1,7 @@
+# vim stuff
+*.swp
+*.swo
+
+# jekyll stuff
+_site/
+.sass-cache/
