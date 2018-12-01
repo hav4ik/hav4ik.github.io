@@ -8,6 +8,7 @@ mapinfo:
   longtitude: 13.4534
 image:
   feature: assets/img/2016-08-24-vatican/feature.jpg
+  display: true
 
 excerpt: ""
 comments: true

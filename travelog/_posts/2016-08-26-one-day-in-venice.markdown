@@ -9,6 +9,7 @@ mapinfo:
 
 image:
   feature: assets/img/2016-08-26-venice/IMG_6450.jpg
+  display: true
 
 excerpt: ""
 comments: true
