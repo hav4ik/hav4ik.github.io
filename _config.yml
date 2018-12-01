@@ -2,6 +2,10 @@
 name: Chan Kha Vu
 title: The everyday AI engineer
 email: chankhavu@gmail.com
+ava: assets/img/myface.jpg
+
+# Site info
+logo: assets/img/ava.jpeg
 
 # Social links
 github_username: hav4ik
