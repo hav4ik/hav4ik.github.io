@@ -45,6 +45,7 @@ Do you really expected me, a **Machine Learning engineer** and a **Mathematician
 *  From [here][navbar] I stole the navigation bar (and added cool elements of my own).
 *  I got the inspiration (the code) for post design from [here][post-design].
 *  The sleek portfolio design and buttons I got from [here][portfolio].
+*  From [here][liam-fedus] I stole the timeline! (that guy from MILA is really cool)
 
 I don't remember where I got the grid layout for [travelog][travelog] though. The awesome map I got from [mapael][mapael]. Well, basically, I just **copy-pasted** my way to this blog.
 
@@ -55,6 +56,7 @@ I don't remember where I got the grid layout for [travelog][travelog] though. Th
 [article-list]: https://nathanrooy.github.io/
 [navbar]: http://jekyllthemes.org/themes/voyager/
 [post-design]: http://jekyllthemes.org/themes/moon/
+[liam-fedus]: http://acsweb.ucsd.edu/~wfedus/
 [why-portfolio-1]: https://towardsdatascience.com/how-to-build-a-data-science-portfolio-5f566517c79c
 [why-portfolio-2]: http://varianceexplained.org/r/start-blog/
 [why-portfolio-3]: https://www.superdatascience.com/why-ds-should-write-more/
