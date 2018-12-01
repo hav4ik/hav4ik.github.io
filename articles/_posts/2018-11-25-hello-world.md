@@ -3,7 +3,7 @@ layout: post
 type: "article"
 title: "Hello World! (again)"
 image:
-  feature: "/assets/img/2018-11-25-hello-world/feature.png"
+  feature: "articles/images/2018-11-25-hello-world/feature.png"
   display: false
 tags: [stories of my life, tutorial]
 excerpt: "This blog was in pretty crappy condition before, then I decided to make it great again. Here is the story..."
