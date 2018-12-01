@@ -1,6 +1,7 @@
 {% assign images = include.images | split:" " %}
 {% assign caption = include.caption %}
 {% assign cols = include.cols %}
+{% assign width = include.width %}
 
 {% case cols %}
     {% when 1 %}
@@ -15,7 +16,13 @@
 
 <figure {% if class != "" %}class="{{ class }}"{% endif %}>
     {% for image in images %}
+    {% if width %}
+    <a href="{{ image }}"><img src="{{ image }}" style="width:{{ width }};margin-right:auto;margin-left:auto;display:block;" alt=""></a>
+    {% else %}
     <a href="{{ image }}"><img src="{{ image }}" alt=""></a>
+    {% endif %}
     {% endfor %}
+    {% if caption %}
     <figcaption>{{ caption }}</figcaption>
+    {% endif %}
 </figure>

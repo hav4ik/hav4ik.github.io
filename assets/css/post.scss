@@ -2,6 +2,7 @@
 ---
 
 @import "variables";
+@import "mixins";
 @import "fonts";
 @import "typography";
 @import "syntax";
@@ -38,15 +39,56 @@
 }
 
 .content {
-    //font-size: .875rem;
-    //line-height: 1.8571;
-    margin-bottom: 1.625rem;
-    padding: 0 2rem;
-    text-align: justify;
+  //font-size: .875rem;
+  //line-height: 1.8571;
+  margin-bottom: 1.625rem;
+  padding: 0 2rem;
+  text-align: justify;
 
-    a {
-      text-decoration: underline;
+  a {
+    text-decoration: underline;
+  }
+
+  figure {
+    margin: 0;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    @include clearfix();
+    img {
+      width: 100%;
+      margin-bottom: 10px;
+      // @include rounded(4px);
     }
+    &.half {
+      @media only screen and (min-width: 62.5em) {
+        img {
+          width: calc(50% - 4px);
+          float: left;
+          margin-left: 1px;
+          margin-right: 1px;
+        }
+        figcaption {
+          clear: left;
+        }
+      }
+    }
+    &.third {
+      @media only screen and (min-width: 62.5em) {
+        img {
+          width: calc(33.3% - 6px);
+          float: left;
+          margin-left: 1px;
+          margin-right: 1px;
+        }
+        figcaption {
+          clear: left;
+        }
+      }
+    }
+  }
+  svg:not(:root) {
+    overflow: hidden; 
+  }
 }
 
 .feature {
