@@ -1,0 +1,15 @@
+<div class="portfolio-section">
+  <h3>Research</h3>
+  <div class="research">
+    <div class="research-illu">
+      <img src="{{ site.url }}/portfolio/images/research-1.png">
+    </div>
+    <div class="research-desc">
+      {% capture my_include %}
+        {% include_relative sections/research-1.md %}
+      {% endcapture %}
+      {{ my_include | markdownify }}
+    </div>
+  </div>
+  <hr>
+</div>

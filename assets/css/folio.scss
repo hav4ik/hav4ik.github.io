@@ -147,3 +147,26 @@ ul.icons a {
  background-position:center;
  background-repeat:repeat, no-repeat;
 }
+
+.research {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding-bottom: 1em;
+
+  .research-illu {
+    width: 50%;
+    padding-right: 1.5em;
+    img {
+      width: 100%;
+    }
+  }
+  .research-desc {
+    width: 50%;
+    padding-left: 1.5em;
+
+    h2 {
+      font-weight: 400;
+    }
+  }
+}
