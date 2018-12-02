@@ -29,6 +29,7 @@ Well, long story short, this person is the reason:
 {% endcapture %}
 {% include gallery images=imblock2 cols=2 %}
 
+Yes, even the [`404.html`][p404] page was a *plain HTML placeholder* before! The design is even worse than no design at all!
 And this one on the other day was the tipping point...
 {% capture imblock3 %}
     {{ site.url }}/articles/images/2018-11-25-hello-world/reason-4.png
@@ -53,6 +54,7 @@ I don't remember where I got the grid layout for [travelog][travelog] though. Th
 
 [mapael]: https://www.vincentbroute.fr/mapael/
 [travelog]: /travelog
+[p404]: /404.html
 [portfolio]: https://sproogen.github.io/modern-resume-theme/
 [article-list]: https://nathanrooy.github.io/
 [navbar]: http://jekyllthemes.org/themes/voyager/
