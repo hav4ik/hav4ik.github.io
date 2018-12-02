@@ -25,9 +25,16 @@
         </div>
         {{ content }}
       </div>
+      {% if page.comments == true and site.disqus_shortname %}
+        <div class="comments">
+        <section id="disqus_thread"></section><!-- /#disqus_thread -->
+        </div>
+      {% endif %}
     </div>
   </header><!-- header -->
 
-
+  {% if page.comments == true and site.disqus_shortname %}
+    {% include disqus.html %}
+  {% endif %}
 </body>
 

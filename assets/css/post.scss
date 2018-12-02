@@ -91,6 +91,12 @@
   }
 }
 
+.comments {
+  @include clearfix();
+  margin-top: 3em;
+  padding-top: 3em;
+}
+
 .feature {
     /*@include transition(.5s);*/
     @media #{$small} {

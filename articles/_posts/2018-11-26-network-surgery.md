@@ -7,5 +7,6 @@ image:
   display: false
 tags: [tensorflow, tutorial]
 excerpt: "I don't see any tutorials on Network Surgery in the Internet (since it usually involves undocumented stuffs). So here is one for you!"
+comments: true
 ---
 

@@ -7,6 +7,7 @@ image:
   display: false
 tags: [stories of my life, tutorial]
 excerpt: "This blog was in pretty crappy condition before, then I decided to make it great again. Here is the story..."
+comments: true
 ---
 
 Just not so long ago, this blog was in a pretty crappy condition: the articles were empty (I was too lazy to write anything), the design was messy, and the homepage was just a placeholder. I always wanted to make a proper online blog/portfolio since many sources (e.g. [here][why-portfolio-1], [here][why-portfolio-2], and [here][why-portfolio-3]) suggests that it is very helpful in job seeking and is good generally, but I was too lazy to finish it.
