@@ -24,12 +24,12 @@
           <h4>{{ page.date | date_to_string }}</h4>
         </div>
         {{ content }}
+        {% if page.comments == true and site.disqus_shortname %}
+          <div class="comments">
+          <section id="disqus_thread"></section><!-- /#disqus_thread -->
+          </div>
+        {% endif %}
       </div>
-      {% if page.comments == true and site.disqus_shortname %}
-        <div class="comments">
-        <section id="disqus_thread"></section><!-- /#disqus_thread -->
-        </div>
-      {% endif %}
     </div>
   </header><!-- header -->
 
