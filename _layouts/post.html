@@ -11,6 +11,13 @@
   {% capture feature %}{{ site.url }}/{{ feature }}{% endcapture %}
   <style type="text/css">.feature {background-image:url({{ feature }}) !important; background-size:cover; background-position: center center;}</style>
   {% endif %}
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      TeX: { equationNumbers: { autoNumber: "AMS" } }
+    });
+  </script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+
 </head>
 
 <body>
