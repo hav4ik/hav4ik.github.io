@@ -2,6 +2,7 @@
 layout: post
 type: "article"
 title: "Hello World! (again)"
+permalink: /articles/:title
 image:
   feature: "articles/images/2018-11-25-hello-world/feature.png"
   display: false

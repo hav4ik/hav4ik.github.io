@@ -2,6 +2,7 @@
 layout: post
 type: "project"
 title: "Coloring Violin sheets in shades of the Rainbow"
+permalink: /articles/:title
 image:
   feature: "articles/images/2018-11-25-music-sheet-colorization/featured.png"
   display: false

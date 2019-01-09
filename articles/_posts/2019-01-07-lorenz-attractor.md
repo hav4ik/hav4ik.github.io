@@ -2,7 +2,7 @@
 layout: post
 permalink: /articles/:title
 type: "article"
-title: "Remarks on the 14th Smale's Problem"
+title: "Remarks on 14th Smale's Problem"
 image:
   feature: "articles/images/2019-01-07-lorenz-attractor/featured.png"
   display: false

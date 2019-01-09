@@ -1,6 +1,7 @@
 ---
 layout: post
 type: "article"
+permalink: /articles/:title
 title: "Network Surgery in TensorFlow & Keras"
 image:
   feature: "articles/images/2018-11-26-network-surgery/featured.jpg"
