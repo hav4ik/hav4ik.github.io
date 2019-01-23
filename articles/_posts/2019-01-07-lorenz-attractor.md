@@ -178,8 +178,39 @@ In this section, I will briefly describe the beautiful idea of the proof for the
 
 By *robust* we mean that a strange attractor exists in an open neighbourhood of the classical parameter values. Here, the relation between the dynamics of Lorenz System with the Geometric Model is buried in the proof. First, let's clarify some of the terminology used in this theorem to better understant what it is about.
 
-> **Definition (Axiom A Attractor):** a compact [$$f$$-invariant][invariant-set] set $$\Lambda$$ is called an *attractor* if there is a neighborhood $$U$$ of $$\Lambda$$ called its *basin* such that $$f(x, t) \to \Lambda \enspace \forall x \in U$$. $$\Lambda$$ is called an Axiom A Attractor if the [tangent bundle][tangent-bundle] over $$\Lambda$$ is split into $$\mathbb{E}^{s} \oplus \mathbb{E}^s\,$$, where $$\mathbb{E}^u$$ and $$\mathbb{E}^{s}$$ are [$$Df$$-invariant][invariant-set] subspaces &mdash; $$Df \vert_ {\mathbb{E}^u}$$ is uniformly expanding and $$Df \vert_ {\mathbb{E}^s}$$ is uniformly contracting.
+> **Definition (Axiom A Attractor):** a compact [$$f$$-invariant][invariant-set] set $$\Lambda$$ is called an *attractor* if there is a neighborhood $$B(\mathcal{A})$$ of $$\Lambda$$ called its *basin* such that $$f(x, t) \to \Lambda \enspace \forall x \in B(\mathcal{A})$$. $$\Lambda$$ is called an Axiom A Attractor if the [tangent bundle][tangent-bundle] over $$\Lambda$$ is split into $$\mathbb{E}^{s} \oplus \mathbb{E}^s\,$$, where $$\mathbb{E}^u$$ and $$\mathbb{E}^{s}$$ are [$$Df$$-invariant][invariant-set] subspaces &mdash; $$Df \vert _ {\mathbb{E}^u}$$ is uniformly expanding and $$Df \vert _ {\mathbb{E}^s}$$ is uniformly contracting.
 
+In other words, *Axiom A Attractors* are [hyperbolic][hyperbolic-dynamics] attractors, i.e. expands in some direction and contracts in the other directions.
+To be precise, by *uniformly expanding* property of $$Df \vert _ {\mathbb{E}^s}$$ we mean there is a constant $$\lambda > 1$$ such that $$\| Df(v) \| > \lambda \vert v \vert \enspace \forall v \in \mathbb{E}^u$$. We also assume that the attractor is [irreducible][irreducibility].
+For the notion of *Axiom A Attractors* above, an invariant measure is proposed &mdash; the [Sinai&ndash;Ruelle&ndash;Bowen measure][srb-measure-1975], or *SRB measure*. Roughly speaking, it is the invariant measures that are most compatible with volume when volume is not preserved, and they provide a mechanism for describing the coherent statistics for unstable orbits of the attractor, starting from large sets in the basin. A formal definition of SRB measures is given by the following theorem.
+
+> **Theorem (SRB measure)**. Let $$f$$ be a [$$C^2$$-diffeomorphism][c2-diffeomorphism] with an Axiom A Attractor $$\Lambda$$. Then there is a unique [$$f$$-invariant][invariant-measure] [Borel probability measure][borel-measure] $$\mu$$ on $$\Lambda$$, for which there is a set $$V \in B(\mathcal{A})$$ having full [Lebesque measure][lebesque-measure] such that for every continuous observable $$\varphi \colon B(\mathcal{A}) \to \mathbb{R}$$, we have, for every point $$x \in V$$:
+>
+$$
+\lim _ {T \to \infty} \frac{1}{T} \int_0^T {\varphi\left(f(x, t)\right) dt} =
+\int {\varphi(x) d\mu}
+$$
+>
+> i.e. the time and space averages coincide. The invariant measure $$\mu$$ above is called the **Sinai&ndash;Ruelle&ndash;Bowen measure**, or **SRB measure** of $$f$$.
+
+From the definition above, we can see that *SRB measure* is a notion that allows us to "escape" the sensitivity to initial conditions by time by observing the density of the flow itself.
+[Lorenz][edward-lorenz] is one of the people who have most clearly expressed this idea: "over the years minuscule disturbances neither increase nor decrease the frequency of occurrence of various weather events such as tornados; the most they may do is to modify the sequence in which these events occur." i.e. the *frequency* of the event does not depends on initial conditions.
+More details on SRB measures and the systems that have them was described by [L.-S. Young (2002)][young-srb]. Although they only describes the definition for discrete flow, most of it can be generalized to continuous case of dynamical systems as well.
+
+So, basically the *Main Theorem* above is saying that not only the trajectories os Lorenz Flow \eqref{eq:lorenzsys} tends to an attractor $$\mathcal{A}$$, the flow also smears the whole space $$\mathbb{R}^3$$ across $$\mathcal{A}$$. The general outline of the proof separately deals with the global part and the local part of the flow:
+
+- First, we analytically inspect the flow $$P$$ inside the cub near origin, illustrated in figure $$(c)$$. More specifically, we inspect the flow from the cross-section $$\Sigma$$ to the point of leaving the cube.
+- The global flow $$G$$ outside the cube, as illustrated in figure $$(d)$$, is hard to analyze, so we will use an algorithm (a program) which, if successfully executed, proves the existance of strange attractor together with its dynamics.
+
+[c2-diffeomorphism]: https://en.wikipedia.org/wiki/Diffeomorphism
+[srb-measure-1975]: https://www.cpht.polytechnique.fr/sites/default/files/Bowen_LN_Math_470_second_ed_v2013.pdf
+[young-srb]: https://www.researchgate.net/publication/225834113_What_Are_SRB_Measures_and_Which_Dynamical_Systems_Have_Them
+[hyperbolic-dynamics]: http://www.scholarpedia.org/article/Hyperbolic_dynamics
+[irreducibility]: https://www.encyclopediaofmath.org/index.php/Irreducible_topological_space
 [tangent-bundle]: https://en.wikipedia.org/wiki/Tangent_bundle
 [invariant-set]: https://en.wikipedia.org/wiki/Positive_invariant_set
 [orig-proof]: http://www2.math.uu.se/~warwick/main/thesis_2.1.html
+[invariant-measure]: https://en.wikipedia.org/wiki/Invariant_measure
+[borel-measure]: https://en.wikipedia.org/wiki/Borel_measure
+[lebesque-measure]: https://en.wikipedia.org/wiki/Lebesgue_measure
+[edward-lorenz]: https://en.wikipedia.org/wiki/Edward_Norton_Lorenz
