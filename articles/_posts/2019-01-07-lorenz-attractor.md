@@ -58,10 +58,12 @@ About a year ago, during a *senseless wandering through the web on the sleepless
 > **Claim 1.** In 2001 mathematician Warwick Tucker proved that the paper model accurately describes the motion on the Lorenz attractor. For every trajectory on the attractor, there is a trajectory on the paper model that behaves exactly the same way (illustration below: paper model on the left and trajectory on Lorenz Attractor on the right).
 
 <center>
-<img src="{{ site.url }}/articles/images/2019-01-07-lorenz-attractor/trajectories.png"/>
+<div style="width: 70%;">
+	<img src="{{ site.url }}/articles/images/2019-01-07-lorenz-attractor/trajectories.png" width="100%"/>
+</div>
 </center>
 
-The trajectories described in [this video][video] were so simple and elegant that I thought "It is too good to be true"!
+The trajectories described in [this video][video] were so simple and elegant that I thought **"It is too good to be true"**!
 How can such a chaotic system contain periodic trajectories with such elegant dynamics? And, more curiously, how could one possibly prove such a bold claim?
 I was immediately captured.
 
@@ -74,7 +76,7 @@ The comment by [Evgeny][evgeny] has shed some light to my question &mdash; he po
 
 This answers the question why I was unable to find any explicit hint about the topology of trajectories. However, this raises even more question on how I can use this proof to get to the claim above.
 A more thoughtful skim (that lasted a few hours!) through the paper, I realised that the paper was about something completely different. But I needed to justify my concerns.
-So, I emailed [Dr. Warwick Tucker][warwick-tucker] directly and quickly received the following answer:
+So, I emailed [**Dr. Warwick Tucker**][warwick-tucker] directly and quickly received the following answer:
 
 > I did not prove that there is a 1-1 correspondence between individual
 trajectories of the geometric model and the flow of the Lorenz
@@ -125,9 +127,59 @@ I will describe the geometric model more detailed in the next section. Now, one 
 
 
 
-## The Geometric Model, and the Knot Model
+## The Geometric Model
 
 What exactly is the *Geometric Lorenz Attractor* in the *Problem 14 formulation* in previous section?
-As it was untractable to extract rigorous information of the dynamics of system \eqref{eq:lorenzsys}, a geometric model of the Lorenz Flow was proposed by [John Guckenheimer (1976)][geometric-model]. The model was extensively studied, but the original equations remained a puzzle.
+As it was untractable to extract rigorous information of the dynamics of system \eqref{eq:lorenzsys}, a geometric model of the Lorenz Flow was proposed by [John Guckenheimer (1976)][geometric-model]. The model was extensively studied, but the original equations remained a puzzle. It is important to node that while the geometric model is not a single model but a *family* of models that implies a [vector field][vector-field] with certain features, the [original proof (W. Tucker, 2002)][orig-proof] only considers a specific model.
 
+<figure>
+	<a href="{{ site.url }}/articles/images/2019-01-07-lorenz-attractor/geometric_model.svg"><img src="{{ site.url }}/articles/images/2019-01-07-lorenz-attractor/geometric_model.svg"/></a>
+</figure>
+
+Let's look closer at the properties of the global flow, illustrated in the figure $$(a)$$ above. As the parameter $$\rho > 1$$ in \eqref{eq:lorenzsys}, the flow has three fixed points: the origin and two "twin points"
+
+$$
+Q_\pm = \left(\pm\sqrt{\beta(\rho-1)}, \pm\sqrt{\beta(\rho-1)}, \rho-1\right)
+$$
+
+For the classical parameters, the origin is a saddle point around which are the two-dimensional [stable manifold][stable-unstable-manifold] $$W^s(0)$$ and one-dimensional [unstable manifold][stable-unstable-manifold] $$W^u(0)$$, as illustrated in figure $$(a)$$ above. We also consider the cross-section rectangle $$\Sigma \in \{ (x_1, x_2, x_3) \colon x_3 = \rho - 1\}$$ filled in gray in $$(a)$$ that is [transversal][transversality] to the flow, two opposite sides of which are parallel to $$x_2$$-axis and pass through the [equilibrium points][equilibrium-points] $$Q_-$$ and $$Q_+$$. The manifold $$W^u(0)$$ intersects $$\Sigma$$ at points $$\rho_-$$ and $$\rho_+$$. Let $$D$$ be the intersection of $$W^s(0)$$ with $$\Sigma$$. Obviously, trajectories starting from $$D$$ tends to origin as time moves forward and never returns to $$\Sigma$$.
+
+As the flow is supposed to go down from $$\Sigma$$ and eventually return to $$\Sigma$$ from above, we can consider a [Poincaré Map][poincare-map] $$F \colon \Sigma_- \cup \Sigma_+ \rightarrow \Sigma\,$$, where $$\Sigma_-$$ and $$\Sigma_+$$ are parts of $$\Sigma$$ separated by $$D\,$$, as illustrated in figure $$(b)$$ above. Notice that some of the trajectories starting from $$\Sigma_+$$ will return to itself, while others will eventually end up in $$\Sigma_-\,$$, and vice versa.
+
+We can now decomposite the return map: $$F = G \circ P\,$$, where $$G$$ is the [diffeomorphism][diffeomorphism] corresponding to the flow outside a unit cube centered at the origin, and $$P$$ describes the flow inside the cube. In other words, we divide the geometric model into two pieces: one piece dealing with all trajectories passing near origin, and one piece taking care of the global aspect of the flow, as illustrated below.
+
+{% capture imblock3 %}
+    {{ site.url }}/articles/images/2019-01-07-lorenz-attractor/global_local.svg
+{% endcapture %}
+{% include gallery images=imblock3 cols=1 %}
+
+In the model, we also assume that the global flow $$G$$ preserves the $$x_2$$ direction, i.e. $$G$$ takes the horizontal lines $$\mathcal{l}(t) = (\pm 1, t, c)$$ into lines $$\tilde{\mathcal{l}}(t) = (\tilde{c}, t, 1)$$ &mdash; this ensures that the contracting direction is preserved. The return map now has a [hyperbolic][hyperbolic-set] splitting $$\mathbb{E}_ x^{s} \oplus \mathbb{E}_ x^u\,$$ with $$\mathbb{E}_ 0^s = D$$, and the *stable leaves* $$\tilde{\mathcal{l}}(t)$$ [foliate][foliation] $$\Sigma$$. Note that in this case, the map is an [Anosov diffeomorphism][anosov-diffeomorphism].
+
+[anosov-diffeomorphism]: https://en.wikipedia.org/wiki/Anosov_diffeomorphism
+[foliation]: https://en.wikipedia.org/wiki/Foliation
+[hyperbolic-set]: https://en.wikipedia.org/wiki/Hyperbolic_set
+[vector-field]: https://en.wikipedia.org/wiki/Vector_field
+[diffeomorphism]: https://en.wikipedia.org/wiki/Diffeomorphism
+[poincare-map]: https://en.wikipedia.org/wiki/Poincar%C3%A9_map
+[transversality]: https://en.wikipedia.org/wiki/Transversality_(mathematics)
+[equilibrium-points]: https://en.wikipedia.org/wiki/Equilibrium_point
+[stable-unstable-manifold]: https://en.wikipedia.org/wiki/Stable_manifold
 [geometric-model]: https://authors.library.caltech.edu/25053/25/Hopfch12-references-index.pdf
+[orig-proof]: http://www2.math.uu.se/~warwick/main/thesis_2.1.html
+
+
+
+
+## Solution to the 14-th Problem
+
+In this section, I will briefly describe the beautiful idea of the proof for the 14-th Smale's Problem. The main result of [W. Tucker (2002)][orig-proof] is stated as follows:
+
+> **Main Theorem (Tucker).** For the classical parameter values, the Lorenz equations support a robust strange attractor $$\,\mathcal{A}\,$$. Furthermore, the flow admits a unique SRB measure $$\,\mu_X$$ with $$\,\text{supp}(\mu_X)  = \mathcal{A}\,$$.
+
+By *robust* we mean that a strange attractor exists in an open neighbourhood of the classical parameter values. Here, the relation between the dynamics of Lorenz System with the Geometric Model is buried in the proof. First, let's clarify some of the terminology used in this theorem to better understant what it is about.
+
+> **Definition (Axiom A Attractor):** a compact [$$f$$-invariant][invariant-set] set $$\Lambda$$ is called an *attractor* if there is a neighborhood $$U$$ of $$\Lambda$$ called its *basin* such that $$f(x, t) \to \Lambda \enspace \forall x \in U$$. $$\Lambda$$ is called an Axiom A Attractor if the [tangent bundle][tangent-bundle] over $$\Lambda$$ is split into $$\mathbb{E}^{s} \oplus \mathbb{E}^s\,$$, where $$\mathbb{E}^u$$ and $$\mathbb{E}^{s}$$ are [$$Df$$-invariant][invariant-set] subspaces &mdash; $$Df \vert_ {\mathbb{E}^u}$$ is uniformly expanding and $$Df \vert_ {\mathbb{E}^s}$$ is uniformly contracting.
+
+[tangent-bundle]: https://en.wikipedia.org/wiki/Tangent_bundle
+[invariant-set]: https://en.wikipedia.org/wiki/Positive_invariant_set
+[orig-proof]: http://www2.math.uu.se/~warwick/main/thesis_2.1.html
