@@ -16,6 +16,8 @@ comments: true
 
 
 
+
+
 ## The Lorenz System
 
 {% capture imblock1 %}
@@ -47,6 +49,8 @@ Under classical parameters $$\rho = 28, \sigma = 10, \beta = 8/3,\,$$ the phase 
 [lorenz-attractor]: https://en.wikipedia.org/wiki/Lorenz_system
 [lorenz-paper]: https://journals.ametsoc.org/doi/10.1175/1520-0469%281963%29020%3C0130%3ADNF%3E2.0.CO%3B2
 [lorenz-system-derivation]: http://mathworld.wolfram.com/LorenzAttractor.html
+
+
 
 
 
@@ -106,6 +110,8 @@ Now that's a bummer! The claim was so beautiful, yet it's not correct. However, 
 
 
 
+
+
 ## The 14th Smale's Problem
 
 At the end of previous century, a list of eighteen unsolved mathematical problems was proposed ([Steven Smale, 1998][smales-problems-original]) in reply to the request by Vladimir Arnold, who asked leading mathematicians to construct a list of important problems for the 21st century &mdash; similarly to the list of [Hilbert's Problems][hilbert-problems] for the 20th century. Famous unsolved problems, such as the [P versus NP problem][p-vs-np], the [Riemann Hypothesis][RH], and [Smoothness of Navier-Stokes equations][navier-stokes] has also made it to the list.
@@ -127,14 +133,17 @@ I will describe the geometric model more detailed in the next section. Now, one 
 
 
 
+
+
 ## The Geometric Model
 
 What exactly is the *Geometric Lorenz Attractor* in the *Problem 14 formulation* in previous section?
 As it was untractable to extract rigorous information of the dynamics of system \eqref{eq:lorenzsys}, a geometric model of the Lorenz Flow was proposed by [John Guckenheimer (1976)][geometric-model]. The model was extensively studied, but the original equations remained a puzzle. It is important to node that while the geometric model is not a single model but a *family* of models that implies a [vector field][vector-field] with certain features, the [original proof (W. Tucker, 2002)][orig-proof] only considers a specific model.
 
-<figure>
-	<a href="{{ site.url }}/articles/images/2019-01-07-lorenz-attractor/geometric_model.svg"><img src="{{ site.url }}/articles/images/2019-01-07-lorenz-attractor/geometric_model.svg"/></a>
-</figure>
+{% capture imblock2 %}
+    {{ site.url }}/articles/images/2019-01-07-lorenz-attractor/geometric_model.svg
+{% endcapture %}
+{% include gallery images=imblock2 cols=1 %}
 
 Let's look closer at the properties of the global flow, illustrated in the figure $$(a)$$ above. As the parameter $$\rho > 1$$ in \eqref{eq:lorenzsys}, the flow has three fixed points: the origin and two "twin points"
 
@@ -153,7 +162,7 @@ We can now decomposite the return map: $$F = G \circ P\,$$, where $$G$$ is the [
 {% endcapture %}
 {% include gallery images=imblock3 cols=1 %}
 
-In the model, we also assume that the global flow $$G$$ preserves the $$x_2$$ direction, i.e. $$G$$ takes the horizontal lines $$\mathcal{l}(t) = (\pm 1, t, c)$$ into lines $$\tilde{\mathcal{l}}(t) = (\tilde{c}, t, 1)$$ &mdash; this ensures that the contracting direction is preserved. The return map now has a [hyperbolic][hyperbolic-set] splitting $$\mathbb{E}_ x^{s} \oplus \mathbb{E}_ x^u\,$$ with $$\mathbb{E}_ 0^s = D$$, and the *stable leaves* $$\tilde{\mathcal{l}}(t)$$ [foliate][foliation] $$\Sigma$$. Note that in this case, the map is an [Anosov diffeomorphism][anosov-diffeomorphism].
+In the model, we also assume that the global flow $$G$$ preserves the $$x_2$$ direction, i.e. $$G$$ takes the horizontal lines $$\mathcal{l}(t) = (\pm 1, t, c)$$ into lines $$\tilde{\mathcal{l}}(t) = (\tilde{c}, t, 1)$$ &mdash; this ensures that the contracting direction is preserved. The return map now has a [hyperbolic][hyperbolic-set] splitting $$\mathbb{E}_ x^{s} \oplus \mathbb{E}_ x^u\,$$ with $$\mathbb{E}_ 0^s = D$$, and the *stable leaves* $$\tilde{\mathcal{l}}(t)$$ [foliate][foliation] $$\Sigma$$. Note that in this case, the map is an [Anosov diffeomorphism][anosov-diffeomorphism]. While the geometric model above have a lot of similar properties to the Lorenz flow, the real dynamics of the system is much chaotic and complicated.
 
 [anosov-diffeomorphism]: https://en.wikipedia.org/wiki/Anosov_diffeomorphism
 [foliation]: https://en.wikipedia.org/wiki/Foliation
@@ -170,13 +179,11 @@ In the model, we also assume that the global flow $$G$$ preserves the $$x_2$$ di
 
 
 
+
+
 ## Solution to the 14-th Problem
 
-In this section, I will briefly describe the beautiful idea of the proof for the 14-th Smale's Problem. The main result of [W. Tucker (2002)][orig-proof] is stated as follows:
-
-> **Main Theorem (Tucker).** For the classical parameter values, the Lorenz equations support a robust strange attractor $$\,\mathcal{A}\,$$. Furthermore, the flow admits a unique SRB measure $$\,\mu_X$$ with $$\,\text{supp}(\mu_X)  = \mathcal{A}\,$$.
-
-By *robust* we mean that a strange attractor exists in an open neighbourhood of the classical parameter values. Here, the relation between the dynamics of Lorenz System with the Geometric Model is buried in the proof. First, let's clarify some of the terminology used in this theorem to better understant what it is about.
+In this section, I will briefly describe the beautiful idea of the proof for the 14-th Smale's Problem. First, we need to understand the notion of *SRB measure* and how it relates to dynamical systems.
 
 > **Definition (Axiom A Attractor):** a compact [$$f$$-invariant][invariant-set] set $$\Lambda$$ is called an *attractor* if there is a neighborhood $$B(\mathcal{A})$$ of $$\Lambda$$ called its *basin* such that $$f(x, t) \to \Lambda \enspace \forall x \in B(\mathcal{A})$$. $$\Lambda$$ is called an Axiom A Attractor if the [tangent bundle][tangent-bundle] over $$\Lambda$$ is split into $$\mathbb{E}^{s} \oplus \mathbb{E}^s\,$$, where $$\mathbb{E}^u$$ and $$\mathbb{E}^{s}$$ are [$$Df$$-invariant][invariant-set] subspaces &mdash; $$Df \vert _ {\mathbb{E}^u}$$ is uniformly expanding and $$Df \vert _ {\mathbb{E}^s}$$ is uniformly contracting.
 
@@ -197,11 +204,52 @@ From the definition above, we can see that *SRB measure* is a notion that allows
 [Lorenz][edward-lorenz] is one of the people who have most clearly expressed this idea: "over the years minuscule disturbances neither increase nor decrease the frequency of occurrence of various weather events such as tornados; the most they may do is to modify the sequence in which these events occur." i.e. the *frequency* of the event does not depends on initial conditions.
 More details on SRB measures and the systems that have them was described by [L.-S. Young (2002)][young-srb]. Although they only describes the definition for discrete flow, most of it can be generalized to continuous case of dynamical systems as well.
 
-So, basically the *Main Theorem* above is saying that not only the trajectories os Lorenz Flow \eqref{eq:lorenzsys} tends to an attractor $$\mathcal{A}$$, the flow also smears the whole space $$\mathbb{R}^3$$ across $$\mathcal{A}$$. The general outline of the proof separately deals with the global part and the local part of the flow:
+Obviously, the definition of an *attractor* above is very broad &mdash; it also includes "boring" cases such as isolated attracting points, uniform circular motion, etc., i.e. cases with nothing "chaotic". For the purposes of distinguishing more "interesting" attractors, we introduce the notion of *strange attractors* &mdash; for almost all pairs (in the Lebesque mean) of different points in $$B(\mathcal{A})$$, their forward orbits eventually separates by a constant $$\delta$$ (only depending on $$\mathcal{A}$$). So, no matter how accurately we measure the initial conditions, we will eventually accumulate an error of size $$\delta$$. The main result of [W. Tucker (2002)][orig-proof] is stated as follows:
 
-- First, we analytically inspect the flow $$P$$ inside the cub near origin, illustrated in figure $$(c)$$. More specifically, we inspect the flow from the cross-section $$\Sigma$$ to the point of leaving the cube.
-- The global flow $$G$$ outside the cube, as illustrated in figure $$(d)$$, is hard to analyze, so we will use an algorithm (a program) which, if successfully executed, proves the existance of strange attractor together with its dynamics.
+> **Main Theorem (Tucker).** For the classical parameter values, the Lorenz equations support a robust strange attractor $$\,\mathcal{A}\,$$. Furthermore, the flow admits a unique SRB measure $$\,\mu_X$$ with $$\,\text{supp}(\mu_X)  = \mathcal{A}\,$$.
 
+By *robust* we mean that a strange attractor exists in an open neighbourhood of the classical parameter values. Here, the relation between the dynamics of Lorenz System with the Geometric Model is buried in the proof. Basically the theorem above is saying that not only the trajectories os Lorenz Flow \eqref{eq:lorenzsys} tends to an attractor $$\mathcal{A}$$, the flow also smears the whole space $$\mathbb{R}^3$$ across $$\mathcal{A}$$. The general outline of the proof separately deals with the global part and the local part of the flow:
+
+- First, we analytically inspect the flow $$P$$ inside the cube near origin, illustrated in figure $$(c)$$. More specifically, we inspect the flow from the cross-section $$\Sigma$$ to the point of leaving the cube.
+- The global flow $$G$$ outside the cube, as illustrated in figure $$(d)$$, is hard to analyze, so we will use an [algorithm][algorithm] (a program) which, if successfully executed, proves the existance of strange attractor together with its dynamics.
+
+The reason we have to explicitly analyze the cube near origin and the local flow is because inspecting the chaotic global flow analytically is an intractable task, and the algorithmic proof fails near origin due to difficulties dealing with stable manifolds.
+
+{% capture imblock4 %}
+    {{ site.url }}/articles/images/2019-01-07-lorenz-attractor/varchange.svg
+{% endcapture %}
+{% include gallery images=imblock4 cols=1 %}
+
+To inspect the local flow near origin, a change of coordinates is introduced that deforms the incoming flow slightly, but in a controllable way. In the new coordinates, the vector field assumes a carefully designed [normal form][normal-forms], which is virtually linear (but the crucial part is that it shouldn't be completely linear). The following proposition highlights this property:
+
+> **Theorem 1 (change of coordinates).** There exists a close to identity change of variables with $$\| \Phi \| _ r \le \frac{r^2}{2}$$ for $$r \le 1$$ in the small neighborhood of the origin
+>
+$$
+\begin{equation}
+\underbrace{\dot{\xi} = A\xi + F(\xi)} _ {\text{original Lorenz}}
+\quad \xrightarrow[\xi = \zeta + \Phi(\zeta)]{} \quad
+\underbrace{\dot{\zeta} = A\zeta + G(\zeta)} _ {\text{normal form}}
+\tag{2} \label{eq:coordchange}
+\end{equation}
+$$
+>
+> where $$A$$ is a linear operator, $$\,G(\zeta) \in \mathcal{O}^{10}(\zeta_1) \cap \mathcal{O}^{10}(\zeta_2, \zeta_3)$$ (flatness of order $$p$$) and satisfies $$\| G \| _ r \le 7 \cdot 10^{-9} \frac{r^{20}}{1 - 3r}$$ for $$r \le \frac{1}{3}$$ ($$\,G$$ is almost linear in that neigborhood).
+
+In these new coordinates, the unstable manifold coincides with the $$\zeta_1$$-axis, and the stable manifold coincides with the $$\zeta_2\zeta_3$$ plane. The norm $$\| \cdot \| _ r$$ is defined as follows: let the modulo $$\vert \zeta \vert = \max\{\vert\zeta_1\vert, \vert\zeta_2\vert, \vert\zeta_3\vert\}$$, and the norm is defined in a $$r$$-neighborhood $$\| f \| _ r = \sup\{ \vert f \vert \colon \vert \zeta \vert \le r\}$$. This permits us to estimate the evolution of the flow analytically. When changing back to the original coordinates, the out-going flow is once again deformed, but still in a controllable fashion, as shown in the following theorem:
+
+> **Theorem 2 (inverse change).** For $$\vert \zeta \vert \le r \le \frac{1}{2}$$, the change of variables in the previous theorem has a well defined inverse $$\,\zeta = \xi + \Psi(\xi)$$ in the ball $$\,\vert \xi \vert \le \tilde{r} = r - \| \Phi \| _ r$$ satisfying
+>
+$$
+\| \Psi \| _ {\tilde{r}} \le \| \Phi \| _ {r}
+\quad\quad
+\| D\Psi \| _ {\tilde{r}} \le \frac{\| D\Phi \| _ {r}}{1 - \| D\Phi \| _ {r}}
+$$
+
+Combining the theorems *1* and *2* on the change of coordinates and inverse change, we get the cyclic scheme as in figure $$(e)$$ and the ability to enter and leave the cube around the origin without much iterruption to the flow. It is also proven that the normal form in \eqref{eq:coordchange} of the real Lorenz flow and the linear flow introduced by Geometric Model have very similar behaviour. In fact, in our small cube illustrated in $$(c)$$, the normal flow expands and contracts [tangent vectors][tangent-vector] at almost the same rate as the linear flow does. I will not further provide the comparison of properties of the normal flow and linear flow here, since the objective of this article is just to provide the reader with a general vision on the topic.
+
+The stages of propagating a rectangle on the cross-section $$\Sigma$$ through the cube illustrated in figure $$(c)$$ are follows: first, we distort it by performing the change of coordinates \eqref{eq:coordchange}; if the rectangle intersects with $$D$$ &mdash; cross-section of stable manifold $$W^s(0)$$, we split it in two parts and propagate each part separately, as shown in figure $$(f_1)$$, else we propagate it as a whole, as shown in figure $$(f_2)$$; once we reach the exit boundary of the box, we distort the region back by performing the inverse change of coordinates; then, we hand the region to the program that deals with the global flow.
+
+<!-- References for the general solution outline part -->
 [c2-diffeomorphism]: https://en.wikipedia.org/wiki/Diffeomorphism
 [srb-measure-1975]: https://www.cpht.polytechnique.fr/sites/default/files/Bowen_LN_Math_470_second_ed_v2013.pdf
 [young-srb]: https://www.researchgate.net/publication/225834113_What_Are_SRB_Measures_and_Which_Dynamical_Systems_Have_Them
@@ -214,3 +262,8 @@ So, basically the *Main Theorem* above is saying that not only the trajectories 
 [borel-measure]: https://en.wikipedia.org/wiki/Borel_measure
 [lebesque-measure]: https://en.wikipedia.org/wiki/Lebesgue_measure
 [edward-lorenz]: https://en.wikipedia.org/wiki/Edward_Norton_Lorenz
+[algorithm]: https://en.wikipedia.org/wiki/Algorithm
+
+<!-- References for the Normal Flow part -->
+[normal-forms]: http://www.scholarpedia.org/article/Normal_forms
+[tangent-vector]: https://en.wikipedia.org/wiki/Tangent_vector
