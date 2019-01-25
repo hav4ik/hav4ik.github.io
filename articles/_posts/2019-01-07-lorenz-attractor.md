@@ -6,6 +6,7 @@ title: "Remarks on 14th Smale's Problem"
 image:
   feature: "articles/images/2019-01-07-lorenz-attractor/featured.png"
   display: false
+commits: https://github.com/hav4ik/hav4ik.github.io/commits/master/articles/_posts/2019-01-07-lorenz-attractor.md
 tags: [math, overview]
 excerpt: "The connection between the proof of the existance of the Lorenz Attractor, its Geometric Flow Model, and the Knot Theory Model."
 comments: true

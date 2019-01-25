@@ -6,6 +6,7 @@ permalink: /articles/:title
 image:
   feature: "articles/images/2018-11-25-hello-world/feature.png"
   display: false
+commits: https://github.com/hav4ik/hav4ik.github.io/commits/master/articles/_posts/2018-11-25-hello-world.md
 tags: [stories of my life, tutorial]
 excerpt: "This blog was in pretty crappy condition before, then I decided to make it great again. Here is the story..."
 comments: true
