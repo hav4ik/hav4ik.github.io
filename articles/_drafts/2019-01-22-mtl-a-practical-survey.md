@@ -2,19 +2,20 @@
 layout: post
 permalink: /articles/:title
 type: "article"
-title: 'An "Instant Noodle" survey to Multi-Task Learning'
+title: 'An "Instant Noodle" guide to Multi-Task Learning'
 image:
   feature: "articles/images/2019-01-22-mtl-a-practical-survey/featured.png"
   display: false
-tags: [survey, deep learning]
-excerpt: "A survey on stuffs that almost always works as-is from the box and are easy to implement &ndash; just like instant noodle!"
+tags: [survey, lecture notes, deep learning]
+excerpt: "A survey on stuffs that works like a charm as-is right from the box and are easy to implement &ndash; just like instant noodle!"
 comments: true
 ---
 
 
 
-> Industry ML/AI [Engineers][im-an-engineer] are **weirdos**: they hunt the latest papers, they crave for State-of-the-Art, they talk about craziest ideas that might enhance the whole field, yet they are too lazy to implement harder-than-a-resnet idea. This article is written **for** such [Engineers][im-an-engineer].
+> Industry ML/AI [Engineers][im-an-engineer] are [**weirdos**][weirdo]: they hunt the latest papers, they crave for State-of-the-Art, they talk about craziest ideas that might enhance the whole field, yet they are too lazy to implement harder-than-a-resnet idea. This article is written **for** such [Engineers][im-an-engineer].
 
+[weirdo]: https://www.urbandictionary.com/define.php?term=weirdo
 [im-an-engineer]: https://www.youtube.com/watch?v=rp8hvyjZWHs
 
 
@@ -24,7 +25,7 @@ comments: true
 
 ## Introduction
 
-If you found yourself in a strange situation, where you want your Neural Network to do several things at once, i.e. detect objects, predict depth, predict surface normals &ndash; you are having a Multi-Task Learning (MTL) problem.
+If you found yourself in a strange situation, where you want your Neural Network to do several things at once, i.e. detect objects, predict depth, predict surface normals &ndash; don't worry, you are just having a Multi-Task Learning (MTL) problem.
 
 {% capture imblock1 %}
     {{ site.url }}/articles/images/2019-01-22-mtl-a-practical-survey/teaser.png
@@ -39,7 +40,7 @@ However, screw these academic stuffs, **we are [engineers][im-an-engineer]**! Wh
 
 -  **To reduce the cost of running multiple models**. My Korean boss always yells at my team *"we need faster CNNs!"* in his typical asian accent (no offense, I'm also asian). How can we further speed up the 5 models that are already optimized both in size and speed by more than 40 times? Oh, yeah, we can merge all of them into a single Multi-Task model!
 
-In this article, I will only focus on the two motivation above. The *moto* of this article is: *simple as instant noodle, easy to implement, and effective as heck!* For a more comprehensive survey that focuses on the *mutually-benefitial sharing* aspect of Multi-Task Learning, it is recommended to read [Ruder's (2017)][ruder-mtl] paper.
+In this article, I will only focus on the two motivation above. The *motto* of this article is: *simple as instant noodle, easy to implement, and effective as heck!* For a more comprehensive survey that focuses on the *mutually-benefitial sharing* aspect of Multi-Task Learning, it is recommended to read [Ruder's (2017)][ruder-mtl] paper. As I continue to write this article, it became a convenient note for my lecture as well, so here you will find more in-depth theoretical stuffs (that normally only the full papers have) than a typical survey will do.
 
 [vid2vid]: https://tcwang0509.github.io/vid2vid/
 [pix2pix]: https://phillipi.github.io/pix2pix/
@@ -59,7 +60,7 @@ In this article, I will only focus on the two motivation above. The *moto* of th
 
 ## 1. Too many losses? MOO to the rescue!
 
-*Sorry for bad puns.* The methods of Multi-Objective Optimization (MOO) can help you learn multiple objectives better (here and after we will use the terms *objective* and *task* interchangeably).
+*Sorry for bad puns.* The methods of Multi-Objective Optimization (MOO) can help you learn multiple objectives better (here and after we will use the terms *objective* and *task* interchangeably). In this section, I will discuss the challenges of learning multiple objectives, and describe a State-of-the-Art solution to it.
 
 ### 1.1. Forming the formal formulation
 
@@ -111,10 +112,10 @@ for some tasks $$t_1$$ and $$t_2$$. In other words, solution $$\theta$$ is bette
 
 ### 1.3. Instant Noodle in case of Multiple Losses
 
-**Description**. Recent works attacks this problem by presenting a heuristic, according to which the coefficients $$\lambda_t$$ are chosen: [Chen et al. (2017)][chen2017] manipulates them in such a way that the gradients are approximately normalized; [Kendall et al. (2018)][kendall2018] models the network output's homoscedastic uncertainty with a probabilistic model.
-However, heuristic are too unreliable &mdash; there is no guarantee that the chosen weights will be of any good. A true *instant noodle* approach should be reliable. That's where the latest paper [Sener and Koltun (2018)][mtl-as-moo] presented on [NeurIPS][nips2018] this year comes to rescue.
+Recent works attacks this problem by presenting a heuristic, according to which the coefficients $$\lambda_t$$ are chosen: [Chen et al. (2017)][chen2017] manipulates them in such a way that the gradients are approximately normalized; [Kendall et al. (2018)][kendall2018] models the network output's [homoscedastic uncertainty][homoscedastic] with a probabilistic model.
+However, heuristic are too unreliable &mdash; there is no guarantee that the chosen weights will be of any good. A true *instant noodle* approach should be reliable. That's where the latest paper [Sener and Koltun (2018)][mtl-as-moo] presented on [NeurIPS][nips2018] this year comes to rescue. This paper is very theory-heavy, so I will expose it just enough to give you a glimpse of the core idea without delving too deep into the rigorous theoretical stuffs.
 
-The objective \eqref{eq:mtloss} is re-formulated in a sense of [multi-objective optimization][moo]: optimizing a collection of possibly conflicting objectives. The MTL objective is then specified using a vector-valued loss $${L}$$:
+**Description.** Instead of optimizing the summation objective \eqref{eq:mtloss}, the idea is to look at the MTL problem from the perspective of [multi-objective optimization][moo]: optimizing a collection of possibly conflicting objectives. The MTL objective is then specified using a vector-valued loss $${L}$$:
 
 $$
 \begin{equation}
@@ -124,13 +125,41 @@ $$
 \end{equation}
 $$
 
-The main motivation to re-formulate the objective is the conflict \eqref{eq:mtwtf}. This vector objective will not have a strong order minimum, but we can still talk about a weaker sort of minimality &mdash; the [Pareto optimality][pareto-opt].
+The main motivation to this formulation is the conflict \eqref{eq:mtwtf}. This vector objective will not have a strong order minimum, but we can still talk about a weaker sort of minimality &mdash; the [Pareto optimality][pareto-opt].
 
 > **Definition (Pareto optimality).**
 A solution $$\theta$$ dominates a solution $$\bar{\theta}$$ if $$\hat{\mathcal{L}}^t(\theta^{sh},\theta^t)  \leq \hat{\mathcal{L}}^t(\bar{\theta}^{sh},\bar{\theta}^t)$$ for all tasks $$t$$ and $$L(\theta^{sh}, \theta^1,\ldots,\theta^T) \neq L(\bar{\theta}^{sh}, \bar{\theta}^1,\ldots,\bar{\theta}^T)$$;
 A solution $$\,\theta^\star$$ is called Pareto optimal if there exists no solution $$\,\theta$$ that dominates $$\,\theta^\star$$.
 
-The multi-objective optimization can be solved to local minimality (in a Pareto sense) via Multiple Gradient Descent algorithm. 
+The multi-objective optimization can be solved to local minimality (in a Pareto sense) via Multiple Gradient Descent Algorithm (MGDA), thoroughly studied by [Désidéri (2012)][mgda]. This algorithm leverages the [Karush&ndash;Kuhn&ndash;Tucker (KKT) conditions][kkt-cond] which are neccessary for optimality. In this case, the KKT conditions for both shared and task-specific parameters are follows:
+
+-  There exists $$\lambda^1 \dots \lambda^T$$ such that $$\sum_{t=1}^T \lambda^t = 1$$ and the [convex combination][convex-comb] of gradients with respect to shared paramethers $$\sum_{t=1}^T \lambda^t \nabla_{\theta^{sh}} \hat{\mathcal{L}}^t(\theta^{sh},\theta^t) = 0$$.
+-  For all tasks $$t$$, the gradients with respect to task-specific parameters $$\nabla_{\theta^t} \hat{\mathcal{L}} (\theta^{sh}, \theta^{t}) = 0$$.
+
+The solutions satisfying these conditions are also called a *Pareto stationary* point. It is worth noting that although every Pareto optimal point is Pareto stationary, the reverse may not be true. Now, we formulate the optimization problem for coefficients $$\lambda^1, \ldots, \lambda^T$$ as follows:
+
+$$
+\begin{equation}
+\begin{split}
+    \text{minimize} \quad &
+    \left\| \sum_{t=1}^T {\lambda^t \nabla_{\theta^{sh}} \hat{\mathcal{L}}^t (\theta^{sh},\theta^t)} \right\| _ 2^2
+    \\
+    \text{subject to} \quad &
+    \sum_{t=1}^T \lambda^t = 1, \enspace \lambda^t \ge 0
+\end{split}
+\tag{1.3.2} \label{eq:lambdaopt}
+\end{equation}
+$$
+
+Denoting $$p^t = \nabla_{\theta^{sh}} \hat{\mathcal{L}}^t (\theta^{sh},\theta^t)$$, this optimization problem with respect to $$\lambda^t$$ is equivalent to finding a minimum-norm point in the convex hull of the set of input points $$p^t$$. This problem arises naturally in computational geometry: it is equivalent to finding the closest point within a convex hull to a given query point. Basically, \eqref{eq:lambdaopt} is a convex quadratic problem with linear constraints. If you are like me, chances are you're also sick of the [non-convex][non-convex-rage] optimization problems appearing every day of your career! Having a [convex problem][convex-opt-boyd] popping out of nowhere like this is nothing short of joy. The [Frank&ndash;Wolfe solver][frank-wolfe] was used as a most suitable convex optimization algorithm in this case. The following theorem highlights the nice properties of this optimization problem:
+
+> **Theorem ([Désidéri][mgda]).** If $$\,\lambda^1, \dots, \lambda^T$$ is the solution of \eqref{eq:lambdaopt}, either of the following is true:
+> - $$\sum_{t=1}^T {\lambda^t \nabla_{\theta^{sh}} \hat{\mathcal{L}}^t (\theta^{sh},\theta^t)} = 0$$ and the resulting $$\,\lambda^1, \ldots, \lambda^T$$ satisfies the KKT conditions.
+> - $$\sum_{t=1}^T {\lambda^t \nabla_{\theta^{sh}} \hat{\mathcal{L}}^t (\theta^{sh},\theta^t)}$$ is a descent direction that decreases all objectives.
+
+The gist of the approach is clear &mdash; the resulting MTL algorithm is to apply [gradient descent][grad-desc] on the task-specific parameters $$\{ \theta^t \} _ {t=1}^T$$, followed by solving \eqref{eq:lambdaopt} and applying the solution $$\sum_{t=1}^T \lambda^t \nabla_{\theta^{sh}}$$ as a gradient update to shared parameter $$\theta^{sh}$$. This algorithm will work for almost *any* neural network that you can build &mdash; the definition in \eqref{eq:mtnn} is very broad.
+
+It is easy to notice that in this case, we need to compute $$\nabla_{\theta^{sh}}$$ for each task $$t$$, which requires a backward pass over the shared parameters for each task. Hence, the resulting gradient computation would be the forward pass followed by $$T$$ backward passes. This significantly increases our expected training time. To address that, the authors ([Sener and Koltun, 2018][mtl-as-moo]) also provided a clever approximation that allows us to perform the computations in just one pass, while preserving the nice theorem above under mild assumptions. Also, the [Frank&ndash;Wolfe solver][frank-wolfe] used to optimize \eqref{eq:lambdaopt} requires an efficient algorithm for the [line search][line-search] (a very common subroutine in [convex optimization][convex-opt-boyd] methods). This involves rigorous proofs, so I will omit it here to keep the simplicity (i.e. *noodleness*) of this article.
 
 [moo]: https://en.wikipedia.org/wiki/Multi-objective_optimization
 [nips2018]: https://nips.cc/Conferences/2018/Schedule?type=Poster
@@ -139,14 +168,33 @@ The multi-objective optimization can be solved to local minimality (in a Pareto 
 [grid-search]: https://scikit-learn.org/0.18/auto_examples/model_selection/grid_search_digits.html
 [kendall2018]: http://openaccess.thecvf.com/content_cvpr_2018/papers/Kendall_Multi-Task_Learning_Using_CVPR_2018_paper.pdf
 [chen2017]: https://arxiv.org/abs/1711.02257
+[grad-desc]: https://en.wikipedia.org/wiki/Gradient_descent
 [pareto-opt]: https://en.wikipedia.org/wiki/Pareto_efficiency
+[mgda]: https://hal.inria.fr/inria-00389811v1/document
+[convex-comb]: https://en.wikipedia.org/wiki/Convex_combination
+[kkt-cond]: http://www.onmyphd.com/?p=kkt.karush.kuhn.tucker
+[non-convex-rage]: https://www.cs.ubc.ca/labs/lci/mlrg/slides/non_convex_optimization.pdf
+[convex-opt-boyd]: http://web.stanford.edu/~boyd/cvxbook/
+[line-search]: https://en.wikipedia.org/wiki/Line_search
+[frank-wolfe]: http://fa.bianp.net/blog/2018/notes-on-the-frank-wolfe-algorithm-part-i/
 
 
 
 
 
 
-## Appendix A: other stuffs that ain't the best instant noodle
+## 2. Forgot something? Hallucinate it!
+
+*No, I don't propagandize drugs and weed.* In this section, I will describe the problem of [catastrophic forgetting][catastrophic-forgetting] that occurs when the tasks you are trying to learn are very different so you don't have ground truth labels for each tasks for every input (or, in case of Unsupervised/GANs/Reinforcement &mdash; you can't evaluate the model for all its actions).
+
+[catastrophic-forgetting]: https://en.wikipedia.org/wiki/Catastrophic_interference
+
+
+
+
+
+
+## Appendix A: other noodles that are yummy but ain't the best
 
 In this section, I will describe the other approaches that I had experience with (i.e. have been used in practice), but won't recommend them for others. On their own, they are not bad, just not the best (comparing to methods described above).
 
@@ -174,6 +222,8 @@ $$
 
 The loss \eqref{eq:gradnorm2} is then differentiated *only w.r.t.* $$\lambda_t$$ and then updated via the standard update in [backpropagation][backprop] algorithm. In other words, the weight coefficients $$\lambda$$ are used to manipulate the gradient's norms and move it towards the desired target \eqref{eq:gradnorm1}.
 
+**Comments.** This approach requires choosing an additional hyperparameter $$\alpha$$ that you have to guess. This pisses me off because I don't have the insane intuition on hyperparameter tuning as the [Kagglers][kagglers] do. Furthermore, it introduces another loss function $$\mathcal{L} _ {\text{grad}}$$ that regularizes the gradient magnitudes. Lol, [good job bro][good-job-meme] &mdash; you've just introduced another hyperparameter to optimize your existing hyperparameters, and introduced another loss to the sum to simplify the bunch of losses that you have *(sarcasm)*. Somehow it works, but not as good as the instant noodle above.
+
 ### A.2. Using uncertainties of losses $$\mathcal{L}^t(\cdot)$$ to balance $$\lambda_t$$
 
 **Description.** On [CVPR 2018][cvpr2018], another approach was proposed by [Kendall et al. (2018)][kendall2018] that models the network output's [homoscedastic][homoscedastic] uncertainty with a probabilistic model. Let $$f^W(x)$$ be the output of the network with weights $$W$$ on input $$x$$. For single-task, we model the network output uncertainty with a density function $$p\left( y \vert f^W(x) \right)$$ (how the true answer is likely to be $$y$$, given network's response). In the case of multiple network outputs $$y_1, \dots y_K$$, we obtain the following multi-task likelihood:
@@ -190,3 +240,5 @@ $$
 [backprop]: https://en.wikipedia.org/wiki/Backpropagation
 [kendall2018]: http://openaccess.thecvf.com/content_cvpr_2018/papers/Kendall_Multi-Task_Learning_Using_CVPR_2018_paper.pdf
 [chen2017]: https://arxiv.org/abs/1711.02257
+[good-job-meme]: https://i.kym-cdn.com/photos/images/newsfeed/000/514/589/66b.jpg
+[kagglers]: https://www.kaggle.com/umeshnarayanappa/the-world-needs-kaggle
