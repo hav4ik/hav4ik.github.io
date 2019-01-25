@@ -83,6 +83,7 @@ For a more comprehensive survey that gives you a bird-eye-view on a whole field 
 
 *Sorry for bad puns.* The methods of Multi-Objective Optimization (MOO) can help you learn multiple objectives better (here and after we will use the terms *objective* and *task* interchangeably). In this section, I will discuss the challenges of learning multiple objectives, and describe a State-of-the-Art solution to it.
 
+<a name="section11"></a>
 ### 1.1. Forming the formal formulation
 
 Consider the input space $$\mathcal{X}$$ and collection of task-specific output spaces $$\{ \mathcal{Y}^t \} _ {t \in [ T ]}$$, where $$T$$ is the number of tasks. Without loss of generality, we consider a Multi-Task Neural Network
@@ -248,12 +249,23 @@ The loss \eqref{eq:gradnorm2} is then differentiated *only w.r.t.* $$\lambda_t$$
 
 ### A.2. Using uncertainties of losses $$\mathcal{L}^t(\cdot)$$ to balance $$\lambda_t$$
 
-**Description.** On [CVPR 2018][cvpr2018], another approach was proposed by [Kendall et al. (2018)][kendall2018] that models the network output's [homoscedastic][homoscedastic] uncertainty with a probabilistic model. Let $$f^W(x)$$ be the output of the network with weights $$W$$ on input $$x$$. For single-task, we model the network output uncertainty with a density function $$p\left( y \vert f^W(x) \right)$$ (how the true answer is likely to be $$y$$, given network's response). In the case of multiple network outputs $$y_1, \dots y_K$$, we obtain the following multi-task likelihood:
+**Description.** On [CVPR 2018][cvpr2018], another approach was proposed by [Kendall et al. (2018)][kendall2018] that models the network output's [homoscedastic][homoscedastic] uncertainty with a probabilistic model. We will use the notion \eqref{eq:mtnn} in [Section 1.1][section-11]. For single-task, we model the network output uncertainty with a density function $$p\left( y \vert f(x, \theta) \right)$$ (how the true answer is likely to be $$y$$, given network's response). In the case of multiple network outputs $$y^1, \dots y^T$$, we obtain the following multi-task likelihood:
 
 $$
 \begin{equation}
 \tag{A.2.1} \label{eq:mtlikelihood}
-p \left( y_1, \dots y_K \vert f^W(x) \right) = p\left(y_1 \vert f^W(x)\right) \dots p\left(y_K \vert f^W(x)\right)
+p \left( y^1, \ldots, y^T \vert f(x, \theta) \right) = p\left(y^1 \vert f(x, \theta)\right) \ldots p\left(y^T \vert f(x, \theta)\right) \to \max
+\end{equation}
+$$
+
+Instead of balancing the weights of loss functions as in \eqref{eq:mtloss}, we can now require the likelihood \eqref{eq:mtlikelihood} to be maximal, i.e. we have a [maximal likelihood][max-likelihood] inference problem, when the objective is to maximize $$\log p(y^1, \ldots, \y^T \vert f(x, \theta))$$ with respect to $$\theta$$. The trick now is to construct such a likelihood $$p(y^t \vert f(x,\theta))$$ for each task, so that it will contain a loss $$\mathcal{L}^t(\cdot)$$ term. This way, we will be able to create a bridge between the maximum likelihood \eqref{eq:mtlikelihood} and the summation loss \eqref{eq:mtloss}. The $$\log(\cdot)$$ will also convert multiplications to summation, which will basically bring the maximum likelihood to the summation form.
+
+As an example to this dark magic approach, consider a regression task where your objective is to optimize the loss $$\mathcal{L}(\theta) = \| y - f(x, \theta) \|^2$$. The likelihood is defined artificially as a Gaussian with mean given by model's output and deviation given by a noise factor $$\sigma$$:
+
+$$
+\begin{equation}
+p\left(y \vert f(x, \theta)\right) = \mathcal{N}(f(x, \theta), \sigma^2)
+\tag{A.2.2} \label{eq:gausslike}
 \end{equation}
 $$
 
@@ -264,3 +276,5 @@ $$
 [chen2017]: https://arxiv.org/abs/1711.02257
 [good-job-meme]: https://i.kym-cdn.com/photos/images/newsfeed/000/514/589/66b.jpg
 [kagglers]: https://www.kaggle.com/umeshnarayanappa/the-world-needs-kaggle
+[section-11]: #section11
+[max-likelihood]: https://en.wikipedia.org/wiki/Maximum_likelihood_estimation
