@@ -25,7 +25,7 @@ comments: true
 
 ## Introduction
 
-If you found yourself in a strange situation, where you want your Neural Network to do several things at once, i.e. detect objects, predict depth, predict surface normals &ndash; don't worry, you are just having a Multi-Task Learning (MTL) problem. In this article, I will discuss the challenges of MTL, make a survey on effective solutions to them, and propose minor improvements of my own to the readers.
+If you found yourself in a strange situation, where you want your Neural Network to do several things at once &mdash; don't worry, you are just having a Multi-Task Learning (MTL) problem. In this article, I will discuss the challenges of MTL, make a survey on effective solutions to them, and propose minor improvements of my own to the readers.
 
 {% capture imblock1 %}
     {{ site.url }}/articles/images/2019-01-22-mtl-a-practical-survey/teaser.png
@@ -34,13 +34,13 @@ If you found yourself in a strange situation, where you want your Neural Network
 
 Traditionally, the development of Multi-Task Learning was aimed to improve the generalization of multiple task predictors by jointly training them, while allowing some sort of knowledge transfer and between them [(Caruana, 1997)][caruana1997]. If you, for example, train a *surface normal prediction* model and *depth prediction* model together, they will definitely share mutually-benefitial features together [(Eigen et al. 2015)][eigen-dnl]. This motivation is clearly inspired by natural intelligence &mdash; living creatures in an remarkable way can easily learn a task by leveraging the knowledge from other tasks. A broader generalization of this idea is called [Lifelong Learning][lifelong-learning], in which different tasks are not even learned simultaneously.
 
-However, screw these academic stuffs, **we are [engineers][im-an-engineer]**! Why should we care about leveraging diverse features from different tasks when we can just *slap that AI* with more data ([kagglers][kagglers] doesn't count here)? If you are an engineer from *big AF* companies like Google, Samsung, Microsoft, etc. then *Hell Yeah* you've got a *ton* of cash to *splash out* on labellers! Just hire them to get more data. Thus our main motivation for Multi-Task learning are less obvious, but even more important from an engineering and consumer standpoint:
+However, screw these academic stuffs, **we are [engineers][im-an-engineer]**! Why should we care about leveraging diverse features from different tasks when we can just *slap that AI* with more data ([kagglers][kagglers] doesn't count here)? If you are an engineer from *big AF* companies like Google, Samsung, Microsoft, etc. then *Hell Yeah* you've got a *ton* of cash to *splash out* on labellers! Just hire them to get more data. Thus, our main motivation for Multi-Task learning are less obvious, but even more important from an engineering and consumer standpoint:
 
 -  **To optimize multiple objectives at once.** For instance, in [GANs][gan], it is shown in various tasks that often incorporating additonal loss functions can yield much better results ([Isola et al. 2017][pix2pix]; [Wang et al. 2018][vid2vid]). A [regularization term][regularization] can also be considered as additional objective.
 
 -  **To reduce the cost of running multiple models**. My Korean boss always yells at my team *"we need faster CNNs!"* in his typical asian accent (no offense, I'm also asian). How can we further speed up the 5 models that are already optimized both in size and speed by more than 40 times? Oh, yeah, we can merge all of them into a single Multi-Task model!
 
-In this article, I will only focus on the two motivation above. The *motto* of this article is: *simple as instant noodle, easy to implement, and effective as heck!* I will overview [3,5 sorts of instant noodles][3-5-anonymous] to help you survive everyday situations in MTL. As I continue to write this article, it became a convenient note for my lecture as well, so here you will find more in-depth theoretical stuffs (that normally only the full papers have) than a typical survey will do. This article will be structured as following:
+In this article, I will only focus on the two motivation above. The *motto* of this article is: *simple as instant noodle*, i.e. easy to implement and effective as heck! I will overview [3,5 sorts of instant noodles][3-5-anonymous] to help you survive everyday situations in MTL. This blog post serves me as a lecture note as well, so here you will find more in-depth theoretical stuffs (that normally only the full papers have) than a typical survey will do. This article will be structured as following:
 
 -  In [**Section 1**][section-1], I will outline the challenges of optimizing multiple objectives at once and describe a cool paper from [NeurIPS 2018][nips2018] that fits our motto of *instant noodleness.* Then, in [**subsection 1.4**][subsection-1-4], I will propose some modifications of my own to it that generalizes the approach to more complicated architectures that I used in practical applications.
 
@@ -113,7 +113,7 @@ $$
 \end{equation}
 $$
 
-where $$\hat{\mathcal{L}} _ t(\cdot)$$ is an empirical task-specific loss for $$t$$-th task defined as the average loss accross the whole dataset $$\hat{\mathcal{L}} (\theta^{sh}, \theta^{t}) \triangleq \frac{1}{N} \sum_i \mathcal{L} ( f^t(x_i; \theta^{sh}, \theta^{t}), y_i^t )$$, where $$y_i^t \in \mathcal{Y}^t$$ is the ground truth of the $$t$$-th task for $$i$$-th sample in the dataset.
+where $$\hat{\mathcal{L}} _ t(\cdot)$$ is an empirical task-specific loss for $$t$$-th task defined as the average loss accross the whole dataset $$\hat{\mathcal{L}} (\theta^{sh}, \theta^{t}) \triangleq \frac{1}{N} \sum_i \mathcal{L} ( f^t(x_i; \theta^{sh}, \theta^{t}), y_i^t )$$, where $$y_i^t \in \mathcal{Y}^t$$ is the ground truth of the $$t$$-th task that corresponds to $$i$$-th sample in the dataset of $$N$$ samples.
 
 ### 1.2. The $$\lambda_t$$ Balancing Problem
 
@@ -183,6 +183,8 @@ The gist of the approach is clear &mdash; the resulting MTL algorithm is to appl
 
 It is easy to notice that in this case, we need to compute $$\nabla _ {\theta^{sh}}$$ for each task $$t$$, which requires a backward pass over the shared parameters for each task. Hence, the resulting gradient computation would be the forward pass followed by $$T$$ backward passes. This significantly increases our expected training time. To address that, the authors ([Sener and Koltun, 2018][mtl-as-moo]) also provided a clever approximation that allows us to perform the computations in just one pass, while preserving the nice theorem above under mild assumptions. Also, the [Frank&ndash;Wolfe solver][frank-wolfe] used to optimize \eqref{eq:lambdaopt} requires an efficient algorithm for the [line search][line-search] (a very common subroutine in [convex optimization][convex-opt-boyd] methods). This involves rigorous proofs, so I will omit it here to keep the simplicity (i.e. *noodleness*) of this article.
 
+**Comments.** Absolutely brilliant! [ten out of ten][chuck-ten]! The mathematics in this paper is juicy! It outperforms [Chen et al. (2017)][chen2017] and [Kendall et al. (2018)][kendall2018] consistently with a large margin! Heck, it even outperforms the single-task classifier in most of the benchmarks! Absolute insanity! The [second author][vkoltun] is also a beast in modern Machine Learning! This is by far the most tasty *instant noodle* in this survey!
+
 [moo]: https://en.wikipedia.org/wiki/Multi-objective_optimization
 [nips2018]: https://nips.cc/Conferences/2018/Schedule?type=Poster
 [mtl-as-moo]: https://papers.nips.cc/paper/7334-multi-task-learning-as-multi-objective-optimization.pdf
@@ -190,6 +192,8 @@ It is easy to notice that in this case, we need to compute $$\nabla _ {\theta^{s
 [grid-search]: https://scikit-learn.org/0.18/auto_examples/model_selection/grid_search_digits.html
 [kendall2018]: http://openaccess.thecvf.com/content_cvpr_2018/papers/Kendall_Multi-Task_Learning_Using_CVPR_2018_paper.pdf
 [chen2017]: https://arxiv.org/abs/1711.02257
+[chuck-ten]: http://m.memegen.com/c1rb75.jpg
+[vkoltun]: http://vladlen.info/
 [grad-desc]: https://en.wikipedia.org/wiki/Gradient_descent
 [pareto-opt]: https://en.wikipedia.org/wiki/Pareto_efficiency
 [mgda]: https://hal.inria.fr/inria-00389811v1/document
@@ -217,9 +221,9 @@ It is easy to notice that in this case, we need to compute $$\nabla _ {\theta^{s
 
 
 
-## Appendix A: other noodles that are yummy but ain't the best
+## Appendix A: other noodles that ain't the yummiest noodle
 
-In this section, I will describe the other approaches that I had experience with (i.e. have been used in practice), but won't recommend them for others. On their own, they are not bad, just not the best (comparing to methods described above).
+In this section, I will describe the other approaches that I had experience with, but won't recommend them for others. On their own, they are quite good and convenient, just not the best out there (comparing to methods described above).
 
 ### A.1. GradNorm: Gradients Normalization for Adaptive $$\lambda_t$$ Balancing
 
@@ -254,13 +258,13 @@ The loss \eqref{eq:gradnorm2} is then differentiated *only w.r.t.* $$\lambda_t$$
 $$
 \begin{equation}
 \tag{A.2.1} \label{eq:mtlikelihood}
-p \left( y^1, \ldots, y^T \vert f(x, \theta) \right) = p\left(y^1 \vert f(x, \theta)\right) \ldots p\left(y^T \vert f(x, \theta)\right) \to \max
+p \left( y^1, \ldots, y^T \vert f(x, \theta) \right) = p\left(y^1 \vert f^1(x, \theta)\right) \ldots p\left(y^T \vert f^T(x, \theta)\right) \to \max
 \end{equation}
 $$
 
-Instead of balancing the weights of loss functions as in \eqref{eq:mtloss}, we can now require the likelihood \eqref{eq:mtlikelihood} to be maximal, i.e. we have a [maximal likelihood][max-likelihood] inference problem, when the objective is to maximize $$\log p(y^1, \ldots, \y^T \vert f(x, \theta))$$ with respect to $$\theta$$. The trick now is to construct such a likelihood $$p(y^t \vert f(x,\theta))$$ for each task, so that it will contain a loss $$\mathcal{L}^t(\cdot)$$ term. This way, we will be able to create a bridge between the maximum likelihood \eqref{eq:mtlikelihood} and the summation loss \eqref{eq:mtloss}. The $$\log(\cdot)$$ will also convert multiplications to summation, which will basically bring the maximum likelihood to the summation form.
+Instead of balancing the weights of loss functions as in \eqref{eq:mtloss}, we can now require the likelihood \eqref{eq:mtlikelihood} to be maximal, i.e. we have a [maximal likelihood][max-likelihood] inference problem, when the objective is to minimize $$-\log p(y^1, \ldots, y^T \vert f(x, \theta))$$ with respect to $$\theta$$. The trick now is to construct such a likelihood $$p(y^t \vert f^t(x,\theta))$$ for each task, so that it will contain a loss $$\mathcal{L}^t(\cdot)$$ term. This way, we will be able to create a bridge between the maximum likelihood \eqref{eq:mtlikelihood} and the summation loss \eqref{eq:mtloss}. The $$\log(\cdot)$$ will also convert multiplications to summation, which will basically bring the maximum likelihood to the summation form.
 
-As an example to this dark magic approach, consider a regression task where your objective is to optimize the loss $$\mathcal{L}(\theta) = \| y - f(x, \theta) \|^2$$. The likelihood is defined artificially as a Gaussian with mean given by model's output and deviation given by a noise factor $$\sigma$$:
+As an example to this dark magic approach, consider a multi-regression regression where your objective is to optimize the loss $$\mathcal{L}^t(\theta) = \| y^t - f^t(x, \theta) \|^2$$ for all tasks $$t \in \{1 \ldots T\}$$. The likelihood is defined artificially as a Gaussian with mean given by model's output and deviation given by a noise factor $$\sigma$$:
 
 $$
 \begin{equation}
@@ -268,6 +272,22 @@ p\left(y \vert f(x, \theta)\right) = \mathcal{N}(f(x, \theta), \sigma^2)
 \tag{A.2.2} \label{eq:gausslike}
 \end{equation}
 $$
+
+The noise scalar $$\sigma$$ is observed during training, i.e. it is a *trainable* parameter. In essense, it is the parameter that captures the uncertainty. So, our objective now is to maximize \eqref{eq:mtlikelihood} with respect to $$\sigma$$ sa well. After careful computations, our *log likelihood* will take the following form:
+
+$$
+\begin{equation}
+-\log p \left( y^1, \ldots, y^T \vert f(x, \theta) \right)
+\propto 
+\underbrace{\sum_{t=1}^T {\frac{1}{2\sigma _ 1^2} 
+\| y^t - f^t(x, \theta) \|^2}} _
+{\text{the same as}\, \sum_{t=1}^T \lambda^t\mathcal{L}^t(\theta)}
++ \underbrace{\log \prod_{t=1}^T \sigma_t} _ {\text{regularization}}
+\tag{A.3.3} \label{eq:l2ll}
+\end{equation}
+$$
+
+which is the same as the summation loss \eqref{eq:mtloss}, where we assign $$\lambda_t = \frac{1}{2}\sigma_t^{-2}$$, plus the [regularization term][regularization] that discourages $$\sigma_t$$ to increase too much (effectively ignoring the data).
 
 [cvpr2018]: http://cvpr2018.thecvf.com/
 [icml2018]: https://icml.cc/Conferences/2018/Schedule?type=Poster
@@ -278,3 +298,4 @@ $$
 [kagglers]: https://www.kaggle.com/umeshnarayanappa/the-world-needs-kaggle
 [section-11]: #section11
 [max-likelihood]: https://en.wikipedia.org/wiki/Maximum_likelihood_estimation
+[regularization]: https://en.wikipedia.org/wiki/Regularization_(mathematics)
