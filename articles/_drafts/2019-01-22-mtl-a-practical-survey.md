@@ -42,7 +42,7 @@ However, screw these academic stuffs, **we are [engineers][im-an-engineer]**! Wh
 
 In this article, I will only focus on the two motivation above. The *motto* of this article is: *simple as instant noodle*, i.e. easy to implement and effective as heck! I will overview [3,5 sorts of instant noodles][3-5-anonymous] to help you survive everyday situations in MTL. This blog post serves me as a lecture note as well, so here you will find more in-depth theoretical stuffs (that normally only the full papers have) than a typical survey will do. This article will be structured as following:
 
--  In [**Section 1**][section-1], I will outline the challenges of optimizing multiple objectives at once and describe a cool paper from [NeurIPS 2018][nips2018] that fits our motto of *instant noodleness.* Then, in [**subsection 1.4**][subsection-1-4], I will propose some modifications of my own to it that generalizes the approach to more complicated architectures that I used in practical applications.
+-  In [**Section 1**][section-1], I will outline the challenges of optimizing multiple objectives at once and describe a cool paper from [NeurIPS 2018][nips2018] that fits our motto of *instant noodleness.* Then, in [**subsection 1.4**][subsection-1-4], I will make some remarks and propose some modifications of my own to it that generalizes the approach to more complicated architectures that I used in practical applications.
 
 -  In [**Section 2**][section-2], I will discuss the challenges when for each input sample, we don't have ground truth to each of the tasks to it &mdash; a very common situation in MTL. Then, I will describe the *next noodle for ya* &mdash; a simple yet effective solution proposed on [WACV 2018][wacv2018]. In [**subsection 2.3**][subsection-2-3], I will also expand this idea to a more *industrial* setting, and propose minor improvements using my experience in [Knowledge Distillation][knowledge-distillation].
 
@@ -137,7 +137,7 @@ for some tasks $$t_1$$ and $$t_2$$. In other words, solution $$\theta$$ is bette
 Recent works attacks this problem by presenting a heuristic, according to which the coefficients $$\lambda_t$$ are chosen: [Chen et al. (2017)][chen2017] manipulates them in such a way that the gradients are approximately normalized; [Kendall et al. (2018)][kendall2018] models the network output's [homoscedastic uncertainty][homoscedastic] with a probabilistic model.
 However, heuristic are too unreliable &mdash; there is no guarantee that the chosen weights will be of any good. A true *instant noodle* approach should be reliable. That's where the latest paper [Sener and Koltun (2018)][mtl-as-moo] presented on [NeurIPS][nips2018] this year comes to rescue. This paper is very theory-heavy, so I will expose it just enough to give you a glimpse of the core idea without delving too deep into the rigorous theoretical stuffs.
 
-**Description.** Instead of optimizing the summation objective \eqref{eq:mtloss}, the idea is to look at the MTL problem from the perspective of [multi-objective optimization][moo]: optimizing a collection of possibly conflicting objectives. The MTL objective is then specified using a vector-valued loss $${L}$$:
+Instead of optimizing the summation objective \eqref{eq:mtloss}, the idea is to look at the MTL problem from the perspective of [multi-objective optimization][moo]: optimizing a collection of possibly conflicting objectives. The MTL objective is then specified using a vector-valued loss $${L}$$:
 
 $$
 \begin{equation}
@@ -181,9 +181,14 @@ Denoting $$p^t = \nabla _ {\theta^{sh}} \hat{\mathcal{L}}^t (\theta^{sh},\theta^
 
 The gist of the approach is clear &mdash; the resulting MTL algorithm is to apply [gradient descent][grad-desc] on the task-specific parameters $$\{ \theta^t \} _ {t=1}^T$$, followed by solving \eqref{eq:lambdaopt} and applying the solution $$\sum_{t=1}^T \lambda^t \nabla_{\theta^{sh}}$$ as a gradient update to shared parameter $$\theta^{sh}$$. This algorithm will work for almost *any* neural network that you can build &mdash; the definition in \eqref{eq:mtnn} is very broad.
 
-It is easy to notice that in this case, we need to compute $$\nabla _ {\theta^{sh}}$$ for each task $$t$$, which requires a backward pass over the shared parameters for each task. Hence, the resulting gradient computation would be the forward pass followed by $$T$$ backward passes. This significantly increases our expected training time. To address that, the authors ([Sener and Koltun, 2018][mtl-as-moo]) also provided a clever approximation that allows us to perform the computations in just one pass, while preserving the nice theorem above under mild assumptions. Also, the [Frank&ndash;Wolfe solver][frank-wolfe] used to optimize \eqref{eq:lambdaopt} requires an efficient algorithm for the [line search][line-search] (a very common subroutine in [convex optimization][convex-opt-boyd] methods). This involves rigorous proofs, so I will omit it here to keep the simplicity (i.e. *noodleness*) of this article.
+It is easy to notice that in this case, we need to compute $$\nabla _ {\theta^{sh}}$$ for each task $$t$$, which requires a backward pass over the shared parameters for each task. Hence, the resulting gradient computation would be the forward pass followed by $$T$$ backward passes. This significantly increases our expected training time. To address that, the authors ([Sener and Koltun, 2018][mtl-as-moo]) also provided a clever approximation of $$\nabla _ {\theta^{sh}}$$ that allows us to perform the computations in just one pass, while preserving the nice theorem above under mild assumptions. Also, the [Frank&ndash;Wolfe solver][frank-wolfe] used to optimize \eqref{eq:lambdaopt} requires an efficient algorithm for the [line search][line-search] (a very common subroutine in [convex optimization][convex-opt-boyd] methods). This involves rigorous proofs, so I will omit it here to keep the simplicity (i.e. *noodleness*) of this article.
 
-**Comments.** Absolutely brilliant! [ten out of ten][chuck-ten]! The mathematics in this paper is juicy! It outperforms [Chen et al. (2017)][chen2017] and [Kendall et al. (2018)][kendall2018] consistently with a large margin! Heck, it even outperforms the single-task classifier in most of the benchmarks! Absolute insanity! The [second author][vkoltun] is also a beast in modern Machine Learning! This is by far the most tasty *instant noodle* in this survey!
+<a name="subsection14"></a>
+### 1.4. Remarks and Modifications
+
+Absolutely brilliant! [ten out of ten][chuck-ten]! The mathematics in this paper is juicy! It outperforms [Chen et al. (2017)][chen2017] and [Kendall et al. (2018)][kendall2018] consistently with a large margin! Heck, it even outperforms the single-task classifier in most of the benchmarks! Absolute insanity! The [second author][vkoltun] is also a beast in modern Machine Learning! This is by far the most tasty *instant noodle* in this survey!
+
+Moreover, the approximation for $$\nabla _ {\theta^{sh}}$$, although it is designed for encoder-decoder architecture, can be generalized to a tree-like structure. It can also be easily modified in case your objectives are not equal in importance: every constraints $$\lambda_i > c\lambda_j$$ is a convex constraint, and a combination of it is also convex. So, we can still use the [Frank&ndash;Wolfe solver][frank-wolfe] here. The exact algorithm is described in [Appendix B.1][appendix-b-1].
 
 [moo]: https://en.wikipedia.org/wiki/Multi-objective_optimization
 [nips2018]: https://nips.cc/Conferences/2018/Schedule?type=Poster
@@ -203,6 +208,7 @@ It is easy to notice that in this case, we need to compute $$\nabla _ {\theta^{s
 [convex-opt-boyd]: http://web.stanford.edu/~boyd/cvxbook/
 [line-search]: https://en.wikipedia.org/wiki/Line_search
 [frank-wolfe]: http://fa.bianp.net/blog/2018/notes-on-the-frank-wolfe-algorithm-part-i/
+[appendix-b-1]: #appendixb1
 
 
 
@@ -289,6 +295,8 @@ $$
 
 which is the same as the summation loss \eqref{eq:mtloss}, where we assign $$\lambda_t = \frac{1}{2}\sigma_t^{-2}$$, plus the [regularization term][regularization] that discourages $$\sigma_t$$ to increase too much (effectively ignoring the data).
 
+**Comments.** [What kind of black magic is this?][black-magic] Basically, to optimize a loss function, you will need to construct a whole distribution, the logarithm of which will give you the loss function multiplied by a learnable scalar $$\sigma$$, and make sure that this distribution is physically meaningful! Or, get rid of the notion of "loss fuction" at all and just make hypothesis about the form of $$\mathcal{L}(\cdot)$$ uncertainty. This is too much pain in the ass for a lazy engineer. There is no guarantee that the density you constructed is correct either.
+
 [cvpr2018]: http://cvpr2018.thecvf.com/
 [icml2018]: https://icml.cc/Conferences/2018/Schedule?type=Poster
 [backprop]: https://en.wikipedia.org/wiki/Backpropagation
@@ -299,3 +307,4 @@ which is the same as the summation loss \eqref{eq:mtloss}, where we assign $$\la
 [section-11]: #section11
 [max-likelihood]: https://en.wikipedia.org/wiki/Maximum_likelihood_estimation
 [regularization]: https://en.wikipedia.org/wiki/Regularization_(mathematics)
+[black-magic]: # <!-- TODO -->
