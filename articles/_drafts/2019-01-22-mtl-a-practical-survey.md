@@ -186,6 +186,11 @@ Denoting $$p^t = \nabla _ {\theta^{sh}} \hat{\mathcal{L}}^t (\theta^{sh},\theta^
 
 The gist of the approach is clear &mdash; the resulting MTL algorithm is to apply [gradient descent][grad-desc] on the task-specific parameters $$\{ \theta^t \} _ {t=1}^T$$, followed by solving \eqref{eq:lambdaopt} and applying the solution $$\sum_{t=1}^T \lambda^t \nabla_{\theta^{sh}}$$ as a gradient update to shared parameter $$\theta^{sh}$$. This algorithm will work for almost *any* neural network that you can build &mdash; the definition in \eqref{eq:mtnn} is very broad.
 
+{% capture imblock12 %}
+    {{ site.url }}/articles/images/2019-01-22-mtl-a-practical-survey/sec1_im3.svg
+{% endcapture %}
+{% include gallery images=imblock12 cols=1 %}
+
 It is easy to notice that in this case, we need to compute $$\nabla _ {\theta^{sh}}$$ for each task $$t$$, which requires a backward pass over the shared parameters for each task. Hence, the resulting gradient computation would be the forward pass followed by $$T$$ backward passes. This significantly increases our expected training time. To address that, the authors ([Sener and Koltun, 2018][mtl-as-moo]) also provided a clever approximation of $$\nabla _ {\theta^{sh}}$$ that allows us to perform the computations in just one pass, while preserving the nice theorem above under mild assumptions. Also, the [Frank&ndash;Wolfe solver][frank-wolfe] used to optimize \eqref{eq:lambdaopt} requires an efficient algorithm for the [line search][line-search] (a very common subroutine in [convex optimization][convex-opt-boyd] methods). This involves rigorous proofs, so I will omit it here to keep the simplicity (i.e. *noodleness*) of this article.
 
 <a name="subsection14"></a>
@@ -292,7 +297,7 @@ One can even go a step further &mdash; to ellaborate the more aggressive knowled
 
 ## 3. No Instant Noodle Architecture yet :(
 
-Unfortunately, I can't think of any multi-task architecture that can be used everywhere. In Computer Vision, for example, we have ResNet50 [(He et al. 2015)][resnet] as a go-to *Instant Noodle*. In this section, I will discuss the pros and cons of commonly used architectures for Multi-Task Learning (especially in Computer Vision tasks).
+Unfortunately, I can't think of any multi-task architecture that can be used everywhere. In this section, I will discuss the pros and cons of commonly used architectures for Multi-Task Learning (especially in Computer Vision tasks).
 
 [resnet]: https://arxiv.org/abs/1512.03385
 
