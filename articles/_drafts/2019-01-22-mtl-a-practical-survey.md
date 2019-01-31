@@ -153,6 +153,11 @@ The main motivation to this formulation is the conflict \eqref{eq:mtwtf}. This v
 A solution $$\theta$$ dominates a solution $$\bar{\theta}$$ if $$\hat{\mathcal{L}}^t(\theta^{sh},\theta^t)  \leq \hat{\mathcal{L}}^t(\bar{\theta}^{sh},\bar{\theta}^t)$$ for all tasks $$t$$ and $$L(\theta^{sh}, \theta^1,\ldots,\theta^T) \neq L(\bar{\theta}^{sh}, \bar{\theta}^1,\ldots,\bar{\theta}^T)$$;
 A solution $$\,\theta^\star$$ is called Pareto optimal if there exists no solution $$\,\theta$$ that dominates $$\,\theta^\star$$.
 
+{% capture imblock11 %}
+    {{ site.url }}/articles/images/2019-01-22-mtl-a-practical-survey/sec1_im2.svg
+{% endcapture %}
+{% include gallery images=imblock11 cols=1 %}
+
 The multi-objective optimization can be solved to local minimality (in a Pareto sense) via Multiple Gradient Descent Algorithm (MGDA), thoroughly studied by [Désidéri (2012)][mgda]. This algorithm leverages the [Karush&ndash;Kuhn&ndash;Tucker (KKT) conditions][kkt-cond] which are neccessary for optimality. In this case, the KKT conditions for both shared and task-specific parameters are follows:
 
 -  There exists $$\lambda^1 \dots \lambda^T$$ such that $$\sum _ {t=1}^T \lambda^t = 1$$ and the [convex combination][convex-comb] of gradients with respect to shared paramethers $$\sum _ {t=1}^T \lambda^t \nabla _ {\theta^{sh}} \hat{\mathcal{L}}^t(\theta^{sh},\theta^t) = 0$$.
@@ -268,7 +273,7 @@ A more general idea is to distill the knowledge from a collection of single-task
 {% endcapture %}
 {% include gallery images=imblock23 cols=1 %}
 
-One can even go a step further &mdash; to ellaborate the more aggressive knowledge transfer techniques that distills hidden representations, such as *FitNets* ([Romero, 2015][fitnets]), to train the Multi-Task model faster. It can be helpful when one needs to perform a Neural Architecture Search for the most efficient MTL architecture.
+One can even go a step further &mdash; to ellaborate the more aggressive knowledge transfer techniques that distills hidden representations, such as *FitNets* ([Romero, 2015][fitnets]), to train the Multi-Task model faster. It can be helpful when one needs to perform a Neural Architecture Search for the most efficient MTL architecture. Simple, yet effective. A true *Instant Noodle!*
 
 [catastrophic-forgetting]: https://en.wikipedia.org/wiki/Catastrophic_interference
 [ubernet]: https://arxiv.org/abs/1609.02132
@@ -280,6 +285,16 @@ One can even go a step further &mdash; to ellaborate the more aggressive knowled
 [crossentropy]: https://en.wikipedia.org/wiki/Cross_entropy
 [fitnets]: https://arxiv.org/abs/1412.6550
 
+
+
+
+
+
+## 3. No Instant Noodle Architecture yet :(
+
+Unfortunately, I can't think of any multi-task architecture that can be used everywhere. In Computer Vision, for example, we have ResNet50 [(He et al. 2015)][resnet] as a go-to *Instant Noodle*. In this section, I will discuss the pros and cons of commonly used architectures for Multi-Task Learning (especially in Computer Vision tasks).
+
+[resnet]: https://arxiv.org/abs/1512.03385
 
 
 
