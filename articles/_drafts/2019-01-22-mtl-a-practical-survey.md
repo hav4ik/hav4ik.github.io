@@ -2,12 +2,12 @@
 layout: post
 permalink: /articles/:title
 type: "article"
-title: 'An "Instant Noodle" guide to Multi-Task Learning'
+title: 'Guide to "Instant Noodles" in Multi-Task Learning'
 image:
   feature: "articles/images/2019-01-22-mtl-a-practical-survey/featured.png"
   display: false
 tags: [survey, lecture notes, deep learning]
-excerpt: "A survey on stuffs that works like a charm as-is right from the box and are easy to implement &ndash; just like instant noodle!"
+excerpt: "An in-depth survey on stuffs that works like a charm as-is right from the box and are easy to implement &ndash; just like instant noodle!"
 comments: true
 ---
 
@@ -78,6 +78,7 @@ For a more comprehensive survey that gives you a bird-eye-view on a whole field 
 
 
 
+<br><br>
 <a name="section1"></a>
 ## 1. Too many losses? MOO to the rescue!
 
@@ -227,6 +228,7 @@ Moreover, the approximation for $$\nabla _ {\theta^{sh}}$$, although it is desig
 
 
 
+<br><br>
 <a name="section2"></a>
 ## 2. Forgot something? Hallucinate it!
 
@@ -256,7 +258,7 @@ On [WACV 2018][wacv2018], a very simple approach is proposed ([Kim et al. 2018][
 
 For example, in the setting in previous subsection, when the model is feeded with *Caption* data, it also tries to be similar to its previous self with respect to its outputs on *Action* branch, as illustrated in figure $$(c)$$; when the model is feeded with *Action* data, it also tries to be similar to its previous self with respect to the outputs on the *Caption* branch, as illustrated in figure $$(d)$$.
 
-Knowledge Distillation is a family of techniques, first proposed by [Hinton (2015)][hinton-distill], to make a model to learn from other model as well while training on a specific dataset. In case of classification, consider a *Teacher Network* (a pre-trained network) and a *Student Network* (the one to be trained) that have $$\text{Softmax}(\cdot)$$ as the output layer, and outputs $$y = (y_1, \ldots, y_n)$$ and $$\hat{y} = (\hat{y}_1, \ldots, \hat{y}_n)$$ respectively, where $$n$$ is number of classes. The [Knowledge Distillation][hinton-distill] loss that applied to the *Student Network* for preserving activation of the *Student Network* is defined as follows:
+Knowledge Distillation is a family of techniques, first proposed by [Hinton (2015)][hinton-distill], to make a model to learn from other model as well while training on a specific dataset. In case of classification, consider a *Teacher Network* (a pre-trained network) and a *Student Network* (the one to be trained) that have $$\text{Softmax}(\cdot)$$ as the output layer, and outputs $$y = (y_1, \ldots, y_n)$$ and $$\hat{y} = (\hat{y} _ 1, \ldots, \hat{y} _ n)$$ respectively, where $$n$$ is number of classes. The [Knowledge Distillation][hinton-distill] loss that applied to the *Student Network* for preserving activation of the *Student Network* is defined as follows:
 
 $$
 \begin{equation}
@@ -294,18 +296,92 @@ One can even go a step further &mdash; to ellaborate the more aggressive knowled
 
 
 
-
+<br><br>
+<a name="section3"></a>
 ## 3. No Instant Noodle Architecture yet :(
 
-Unfortunately, I can't think of any multi-task architecture that can be used everywhere. In this section, I will discuss the pros and cons of commonly used architectures for Multi-Task Learning (especially in Computer Vision tasks).
+Unfortunately, I can't think of any multi-task architecture that can be used everywhere, i.e. a *Truly Instant Noodle*. In this section, I will instead discuss the **pros** and **cons** of commonly used architectures for Multi-Task Learning (especially in Computer Vision tasks). I will keep myself up with State-of-the-Art, and, if an *Instant Noodle* shows up, I will update this section accordingly. Please check [Ruder S. (2017)][ruder-mtl] survey for stuffs that I might not mentioned here.
+
+Existing architectures of MTL can be classified according to how they share parameters between tasks, as shown in the figure below [(Meyerson & Miikkulainen, 2018)][beyond-shared]. The common trait between them is that they all have some sort of *shared hierarchies*.
+
+{% capture imblock31 %}
+    {{ site.url }}/articles/images/2019-01-22-mtl-a-practical-survey/sec3_im1.svg
+{% endcapture %}
+{% include gallery images=imblock31 cols=1 %}
+
+<a name="section31"></a>
+### 3.1. Shared encoder, task-specific decoders
+
+This is the most straight-forward approach, as shown in Fig. $$(3.a)$$, and is the most natural architecture that one can come up with, dated back from [Caruana (1997)][caruana1997]. In Multi-Task Learning literature, this approach is also referred to as *Hard Parameter Sharing*. Sometimes, this approach is extended to task-specific encoders ([Luong et al., 2016][luong2015]). This is the most widely used architecture as well (sort of an *okay-ish instant noodle*).
+
+**Pros**:
+- **Dead simple** &mdash; simple to implement, simple to train, simple to debug. Lots of tutorials are available as well: for TensorFlow ([here][tf-shared-tut]), for Keras ([here][keras-tut1] & [here][keras-tut2]), for PyTorch ([here][torch-tut]).
+- **Well-studied** &mdash; a huge body of literature has accumulated ever since [Caruana (1997)][caruana1997], both theoretically ([Kendall et al. 2018][kendall2018]; [Chen et al. 2017][chen2017]; [Sener & Koltun, 2018][mtl-as-moo]) and practically ([Ranjan et al. 2016][ranjan2016]; [Wu et el. 2015][wu2015]; [Jaderberg et al. 2017][jaderberg2017]).
+
+**Cons**:
+- **Not flexible** &mdash; forcing all tasks to share a common encoder is dumb. Some tasks are more *similar* than other, so logically a [*depth prediction*][depth-pred] and [*surface normal prediction*][normal-pred] should share more parameters with each other, than with a [*object detection*][obj-det] task.
+- **Pretending to share** &mdash; as highlighted by [Liu & Huang (2018)][meta-mtl-communication], these kind of architectures just collects all the features together into a common layer, instead of learning shared parameters (weights) across different tasks.
+- **Fight for resources** &mdash; as a consequence, the tasks often fight with each other for resources (e.g. convolution kernels) within a layer. If the tasks are closely related, it's ok, but otherwise this architecture is very inconvenient. This makes the issue of [*negative transfer*][negative-transfer] (i.e. one task can corrupt useful features of other tasks) more probable.
+
+### 3.2. A body for each task
+
+{% capture imblock32 %}
+    {{ site.url }}/articles/images/2019-01-22-mtl-a-practical-survey/sec3_im2.svg
+{% endcapture %}
+{% include gallery images=imblock32 cols=1 %}
+
+*It ain't a communist slogan.* This family of architectures is also referred as *Soft Parameter Sharing* in literature, the core idea is shown in Fig. $$(3.b)$$ &mdash; each task has its own layer of task-specific parameters at each shared depth. They then define a mechanism to share knowledge (i.e. parameters) between tasks at each shared depth (i.e. sharing between columns).
+
+The most *instant noodley* approach is Cross-Stich Networks ([Mirsa et al. 2016][mirsa2016]), illustrated in Fig. $$(a)$$. It allows the model to determine in what way the task-specific columns should combine knowledge from other columns, by learning a linear combination of the output of previous layers. *Use this if you need a noodley.*
+
+A generalization of Cross-Stitch Networks are Sluice Networks ([Ruder et al. 2017][ruder2017]). It combines elements of hard paramenter sharing, cross-stitch networks, as well as other good stuffs to create a task hierarchy, as illustrated in Fig. $$(b)$$. *Use this if you're feeling naughty.*
+
+Another interesting yet extremely simple column-based approach is Progressive Networks ([Rusu et al. 2016][rusu2016]), illustrated in Fig. $$(c)$$. This is arguably another breed &mdash; it is intended to solve a more general problem to MTL, the Learning Without Forgetting (LWF) problem. The tasks are learned gradually, one-by-one. This works best when you have learned a task, and want to learn similar tasks quickly. *This is a very specific noodley.*
+
+**Pros**:
+- **Explicit sharing mechanism** &mdash; the tasks decides for themselves what to keep and what to share at each pre-defined level, so it will have less problems like *fighting for resources* or *pretending to share*.
+
+**Cons**:
+- **Soooo sloooooow, soooo faaat** &mdash; the architecture is very bulky (a whole network for each task), so the approach is impractical. Current trend in tech requires lighter and faster networks for On-Device AI.
+- **Huge variety, no silver bullet** &mdash; there are a huge variety in this family of networks. None of them seems much supperior to the others, so choosing the right architecture for specific need might be tricky.
+- **Not end-to-end** &mdash; this family of networks usually requires the task-specific columns to be already pre-trained.
+
+### 3.3. Branching at custom depth
+
+This approach is based on the shared encoder one, discussed in [Section 3.1][section-3-1], with a small modification &mdash; instead of having all task-specific encoders branching from the main body (the shared part) at a fixed layer, each of them now are detaching from different layers, as shown in Fig. $$(3.c)$$.
 
 [resnet]: https://arxiv.org/abs/1512.03385
+[beyond-shared]: https://openreview.net/forum?id=BkXmYfbAZ
+[ruder-mtl]: https://arxiv.org/abs/1706.05098
+[caruana1997]: https://link.springer.com/article/10.1023/A:1007379606734
+[luong2015]: https://arxiv.org/abs/1511.06114
+[tf-shared-tut]: https://jg8610.github.io/Multi-Task/
+[keras-tut1]: https://www.dlology.com/blog/how-to-multi-task-learning-with-missing-labels-in-keras/
+[keras-tut2]: https://blog.manash.me/multi-task-learning-in-keras-implementation-of-multi-task-classification-loss-f1d42da5c3f6
+[torch-tut]: https://medium.com/@zhang_yang/multi-task-deep-learning-experiment-using-fastai-pytorch-2b5e9d078069
+[kendall2018]: http://openaccess.thecvf.com/content_cvpr_2018/papers/Kendall_Multi-Task_Learning_Using_CVPR_2018_paper.pdf
+[chen2017]: https://arxiv.org/abs/1711.02257
+[mtl-as-moo]: https://papers.nips.cc/paper/7334-multi-task-learning-as-multi-objective-optimization.pdf
+[ranjan2016]: https://arxiv.org/abs/1603.01249
+[wu2015]: https://ieeexplore.ieee.org/document/7178814
+[jaderberg2017]: https://arxiv.org/abs/1611.05397
+[depth-pred]: http://www.cs.cornell.edu/projects/megadepth/
+[normal-pred]: http://www.cs.cmu.edu/~aayushb/marrRevisited/
+[obj-det]: https://en.wikipedia.org/wiki/Object_detection
+[meta-mtl-communication]: https://arxiv.org/abs/1810.09988
+[negative-transfer]: https://arxiv.org/pdf/1708.00260.pdf
+[mirsa2016]: https://arxiv.org/abs/1604.03539
+[ruder2017]: https://arxiv.org/abs/1705.08142
+[rusu2016]: https://arxiv.org/abs/1606.04671
+[section-3-1]: #section31
 
 
 
 
 
 
+
+<br><br>
 ## Appendix A: other noodles that ain't the yummiest noodle
 
 In this section, I will describe the other approaches that I had experience with, but won't recommend them for others. On their own, they are quite good and convenient, just not the best out there (comparing to methods described above).
