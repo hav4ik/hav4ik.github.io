@@ -34,7 +34,7 @@ If you found yourself in a strange situation, where you want your Neural Network
 
 Traditionally, the development of Multi-Task Learning was aimed to improve the generalization of multiple task predictors by jointly training them, while allowing some sort of knowledge transfer and between them [(Caruana, 1997)][caruana1997]. If you, for example, train a *surface normal prediction* model and *depth prediction* model together, they will definitely share mutually-benefitial features together [(Eigen et al. 2015)][eigen-dnl]. This motivation is clearly inspired by natural intelligence &mdash; living creatures in an remarkable way can easily learn a task by leveraging the knowledge from other tasks. A broader generalization of this idea is called [Lifelong Learning][lifelong-learning], in which different tasks are not even learned simultaneously.
 
-However, screw these academic stuffs, **we are [engineers][im-an-engineer]**! Why should we care about leveraging diverse features from different tasks when we can just *slap that AI* with more data ([kagglers][kagglers] doesn't count here)? If you are an engineer from *big AF* companies like Google, Samsung, Microsoft, etc. then *Hell Yeah* you've got a *ton* of cash to *splash out* on labellers! Just hire them to get more data. Thus, our main motivation for Multi-Task learning are less obvious, but even more important from an engineering and consumer standpoint:
+However, screw these academic stuffs, **we are [engineers][im-an-engineer]**! Why should we care about leveraging diverse features from different tasks when we can just *slap that AI* with more data ([kagglers][kagglers] doesn't count here)? If you are an engineer from *big [AF][as-fuck]* companies like Google, Samsung, Microsoft, etc. then *Hell Yeah* you've got a *ton* of cash to *splash out* on labellers! Just hire them to get more data. Thus, our main motivation for Multi-Task learning are less obvious, but even more important from an engineering and consumer standpoint:
 
 -  **To optimize multiple objectives at once.** For instance, in [GANs][gan], it is shown in various tasks that often incorporating additonal loss functions can yield much better results ([Isola et al. 2017][pix2pix]; [Wang et al. 2018][vid2vid]). A [regularization term][regularization] can also be considered as additional objective.
 
@@ -72,6 +72,7 @@ For a more comprehensive survey that gives you a bird-eye-view on a whole field 
 [subsection-2-3]: #subsection23
 [section-3-and-a-half]: #section3andahalf
 [appendix-a]: #appendixa
+[as-fuck]: https://www.urbandictionary.com/define.php?term=AF
 
 
 
@@ -300,7 +301,7 @@ One can even go a step further &mdash; to ellaborate the more aggressive knowled
 <a name="section3"></a>
 ## 3. No Instant Noodle Architecture yet :(
 
-Unfortunately, I can't think of any multi-task architecture that can be used everywhere, i.e. a *Truly Instant Noodle*. In this section, I will instead discuss the **pros** and **cons** of commonly used architectures for Multi-Task Learning (especially in Computer Vision tasks). I will keep myself up with State-of-the-Art, and, if an *Instant Noodle* shows up, I will update this section accordingly. Please check [Ruder S. (2017)][ruder-mtl] survey for stuffs that I might not mentioned here.
+Unfortunately, I can't think of any multi-task architecture that can be used everywhere, i.e. a *Truly Instant Noodle*. In this section, I will instead discuss the **pros** and **cons** of commonly used architectures for Multi-Task Learning (especially in Computer Vision tasks). Since they are not *Instant Noodles*, I will not delve deep into details in this section.
 
 Existing architectures of MTL can be classified according to how they share parameters between tasks, as shown in the figure below [(Meyerson & Miikkulainen, 2018)][beyond-shared]. The common trait between them is that they all have some sort of *shared hierarchies*.
 
@@ -314,15 +315,17 @@ Existing architectures of MTL can be classified according to how they share para
 
 This is the most straight-forward approach, as shown in Fig. $$(3.a)$$, and is the most natural architecture that one can come up with, dated back from [Caruana (1997)][caruana1997]. In Multi-Task Learning literature, this approach is also referred to as *Hard Parameter Sharing*. Sometimes, this approach is extended to task-specific encoders ([Luong et al., 2016][luong2015]). This is the most widely used architecture as well (sort of an *okay-ish instant noodle*).
 
-**Pros**:
+**Pros** of this family:
 - **Dead simple** &mdash; simple to implement, simple to train, simple to debug. Lots of tutorials are available as well: for TensorFlow ([here][tf-shared-tut]), for Keras ([here][keras-tut1] & [here][keras-tut2]), for PyTorch ([here][torch-tut]).
 - **Well-studied** &mdash; a huge body of literature has accumulated ever since [Caruana (1997)][caruana1997], both theoretically ([Kendall et al. 2018][kendall2018]; [Chen et al. 2017][chen2017]; [Sener & Koltun, 2018][mtl-as-moo]) and practically ([Ranjan et al. 2016][ranjan2016]; [Wu et el. 2015][wu2015]; [Jaderberg et al. 2017][jaderberg2017]).
+- **The fastest from all** &mdash; it shares everything possible, so the inference time will be not much different than executing a single network.
 
-**Cons**:
+**Cons** of this family:
 - **Not flexible** &mdash; forcing all tasks to share a common encoder is dumb. Some tasks are more *similar* than other, so logically a [*depth prediction*][depth-pred] and [*surface normal prediction*][normal-pred] should share more parameters with each other, than with a [*object detection*][obj-det] task.
 - **Pretending to share** &mdash; as highlighted by [Liu & Huang (2018)][meta-mtl-communication], these kind of architectures just collects all the features together into a common layer, instead of learning shared parameters (weights) across different tasks.
 - **Fight for resources** &mdash; as a consequence, the tasks often fight with each other for resources (e.g. convolution kernels) within a layer. If the tasks are closely related, it's ok, but otherwise this architecture is very inconvenient. This makes the issue of [*negative transfer*][negative-transfer] (i.e. one task can corrupt useful features of other tasks) more probable.
 
+<a name="section31"></a>
 ### 3.2. A body for each task
 
 {% capture imblock32 %}
@@ -338,17 +341,45 @@ A generalization of Cross-Stitch Networks are Sluice Networks ([Ruder et al. 201
 
 Another interesting yet extremely simple column-based approach is Progressive Networks ([Rusu et al. 2016][rusu2016]), illustrated in Fig. $$(c)$$. This is arguably another breed &mdash; it is intended to solve a more general problem to MTL, the Learning Without Forgetting (LWF) problem. The tasks are learned gradually, one-by-one. This works best when you have learned a task, and want to learn similar tasks quickly. *This is a very specific noodley.*
 
-**Pros**:
+**Pros** of this family:
 - **Explicit sharing mechanism** &mdash; the tasks decides for themselves what to keep and what to share at each pre-defined level, so it will have less problems like *fighting for resources* or *pretending to share*.
 
-**Cons**:
+**Cons** of this family:
 - **Soooo sloooooow, soooo faaat** &mdash; the architecture is very bulky (a whole network for each task), so the approach is impractical. Current trend in tech requires lighter and faster networks for On-Device AI.
 - **Huge variety, no silver bullet** &mdash; there are a huge variety in this family of networks. None of them seems much supperior to the others, so choosing the right architecture for specific need might be tricky.
-- **Not end-to-end** &mdash; this family of networks usually requires the task-specific columns to be already pre-trained.
+- **Not end-to-end** &mdash; this family of networks usually requires the task-specific columns (at least some of them) to be already pre-trained.
 
 ### 3.3. Branching at custom depth
 
 This approach is based on the shared encoder one, discussed in [Section 3.1][section-3-1], with a small modification &mdash; instead of having all task-specific encoders branching from the main body (the shared part) at a fixed layer, each of them now are detaching from different layers, as shown in Fig. $$(3.c)$$.
+
+In my personal experience, I choose the branching place of each task experimentally &mdash; I just run a bunch of experiments over the weekends on a *Huge Ass* cluster with a bunch of GPUs to decide the best performing yet most compact one. Basically, a brute force, which is very inefficient.
+
+{% capture imblock33 %}
+    {{ site.url }}/articles/images/2019-01-22-mtl-a-practical-survey/sec3_im3.svg
+{% endcapture %}
+{% include gallery images=imblock33 cols=1 %}
+
+A more promising way of finding efficient architectures is to dynamically figure out where to branch out from the main body. On [CVPR 2017][cvpr2017], an approach was proposed by [Lu et al. (2017)][lu2017] that starts from a fully-shared architecture, then dynamically splits the layers out greedily according to task affinity heuristics (that should correlate with task similarity). Basically, it is a [Neural Architecture Search (NAS)][nas] algorithm. This approach has many drawbacks as well (very hard to choose hyperparameters, the architecture may not be optimal at all, the affinity metric is questionable, etc. &mdash; just my opinion), but is still an interesting direction of research.
+
+**Pros** of this family:
+- **Dead simple** and **well-studied** &mdash; the theoretical and practical stuffs for architectures in [Section 3.1][section-3-1] works here as well, so it has all pros described previously.
+- **Still fast [AF][as-fuck]** &mdash; not as fast as the family of architectures in [Section 3.1][section-3-1], but still faster than everything else. In this family of architecture, you still share as much as you can between tasks.
+- **Ideal case is ideal** &mdash; different tasks tends to share bottom features and diverge on the deeper layers ([He et al. 2018][mtzipping]). If branching is done ideally, combined with ideas from the family of networks in [Section 3.2][section-3-2], there shouldn't be any *fighting for resources* or *pretending to share* problems.
+
+**Cons** of this family:
+- **No one dares to do it** &mdash; not everyone have a luxury of going for a full brute-force as me. Dynamic approaches based on heuristics ([Lu et al. 2017][lu2017]) are very unreliable. If done incorrectly, this family of architectures can inherit **all drawbacks of all families of MTL nets combined!!!**
+
+### 3.4. Beyond sharing, beyond hierarchies, beyond this world
+
+This family, schematically illustrated in Fig. $$(3.d)$$, makes an observation that the tasks can share all parameters in the main body, except batch normalization scaling factors ([Bilen and Vedaldi, 2017][bilen2017]). Basically, the tasks share the whole network, and the only task-specific parameters are [Instance Normalization][instance-norm] parameters. On [ICLR][iclr] last year, [Meyerson & Miikkulainen (2018)][beyond-shared] [quickly escalated][that-escalated-quickly] this idea a step further by allowing the weights themselves to be freely permutted. The idea of changing the orders of layers by itself is not new ([Veit et al. 2016][veit2016]), but learning the best permutation of weights across different tasks is very creative.
+
+**Pros** of this family:
+- **Lightweight** &mdash; they share every penny that they can, so the resulting model will have almost as much parameter as one single-task network.
+- **Just WOW** &mdash; sharing every layer, and even with permutted order, is very counter-intuitive. It makes you wonder "what are features? what is knowledge? what is life?" You can even use it to hook up some girls!
+
+**Cons** of this family:
+- **Still slooooooow** &mdash; as in [Section 3.2][section-3-2], you still have to propagate through the whole network for each task. If you don't intend to execute all tasks, just want to save some space, this is not a cons at all.
 
 [resnet]: https://arxiv.org/abs/1512.03385
 [beyond-shared]: https://openreview.net/forum?id=BkXmYfbAZ
@@ -374,7 +405,17 @@ This approach is based on the shared encoder one, discussed in [Section 3.1][sec
 [ruder2017]: https://arxiv.org/abs/1705.08142
 [rusu2016]: https://arxiv.org/abs/1606.04671
 [section-3-1]: #section31
-
+[section-3-2]: #section32
+[lu2017]: https://arxiv.org/abs/1611.05377
+[cvpr2017]: http://openaccess.thecvf.com/CVPR2017.py
+[nas]: https://en.wikipedia.org/wiki/Neural_architecture_search
+[as-fuck]: https://www.urbandictionary.com/define.php?term=AF
+[mtzipping]: https://arxiv.org/abs/1805.09791
+[bilen2017]: https://arxiv.org/abs/1701.07275
+[instance-norm]: https://arxiv.org/abs/1607.08022
+[iclr]: https://en.wikipedia.org/wiki/International_Conference_on_Learning_Representations
+[veit2016]: https://arxiv.org/abs/1605.06431
+[that-escalated-quickly]: https://www.dictionary.com/e/slang/that-escalated-quickly/
 
 
 
