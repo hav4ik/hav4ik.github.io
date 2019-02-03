@@ -40,7 +40,10 @@ However, screw these academic stuffs, **we are [engineers][im-an-engineer]**! Wh
 
 -  **To reduce the cost of running multiple models**. My Korean boss always yells at my team *"we need faster CNNs!"* in his typical asian accent (no offense, I'm also asian). How can we further speed up the 5 models that are already optimized both in size and speed by more than 40 times? Oh, yeah, we can merge all of them into a single Multi-Task model!
 
-In this article, I will only focus on the two motivation above. The *motto* of this article is: *simple as instant noodle*, i.e. easy to implement and effective as heck! I will overview [3,5 sorts of instant noodles][3-5-anonymous] to help you survive everyday situations in MTL. This blog post serves me as a lecture note as well, so here you will find more in-depth theoretical stuffs (that normally only the full papers have) than a typical survey will do. This article will be structured as following:
+In this article, I will only focus on the two motivation above. The *motto* of this article is: *simple as instant noodle*, i.e. easy to implement and effective as heck! This blog post serves me as a lecture note as well, so here you will find more in-depth theoretical stuffs (that normally only the full papers have) than a typical survey will do.
+
+{% comment %}
+This article will be structured as following:
 
 -  In [**Section 1**][section-1], I will outline the challenges of optimizing multiple objectives at once and describe a cool paper from [NeurIPS 2018][nips2018] that fits our motto of *instant noodleness.* Then, in [**subsection 1.4**][subsection-1-4], I will make some remarks and propose some modifications of my own to it that generalizes the approach to more complicated architectures that I used in practical applications.
 
@@ -49,6 +52,7 @@ In this article, I will only focus on the two motivation above. The *motto* of t
 -  In [**Section 3&frac12;**][section-3-and-a-half], I will give a brief survey on different architectures for MTL that might be useful for you. Most of the case, however, the simplest architecture will still do the job.
 
 -  In [**Appendix A**][appendix-a], I will outline other methods that got their way to top conferences such as *CVPR*, *NIPS*, *ICML*, but are not that good in practise to be qualified as *instant noodle*. Most [engineers][im-an-engineer] won't need that, unless being forced by their bosses to increase the accuracy by $$0.01\%$$.
+{% endcomment %}
 
 For a more comprehensive survey that gives you a bird-eye-view on a whole field of MTL and focused on the *mutually-benefitial sharing* aspect of Multi-Task Learning, it is recommended to read [Ruder's (2017)][ruder-mtl] paper.
 
@@ -104,7 +108,7 @@ $$
 \begin{split}
 \text{minimize}
 \enspace
-\sum _ {t=1}^T {\lambda_t \hat{\mathcal{L}} _ t(\theta^{sh}, \theta^{t})}
+\sum _ {t=1}^T {\lambda^t \hat{\mathcal{L}}^t(\theta^{sh}, \theta^{t})}
 \quad\quad
 \text{w.r.t.}
 \enspace
@@ -115,9 +119,14 @@ $$
 \end{equation}
 $$
 
-where $$\hat{\mathcal{L}} _ t(\cdot)$$ is an empirical task-specific loss for $$t$$-th task defined as the average loss accross the whole dataset $$\hat{\mathcal{L}} (\theta^{sh}, \theta^{t}) \triangleq \frac{1}{N} \sum_i \mathcal{L} ( f^t(x_i; \theta^{sh}, \theta^{t}), y_i^t )$$, where $$y_i^t \in \mathcal{Y}^t$$ is the ground truth of the $$t$$-th task that corresponds to $$i$$-th sample in the dataset of $$N$$ samples.
+where $$\hat{\mathcal{L}}^t(\cdot)$$ is an empirical task-specific loss for $$t$$-th task defined as the average loss accross the whole dataset $$\hat{\mathcal{L}} (\theta^{sh}, \theta^{t}) \triangleq \frac{1}{N} \sum_i \mathcal{L} ( f^t(x_i; \theta^{sh}, \theta^{t}), y_i^t )$$, where $$y_i^t \in \mathcal{Y}^t$$ is the ground truth of the $$t$$-th task that corresponds to $$i$$-th sample in the dataset of $$N$$ samples.
 
 ### 1.2. The $$\lambda_t$$ Balancing Problem
+
+{% capture imblock11 %}
+    {{ site.url }}/articles/images/2019-01-22-mtl-a-practical-survey/sec1_im1.svg
+{% endcapture %}
+{% include gallery images=imblock11 cols=1 %}
 
 The obvious question from a first glance at \eqref{eq:mtloss} is: how to set the weight coefficient $$\lambda_t$$ for $$t$$-th task? Usually, setting $$\lambda_t$$ to $$1$$ is not a good idea: for different tasks, the magnitude of loss functions, as well as the magnitudes of gradients, might be very different. In an unbalanced setting, the magnitude of the gradients of one task might be so large that it makes the gradients from other tasks insignificant &mdash; i.e. the model will only learn one task while ignoring the other tasks. Even the brute-force approach (e.g. [grid search][grid-search]) may not find optimal values of $$\lambda_t$$ since they pre-sets the values at the beginning of training, while optimal values may change over time.
 
@@ -155,10 +164,10 @@ The main motivation to this formulation is the conflict \eqref{eq:mtwtf}. This v
 A solution $$\theta$$ dominates a solution $$\bar{\theta}$$ if $$\hat{\mathcal{L}}^t(\theta^{sh},\theta^t)  \leq \hat{\mathcal{L}}^t(\bar{\theta}^{sh},\bar{\theta}^t)$$ for all tasks $$t$$ and $$L(\theta^{sh}, \theta^1,\ldots,\theta^T) \neq L(\bar{\theta}^{sh}, \bar{\theta}^1,\ldots,\bar{\theta}^T)$$;
 A solution $$\,\theta^\star$$ is called Pareto optimal if there exists no solution $$\,\theta$$ that dominates $$\,\theta^\star$$.
 
-{% capture imblock11 %}
+{% capture imblock12 %}
     {{ site.url }}/articles/images/2019-01-22-mtl-a-practical-survey/sec1_im2.svg
 {% endcapture %}
-{% include gallery images=imblock11 cols=1 %}
+{% include gallery images=imblock12 cols=1 %}
 
 The multi-objective optimization can be solved to local minimality (in a Pareto sense) via Multiple Gradient Descent Algorithm (MGDA), thoroughly studied by [Désidéri (2012)][mgda]. This algorithm leverages the [Karush&ndash;Kuhn&ndash;Tucker (KKT) conditions][kkt-cond] which are neccessary for optimality. In this case, the KKT conditions for both shared and task-specific parameters are follows:
 
@@ -188,10 +197,10 @@ Denoting $$p^t = \nabla _ {\theta^{sh}} \hat{\mathcal{L}}^t (\theta^{sh},\theta^
 
 The gist of the approach is clear &mdash; the resulting MTL algorithm is to apply [gradient descent][grad-desc] on the task-specific parameters $$\{ \theta^t \} _ {t=1}^T$$, followed by solving \eqref{eq:lambdaopt} and applying the solution $$\sum_{t=1}^T \lambda^t \nabla_{\theta^{sh}}$$ as a gradient update to shared parameter $$\theta^{sh}$$. This algorithm will work for almost *any* neural network that you can build &mdash; the definition in \eqref{eq:mtnn} is very broad.
 
-{% capture imblock12 %}
+{% capture imblock13 %}
     {{ site.url }}/articles/images/2019-01-22-mtl-a-practical-survey/sec1_im3.svg
 {% endcapture %}
-{% include gallery images=imblock12 cols=1 %}
+{% include gallery images=imblock13 cols=1 %}
 
 It is easy to notice that in this case, we need to compute $$\nabla _ {\theta^{sh}}$$ for each task $$t$$, which requires a backward pass over the shared parameters for each task. Hence, the resulting gradient computation would be the forward pass followed by $$T$$ backward passes. This significantly increases our expected training time. To address that, the authors ([Sener and Koltun, 2018][mtl-as-moo]) also provided a clever approximation of $$\nabla _ {\theta^{sh}}$$ that allows us to perform the computations in just one pass, while preserving the nice theorem above under mild assumptions. Also, the [Frank&ndash;Wolfe solver][frank-wolfe] used to optimize \eqref{eq:lambdaopt} requires an efficient algorithm for the [line search][line-search] (a very common subroutine in [convex optimization][convex-opt-boyd] methods). This involves rigorous proofs, so I will omit it here to keep the simplicity (i.e. *noodleness*) of this article.
 
@@ -365,7 +374,7 @@ A more promising way of finding efficient architectures is to dynamically figure
 **Pros** of this family:
 - **Dead simple** and **well-studied** &mdash; the theoretical and practical stuffs for architectures in [Section 3.1][section-3-1] works here as well, so it has all pros described previously.
 - **Still fast [AF][as-fuck]** &mdash; not as fast as the family of architectures in [Section 3.1][section-3-1], but still faster than everything else. In this family of architecture, you still share as much as you can between tasks.
-- **Ideal case is ideal** &mdash; different tasks tends to share bottom features and diverge on the deeper layers ([He et al. 2018][mtzipping]). If branching is done ideally, combined with ideas from the family of networks in [Section 3.2][section-3-2], there shouldn't be any *fighting for resources* or *pretending to share* problems.
+- **Ideal case is ideal** &mdash; different tasks tends to share bottom features and diverge on the deeper layers ([He et al. 2018][mtzipping]). If branching is done ideally, combined with ideas from the family of networks in [Section 3.2][section-3-2], there shouldn't be any *fighting for resources* or *pretending to share* problems as in [Section 3.1][section-3-1].
 
 **Cons** of this family:
 - **No one dares to do it** &mdash; not everyone have a luxury of going for a full brute-force as me. Dynamic approaches based on heuristics ([Lu et al. 2017][lu2017]) are very unreliable. If done incorrectly, this family of architectures can inherit **all drawbacks of all families of MTL nets combined!!!**
@@ -376,10 +385,11 @@ This family, schematically illustrated in Fig. $$(3.d)$$, makes an observation t
 
 **Pros** of this family:
 - **Lightweight** &mdash; they share every penny that they can, so the resulting model will have almost as much parameter as one single-task network.
-- **Just WOW** &mdash; sharing every layer, and even with permutted order, is very counter-intuitive. It makes you wonder "what are features? what is knowledge? what is life?" You can even use it to hook up some girls!
+- **Just [WOW][wow-meme]** &mdash; sharing every layer, and even with permutted order, is very counter-intuitive. It makes you wonder "what are features? what is knowledge? what is life?" You can even use it to hook up some girls!
 
 **Cons** of this family:
 - **Still slooooooow** &mdash; as in [Section 3.2][section-3-2], you still have to propagate through the whole network for each task. If you don't intend to execute all tasks, just want to save some space, this is not a cons at all.
+- **Still vulnerable** &mdash; this family can still be vulnerable to *fights for resources* or *pretending to share* problems as in [Section 3.1][section-3-1].
 
 [resnet]: https://arxiv.org/abs/1512.03385
 [beyond-shared]: https://openreview.net/forum?id=BkXmYfbAZ
@@ -416,6 +426,7 @@ This family, schematically illustrated in Fig. $$(3.d)$$, makes an observation t
 [iclr]: https://en.wikipedia.org/wiki/International_Conference_on_Learning_Representations
 [veit2016]: https://arxiv.org/abs/1605.06431
 [that-escalated-quickly]: https://www.dictionary.com/e/slang/that-escalated-quickly/
+[wow-meme]: https://www.youtube.com/watch?v=jUy9_0M3bVk
 
 
 
@@ -505,4 +516,4 @@ which is the same as the summation loss \eqref{eq:mtloss}, where we assign $$\la
 [section-11]: #section11
 [max-likelihood]: https://en.wikipedia.org/wiki/Maximum_likelihood_estimation
 [regularization]: https://en.wikipedia.org/wiki/Regularization_(mathematics)
-[black-magic]: # <!-- TODO -->
+[black-magic]: http://memecrunch.com/meme/HXNV/black-magic/image.jpg
