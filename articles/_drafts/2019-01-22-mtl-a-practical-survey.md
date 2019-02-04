@@ -350,6 +350,8 @@ A generalization of Cross-Stitch Networks are Sluice Networks ([Ruder et al. 201
 
 Another interesting yet extremely simple column-based approach is Progressive Networks ([Rusu et al. 2016][rusu2016]), illustrated in Fig. $$(c)$$. This is arguably another breed &mdash; it is intended to solve a more general problem to MTL, the Learning Without Forgetting (LWF) problem. The tasks are learned gradually, one-by-one. This works best when you have learned a task, and want to learn similar tasks quickly. *This is a very specific noodley.*
 
+A recent work ([He et al. 2018][mtzipping]), presented on [NeurIPS 2018][nips2018], allows one to merge fully-trained networks, by leveraging results from [Network Pruning][pruning].
+
 **Pros** of this family:
 - **Explicit sharing mechanism** &mdash; the tasks decides for themselves what to keep and what to share at each pre-defined level, so it will have less problems like *fighting for resources* or *pretending to share*.
 
@@ -391,6 +393,10 @@ This family, schematically illustrated in Fig. $$(3.d)$$, makes an observation t
 - **Still slooooooow** &mdash; as in [Section 3.2][section-3-2], you still have to propagate through the whole network for each task. If you don't intend to execute all tasks, just want to save some space, this is not a cons at all.
 - **Still vulnerable** &mdash; this family can still be vulnerable to *fights for resources* or *pretending to share* problems as in [Section 3.1][section-3-1].
 
+### 3.5. Remarks
+
+I just want to make a quick note that the *Instant Noodles* in [Section 1][section-1] and [Section 2][section-2] can be applied to any of the architectures above, with a limitation that the upper-bound approximation of \eqref{eq:lambdaopt} may not apply to architectures with no explicit enconder/decoder. A true *Instant Noodle Architecture* in the future might utilize Neural Architecture Search (NAS) for MTL might be very promising in the future, as the industry is moving towards smaller and faster models.
+
 [resnet]: https://arxiv.org/abs/1512.03385
 [beyond-shared]: https://openreview.net/forum?id=BkXmYfbAZ
 [ruder-mtl]: https://arxiv.org/abs/1706.05098
@@ -427,6 +433,10 @@ This family, schematically illustrated in Fig. $$(3.d)$$, makes an observation t
 [veit2016]: https://arxiv.org/abs/1605.06431
 [that-escalated-quickly]: https://www.dictionary.com/e/slang/that-escalated-quickly/
 [wow-meme]: https://www.youtube.com/watch?v=jUy9_0M3bVk
+[section-1]: #section1
+[section-2]: #section2
+[nips2018]: https://nips.cc/Conferences/2018/Schedule?type=Poster
+[pruning]: https://jacobgil.github.io/deeplearning/pruning-deep-learning
 
 
 
