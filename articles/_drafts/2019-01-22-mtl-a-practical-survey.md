@@ -34,13 +34,13 @@ If you found yourself in a strange situation, where you want your Neural Network
 
 Traditionally, the development of Multi-Task Learning was aimed to improve the generalization of multiple task predictors by jointly training them, while allowing some sort of knowledge transfer and between them [(Caruana, 1997)][caruana1997]. If you, for example, train a *surface normal prediction* model and *depth prediction* model together, they will definitely share mutually-benefitial features together [(Eigen et al. 2015)][eigen-dnl]. This motivation is clearly inspired by natural intelligence &mdash; living creatures in an remarkable way can easily learn a task by leveraging the knowledge from other tasks. A broader generalization of this idea is called [Lifelong Learning][lifelong-learning], in which different tasks are not even learned simultaneously.
 
-However, screw these academic stuffs, **we are [engineers][im-an-engineer]**! Why should we care about leveraging diverse features from different tasks when we can just *slap that AI* with more data ([kagglers][kagglers] doesn't count here)? If you are an engineer from *big [AF][as-fuck]* companies like Google, Samsung, Microsoft, etc. then *Hell Yeah* you've got a *ton* of cash to *splash out* on labellers! Just hire them to get more data. Thus, our main motivation for Multi-Task learning are less obvious, but even more important from an engineering and consumer standpoint:
+However, screw these academic stuffs, **we are [engineers][im-an-engineer]**! Why should we care about leveraging diverse features from different tasks when we can just [*slap that AI*][slapping] with more data ([kagglers][kagglers] doesn't count here)? If you are an engineer from *big [AF][as-fuck]* companies like Google, Samsung, Microsoft, etc. then *Hell Yeah* you've got a *ton* of cash to *splash out* on labellers! Just hire them to get more data. Thus, our main motivation for Multi-Task learning are less obvious, but even more important from an engineering and consumer standpoint:
 
 -  **To optimize multiple objectives at once.** For instance, in [GANs][gan], it is shown in various tasks that often incorporating additonal loss functions can yield much better results ([Isola et al. 2017][pix2pix]; [Wang et al. 2018][vid2vid]). A [regularization term][regularization] can also be considered as additional objective.
 
 -  **To reduce the cost of running multiple models**. My Korean boss always yells at my team *"we need faster CNNs!"* in his typical asian accent (no offense, I'm also asian). How can we further speed up the 5 models that are already optimized both in size and speed by more than 40 times? Oh, yeah, we can merge all of them into a single Multi-Task model!
 
-In this article, I will only focus on the two motivation above. The *motto* of this article is: *simple as instant noodle*, i.e. easy to implement and effective as heck! This blog post serves me as a lecture note as well, so here you will find more in-depth theoretical stuffs (that normally only the full papers have) than a typical survey will do.
+In this article, I will only focus on the two motivation above. The *motto* of this article is: *simple as instant noodle*, i.e. easy to implement and effective as heck! This blog post serves me as a lecture note as well, so here you will find more in-depth theoretical stuffs (that normally only the full papers have) than a typical survey will do. For a more comprehensive survey that gives you a bird-eye-view on a whole field of MTL and focused on the *mutually-benefitial sharing* aspect of Multi-Task Learning, it is recommended to read [Ruder's (2017)][ruder-mtl] paper.
 
 {% comment %}
 This article will be structured as following:
@@ -53,8 +53,6 @@ This article will be structured as following:
 
 -  In [**Appendix A**][appendix-a], I will outline other methods that got their way to top conferences such as *CVPR*, *NIPS*, *ICML*, but are not that good in practise to be qualified as *instant noodle*. Most [engineers][im-an-engineer] won't need that, unless being forced by their bosses to increase the accuracy by $$0.01\%$$.
 {% endcomment %}
-
-For a more comprehensive survey that gives you a bird-eye-view on a whole field of MTL and focused on the *mutually-benefitial sharing* aspect of Multi-Task Learning, it is recommended to read [Ruder's (2017)][ruder-mtl] paper.
 
 [vid2vid]: https://tcwang0509.github.io/vid2vid/
 [pix2pix]: https://phillipi.github.io/pix2pix/
@@ -71,12 +69,13 @@ For a more comprehensive survey that gives you a bird-eye-view on a whole field 
 [wacv2018]: http://wacv18.wacv.net/
 [knowledge-distillation]: https://medium.com/neural-machines/knowledge-distillation-dc241d7c2322
 [section-1]: #section1
-[subsection-1-4]: #subsection14
+[subsection-1-4]: #section14
 [section-2]: #section2
 [subsection-2-3]: #subsection23
 [section-3-and-a-half]: #section3andahalf
 [appendix-a]: #appendixa
 [as-fuck]: https://www.urbandictionary.com/define.php?term=AF
+[slapping]: https://imgflip.com/s/meme/Batman-Slapping-Robin.jpg
 
 
 
@@ -143,6 +142,7 @@ $$
 
 for some tasks $$t_1$$ and $$t_2$$. In other words, solution $$\theta$$ is better for task $$t_1$$ whereas $$\bar{\theta}$$ is better for $$t_2$$. It is not possible to compare them without explicit pairwise improtance of tasks, which is typically not available.
 
+<a name="section13"></a>
 ### 1.3. Instant Noodle in case of Multiple Losses is MOO
 
 Recent works attacks this problem by presenting a heuristic, according to which the coefficients $$\lambda_t$$ are chosen: [Chen et al. (2017)][chen2017] manipulates them in such a way that the gradients are approximately normalized; [Kendall et al. (2018)][kendall2018] models the network output's [homoscedastic uncertainty][homoscedastic] with a probabilistic model. These approaches are further discussed in [Appendix A.1][appendix-a-1] and [Appendix A.2][appendix-a-2].
@@ -202,14 +202,17 @@ The gist of the approach is clear &mdash; the resulting MTL algorithm is to appl
 {% endcapture %}
 {% include gallery images=imblock13 cols=1 %}
 
-It is easy to notice that in this case, we need to compute $$\nabla _ {\theta^{sh}}$$ for each task $$t$$, which requires a backward pass over the shared parameters for each task. Hence, the resulting gradient computation would be the forward pass followed by $$T$$ backward passes. This significantly increases our expected training time. To address that, the authors ([Sener and Koltun, 2018][mtl-as-moo]) also provided a clever approximation of $$\nabla _ {\theta^{sh}}$$ that allows us to perform the computations in just one pass, while preserving the nice theorem above under mild assumptions. Also, the [Frank&ndash;Wolfe solver][frank-wolfe] used to optimize \eqref{eq:lambdaopt} requires an efficient algorithm for the [line search][line-search] (a very common subroutine in [convex optimization][convex-opt-boyd] methods). This involves rigorous proofs, so I will omit it here to keep the simplicity (i.e. *noodleness*) of this article.
+It is easy to notice that in this case, we need to compute $$\nabla _ {\theta^{sh}}$$ for each task $$t$$, which requires a backward pass over the shared parameters for each task. Hence, the resulting gradient computation would be the forward pass followed by $$T$$ backward passes. This significantly increases our expected training time. To address that, the authors ([Sener and Koltun, 2018][mtl-as-moo]) also provided a clever upper-bound formulation of \eqref{eq:lambdaopt} for encoder-decoder architectures that doesn't require to calculate $$\nabla _ {\theta^{sh}}$$ for every task. Also, the [Frank&ndash;Wolfe solver][frank-wolfe] used to optimize \eqref{eq:lambdaopt} requires an efficient algorithm for the [line search][line-search] (a very common subroutine in [convex optimization][convex-opt-boyd] methods). These two problems involves rigorous proofs, so I will omit it here to keep the simplicity (i.e. *noodleness*) of this article. Advanced readers might want to read the paper ([Sener and Koltun, 2018][mtl-as-moo]) for more information.
 
-<a name="subsection14"></a>
+<a name="section14"></a>
 ### 1.4. Remarks and Modifications
 
-Absolutely brilliant! [ten out of ten][chuck-ten]! The mathematics in this paper is juicy! It outperforms [Chen et al. (2017)][chen2017] and [Kendall et al. (2018)][kendall2018] consistently with a large margin! Heck, it even outperforms the single-task classifier in most of the benchmarks! Absolute insanity! The [second author][vkoltun] is also a beast in modern Machine Learning! This is by far the most tasty *instant noodle* in this survey!
+Absolutely brilliant! [ten out of ten][chuck-ten]! It outperforms [Chen et al. (2017)][chen2017] and [Kendall et al. (2018)][kendall2018] consistently with a large margin! Heck, it even outperforms the single-task classifier in most of the benchmarks! Absolute insanity! The [second author][vkoltun] is also a beast in modern Machine Learning! This is by far the most tasty *instant noodle* in this survey!
 
-Moreover, the approximation for $$\nabla _ {\theta^{sh}}$$, although it is designed for encoder-decoder architecture, can be generalized to a tree-like structure. It can also be easily modified in case your objectives are not equal in importance: every constraints $$\lambda_i > c\lambda_j$$ is a convex constraint, and a combination of it is also convex. So, we can still use the [Frank&ndash;Wolfe solver][frank-wolfe] here. The exact algorithm is described in [Appendix B.1][appendix-b-1].
+The upper-bound formulation of \eqref{eq:lambdaopt} by the authors, although it is designed for encoder-decoder architecture, can be generalized to a tree-like structures that will be described in [Section 3.3][section-3-3]. The extended proof is provided in [Appendix B.1][appendix-b-1].
+
+This algorithm will not preserve the Pareto Optimality in case your objectives are not equal in importance, i.e. a collection of constraints $$
+\|\lambda^{t_1}\nabla _ {\theta^{sh}} \hat{\mathcal{L}}^{t_1}(\theta^{sh},\theta^{t_1})\| \ge \|\lambda^{t_2} \nabla _ {\theta^{sh}} \hat{\mathcal{L}}^{t_2}(\theta^{sh},\theta^{t_2})\|$$ is added for tasks $$t_1$$ and $$t_2$$. This is a convex constraint, and a combination of it is also convex. So, we can still use the [Frank&ndash;Wolfe solver][frank-wolfe] here. The difference will be in situation when $$\sum _ {t=1}^T \lambda^t \nabla _ {\theta^{sh}} \hat{\mathcal{L}}^t(\theta^{sh},\theta^t) = 0$$, i.e. when the zero point is inside the convex hull of directions. The importance constraint in this case means that we should ignore the less important objective and minimize \eqref{eq:lambdaopt} with respect to the other objectives, as preserving Pareto optimality will be impossible in this case. In [Section 2.3][section-2-3], however, I will show the case when this is actually a desired behaviour &mdash; when we combine this *Instant Noodle* with another *Instant Noodle* to create an ultimate *Instant Noodle*.
 
 [moo]: https://en.wikipedia.org/wiki/Multi-objective_optimization
 [nips2018]: https://nips.cc/Conferences/2018/Schedule?type=Poster
@@ -232,6 +235,8 @@ Moreover, the approximation for $$\nabla _ {\theta^{sh}}$$, although it is desig
 [appendix-a-1]: #appendixa1
 [appendix-a-2]: #appendixa2
 [appendix-b-1]: #appendixb1
+[section-2-3]: #section23
+[section-3-3]: #section33
 
 
 
@@ -255,8 +260,9 @@ Consider a Multi-Task Learning setting as in figure $$(a)$$, where a CNN have to
 
 A naive way to get around it is to ignore the losses of other tasks while training on a sample of one task ([Kokkinos, 2016][ubernet]; there is also a [video of the talk][ubernet-talk]). More specifically, on training step $$s$$ where only the inputs $$x^t$$ and ground truths $$y^t$$ of task $$t$$ is available, we will set $$\mathcal{L}^k(\cdot) = 0$$ for all $$k \ne t$$, i.e. zerroing out gradients of the tasks without ground truth. [Kokkinos (2016)][ubernet] also suggests to not use a fixed batch size, but rather accumulate gradients separately for task-specific parameters $$\theta^t$$ and shared parameters $$\theta^{sh}$$, and do the gradient step once the number of samples exceeds certain threshold (individual for each $$\theta^{sh}$$ and $$\theta^t$$).
 
-Unfortunately, there is a well-known issue with this simple method. When we train either branch with a dataset, the knowledge of the network of the other tasks might be forgotten. It is because during training, the optimization path of the $$\theta^{sh}$$ can be different for each task.
+Unfortunately, there is a well-known issue with this simple method. When we train either branch with a dataset, the knowledge of the network of the other tasks might be forgotten. It is because during training, the optimization path of the $$\theta^{sh}$$ can be different for each task. Accumulating batches for each parts of the networks, as in ([Kokkinos, 2016][ubernet]), then do the gradient updates according to [Section 1.3][section-1-3] might do the trick, but remember that the variance of data presented to the shared part of the network is greater than all of the task-specific parts combined (this is an open problem, thoroughly described by [Kokkinos, 2016][ubernet]), so we still need some kind of augmentation.
 
+<a name="section22"></a>
 ### 2.2. Instant Noodle is Your Previous Self!
 
 On [WACV 2018][wacv2018], a very simple approach is proposed ([Kim et al. 2018][disjoint-mtl]). The idea is, if you don't have ground truths for other tasks &mdash; just make sure that the model's output on other branches is the same as previously. On each training step, where you have input samples $$x^t$$ and only ground truths for $$t$$-th task $$y^t$$, instead of setting $$\lambda^k(\cdot) = 0$$ for $$k \ne t$$ as in the naive approach above, you need to enforce the outputs to be similar to your previous outputs on tasks $$k$$ using a [Knowledge Distillation][distill] loss.
@@ -281,16 +287,21 @@ $$
 
 where $$T$$ is called *temperature* &mdash; the parameter that makes $$\text{Softmax}(\cdot)$$ activations softer. In a sense, the *Distillation* loss above is almost the same as the [crossentropy][crossentropy] loss used for classification, but is softer. This makes it ideal for our MTL setting &mdash; we want our outputs to other tasks to be *similar* to a learned model, but not *the same.* Demanding the same outputs might prevent our model to learn. One can construct a *Distillation Loss* for other kind of loss functions as well.
 
-### 2.3. Why should we stop there?
+<a name="section23"></a>
+### 2.3. New requirement from boss: 5 nets should be 5x faster, till tomorrow!
 
-A more general idea is to distill the knowledge from a collection of single-task networks, each already learned on task $$k$$ for all tasks $$k \ne t$$, while training on task $$t$$, as illustrated below. This way, we can pretend that the label is there when we actually don't have it.
+A hell of an unreasonable requirement, but we all will get there at some low point of our life. What should we do if we already have a bunch of trained networks? How to merge them to one network?
+
+A more general idea to [Section 2.2][section-2-2] is to distill the knowledge from a collection of single-task networks, each already learned on task $$k$$ for all tasks $$k \ne t$$, while training on task $$t$$, as illustrated below. This way, we can pretend that the label is there when we actually don't have it.
 
 {% capture imblock23 %}
     {{ site.url }}/articles/images/2019-01-22-mtl-a-practical-survey/sec2_im3.svg
 {% endcapture %}
 {% include gallery images=imblock23 cols=1 %}
 
-One can even go a step further &mdash; to ellaborate the more aggressive knowledge transfer techniques that distills hidden representations, such as *FitNets* ([Romero, 2015][fitnets]), to train the Multi-Task model faster. It can be helpful when one needs to perform a Neural Architecture Search for the most efficient MTL architecture. Simple, yet effective. A true *Instant Noodle!*
+One can even go a step further &mdash; to ellaborate the more aggressive knowledge transfer techniques that distills hidden representations, such as *FitNets* ([Romero, 2015][fitnets]), to train the Multi-Task model faster (however, I won't recommend more constrained distillation methods, such as [Yim et al. 2017][gift-from-kd]). It can be helpful when one needs to perform a Neural Architecture Search for the most efficient MTL architecture. Simple, yet effective. A true *Instant Noodle!*
+
+Note that this approach can be simply combined with the approach described in [Section 1.3][section-1-3], with a minor modification described in [Section 1.4][section-1-4]. For each pair of task (objective) and its distillation counterpart, we require that the gradient direction should be more more biased towards the real objective. Strictly speaking, we require $$\|\lambda^t \nabla_{\theta^{sh}} \hat{\mathcal{L}}^t\| > \|\bar{\lambda}^t \nabla_{\theta^{sh}} \hat{\mathcal{L}}^t_{\text{distill}}\|$$ (note that we used the strict $$>$$ comparison instead of $$\ge$$ &mdash; it is to eliminate the equilibrium point at $$0$$).
 
 [catastrophic-forgetting]: https://en.wikipedia.org/wiki/Catastrophic_interference
 [ubernet]: https://arxiv.org/abs/1609.02132
@@ -301,6 +312,10 @@ One can even go a step further &mdash; to ellaborate the more aggressive knowled
 [hinton-distill]: https://arxiv.org/abs/1503.02531
 [crossentropy]: https://en.wikipedia.org/wiki/Cross_entropy
 [fitnets]: https://arxiv.org/abs/1412.6550
+[section-1-4]: #section14
+[section-1-3]: #section13
+[section-2-2]: #section22
+[gift-from-kd]: http://openaccess.thecvf.com/content_cvpr_2017/papers/Yim_A_Gift_From_CVPR_2017_paper.pdf
 
 
 
@@ -334,7 +349,7 @@ This is the most straight-forward approach, as shown in Fig. $$(3.a)$$, and is t
 - **Pretending to share** &mdash; as highlighted by [Liu & Huang (2018)][meta-mtl-communication], these kind of architectures just collects all the features together into a common layer, instead of learning shared parameters (weights) across different tasks.
 - **Fight for resources** &mdash; as a consequence, the tasks often fight with each other for resources (e.g. convolution kernels) within a layer. If the tasks are closely related, it's ok, but otherwise this architecture is very inconvenient. This makes the issue of [*negative transfer*][negative-transfer] (i.e. one task can corrupt useful features of other tasks) more probable.
 
-<a name="section31"></a>
+<a name="section32"></a>
 ### 3.2. A body for each task
 
 {% capture imblock32 %}
@@ -360,6 +375,7 @@ A recent work ([He et al. 2018][mtzipping]), presented on [NeurIPS 2018][nips201
 - **Huge variety, no silver bullet** &mdash; there are a huge variety in this family of networks. None of them seems much supperior to the others, so choosing the right architecture for specific need might be tricky.
 - **Not end-to-end** &mdash; this family of networks usually requires the task-specific columns (at least some of them) to be already pre-trained.
 
+<a name="section33"></a>
 ### 3.3. Branching at custom depth
 
 This approach is based on the shared encoder one, discussed in [Section 3.1][section-3-1], with a small modification &mdash; instead of having all task-specific encoders branching from the main body (the shared part) at a fixed layer, each of them now are detaching from different layers, as shown in Fig. $$(3.c)$$.
@@ -527,3 +543,9 @@ which is the same as the summation loss \eqref{eq:mtloss}, where we assign $$\la
 [max-likelihood]: https://en.wikipedia.org/wiki/Maximum_likelihood_estimation
 [regularization]: https://en.wikipedia.org/wiki/Regularization_(mathematics)
 [black-magic]: http://memecrunch.com/meme/HXNV/black-magic/image.jpg
+
+
+
+
+
+## Appendix B: Some proofs
