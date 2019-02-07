@@ -1,7 +1,7 @@
 
 I'm currently a Software Engineer at [Samsung Research][srk] in Ukraine.
 My main area of interest is Computer Vision, Network Optimization for Mobile Devices, GANs, and Reinforcement Learning.
-The background in Mathematics allows me to delve deeper into the theory behind Deep Learning. Here is my [CV][cv].
+The background in Mathematics allows me to delve deeper into the theory behind Deep Learning.
 
 On a side for fun, I [travel][travelog] to new places, [tweet][twitter] about AI, [blog][blog] about stuffs I find exciting, paint, and [play Go][ogs] (feel free to drop me a match invitation).
 
