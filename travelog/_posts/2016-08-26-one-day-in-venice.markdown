@@ -18,40 +18,41 @@ comments: true
 ---
 
 {% capture imblock1 %}
-	{{ site.url }}/img/2016-08-26-venice/IMG_6412.jpg
-	{{ site.url }}/img/2016-08-26-venice/IMG_6450.jpg
-	{{ site.url }}/img/2016-08-26-venice/IMG_6480.jpg
-
+	https://i.imgur.com/rwKGdMn.jpg
+	https://i.imgur.com/w1PQBn6.jpg
+	https://i.imgur.com/tntg8RX.jpg
 {% endcapture %}
 
+<!-- IMG_6540 -->
 {% capture imblock2 %}
-	{{ site.url }}/img/2016-08-26-venice/IMG_6540.jpg
+	https://i.imgur.com/KPU9SP0.jpg
 {% endcapture %}
 
+<!-- IMG_6572, IMG_6550, IMG_6646, IMG_6599 -->
 {% capture imblock3 %}
-	{{ site.url }}/img/2016-08-26-venice/IMG_6572.jpg
-	{{ site.url }}/img/2016-08-26-venice/IMG_6550.jpg
-	{{ site.url }}/img/2016-08-26-venice/IMG_6646.jpg
-	{{ site.url }}/img/2016-08-26-venice/IMG_6599.jpg
-
+	https://i.imgur.com/NHpDaJK.jpg
+	https://i.imgur.com/Khc0kzh.jpg
+	https://i.imgur.com/IdyAvOQ.jpg
+	https://i.imgur.com/0eS2U7d.jpg
 {% endcapture %}
 
-
+<!-- IMG_6616, IMG_6650, IMG_6662, IMG_6661, IMG_6653, IMG_6693 -->
 {% capture imblock4 %}
-	{{ site.url }}/img/2016-08-26-venice/IMG_6616.jpg
-	{{ site.url }}/img/2016-08-26-venice/IMG_6650.jpg
-	{{ site.url }}/img/2016-08-26-venice/IMG_6662.jpg
-	{{ site.url }}/img/2016-08-26-venice/IMG_6661.jpg
-	{{ site.url }}/img/2016-08-26-venice/IMG_6653.jpg
-	{{ site.url }}/img/2016-08-26-venice/IMG_6693.jpg
+	https://i.imgur.com/ceTpraz.jpg
+	https://i.imgur.com/XWtRIwN.jpg
+	https://i.imgur.com/zL3wWyR.jpg
+	https://i.imgur.com/DyZBeke.jpg
+	https://i.imgur.com/0e6X5WZ.jpg
+	https://i.imgur.com/GVqua04.jpg
 {% endcapture %}
 
+<!-- IMG_6603, IMG_6645, IMG_6665, IMG_6680, IMG_6681 -->
 {% capture imblock5 %}
-	{{ site.url }}/img/2016-08-26-venice/IMG_6603.jpg
-	{{ site.url }}/img/2016-08-26-venice/IMG_6645.jpg
-	{{ site.url }}/img/2016-08-26-venice/IMG_6665.jpg
-	{{ site.url }}/img/2016-08-26-venice/IMG_6680.jpg
-	{{ site.url }}/img/2016-08-26-venice/IMG_6681.jpg
+	https://i.imgur.com/XgZiCmr.jpg
+	https://i.imgur.com/Jl5lQ1C.jpg
+	https://i.imgur.com/qE6alls.jpg
+	https://i.imgur.com/T0kVwbB.jpg
+	https://i.imgur.com/KHJ415h.jpg
 {% endcapture %}
 
 
