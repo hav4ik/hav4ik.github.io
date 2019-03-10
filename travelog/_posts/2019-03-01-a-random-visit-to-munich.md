@@ -13,7 +13,7 @@ image:
   feature: travelog/images/2019-03-01-munich/featured.jpg
   display: true
 
-excerpt: "This is, perhaps, my most random and spontaneous trip so far."
+excerpt: "This is, perhaps, my most random and spontaneous trip so far. Travelling with no plans, no purpose, no expectations."
 comments: true
 ---
 
