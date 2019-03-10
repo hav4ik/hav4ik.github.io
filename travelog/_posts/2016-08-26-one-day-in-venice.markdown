@@ -2,6 +2,8 @@
 layout: post
 title: "Morning in Venice"
 date: 2016-08-26
+permalink: /travelog/:title
+
 mapinfo:
   city: "Venice"
   latitude: 45.4408

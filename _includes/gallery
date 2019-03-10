@@ -2,6 +2,7 @@
 {% assign caption = include.caption %}
 {% assign cols = include.cols %}
 {% assign width = include.width %}
+{% assign additional = include.additional %}
 
 {% case cols %}
     {% when 1 %}
@@ -14,7 +15,7 @@
         {% assign class = "" %}
 {% endcase %}
 
-<figure {% if class != "" %}class="{{ class }}"{% endif %}>
+<figure class="{{ class }} {{ additional }}">
     {% for image in images %}
     {% if width %}
     <a href="{{ image }}"><img src="{{ image }}" style="width:{{ width }};margin-right:auto;margin-left:auto;display:block;" alt=""></a>

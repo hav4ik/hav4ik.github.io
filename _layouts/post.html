@@ -29,10 +29,12 @@
       <div class="content">
         <div class="post-title {% if page.image.display and page.image.feature %} feature {% endif %}">
           <h1>{{ page.title }}</h1>
+          {% if page.type == 'article' %}
           <h4>
             <i class="fa fa-history"></i>&ensp;
             <a href={{ page.commits }}>{{ page.date | date_to_string }}</a>
           </h4>
+          {% endif %}
         </div>
         {{ content }}
         {% if page.comments == true and site.disqus_shortname %}
