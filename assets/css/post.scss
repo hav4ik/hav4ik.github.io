@@ -32,9 +32,10 @@
 	border-radius: 3px;
 /*	box-shadow: 0 0 10px 0 rgba($color_shark,0.3);*/
 	@media #{$small} {
-		width: 90%;
+		width: 100%;
 		padding: 2em 0;
 	    box-shadow: none;
+        margin: 2em 0;
 	}
 }
 
@@ -62,7 +63,7 @@
       // @include rounded(4px);
     }
     &.half {
-      @media only screen and (min-width: 62.5em) {
+      // @media only screen and (min-width: 62.5em) {
         img {
           width: calc(50% - 2px);
           float: left;
@@ -72,10 +73,10 @@
         figcaption {
           clear: left;
         }
-      }
+      // }
     }
     &.third {
-      @media only screen and (min-width: 62.5em) {
+      // @media only screen and (min-width: 62.5em) {
         img {
           width: calc(33.3% - 6px);
           float: left;
@@ -85,7 +86,7 @@
         figcaption {
           clear: left;
         }
-      }
+      // }
     }
     &.nopad-top {
       padding-top: 1px;
