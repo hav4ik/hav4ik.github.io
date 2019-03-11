@@ -23,7 +23,8 @@
 }
 
 .wrapper {
-	width: calc(100% - 1rem);
+	// width: calc(100% - 1rem);
+    width: 60%;
 	max-width: 850px;
 	margin: 4rem auto;
 	background: $white;
@@ -42,7 +43,6 @@
 .content {
   //font-size: .875rem;
   //line-height: 1.8571;
-  font-size: 1rem;
   margin-bottom: 1.625rem;
   padding: 0 2rem;
   text-align: justify;
