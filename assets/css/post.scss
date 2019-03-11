@@ -14,7 +14,7 @@
   min-height: 300px;
   text-align: left;
   color: $white;
-  @media #{$small} {
+  @media #{$medium} {
     display: block !important;
   }
   @media only screen and (max-height: 500px) {
@@ -23,7 +23,7 @@
 }
 
 .wrapper {
-	width: 60%;
+	width: calc(100% - 1rem);
 	max-width: 850px;
 	margin: 4rem auto;
 	background: $white;
@@ -31,7 +31,7 @@
 	padding: 2em 0em;
 	border-radius: 3px;
 /*	box-shadow: 0 0 10px 0 rgba($color_shark,0.3);*/
-	@media #{$small} {
+	@media #{$medium} {
 		width: 100%;
 		padding: 2em 0;
 	    box-shadow: none;
@@ -115,7 +115,7 @@
 
 .feature {
     /*@include transition(.5s);*/
-    @media #{$small} {
+    @media #{$medium} {
         /* background-image: none !important; */
     }
     @media #{$medium} {
