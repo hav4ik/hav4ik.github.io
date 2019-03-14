@@ -34,25 +34,13 @@ If you found yourself in a strange situation, where you want your Neural Network
 
 Traditionally, the development of Multi-Task Learning was aimed to improve the generalization of multiple task predictors by jointly training them, while allowing some sort of knowledge transfer and between them [(Caruana, 1997)][caruana1997]. If you, for example, train a *surface normal prediction* model and *depth prediction* model together, they will definitely share mutually-benefitial features together [(Eigen et al. 2015)][eigen-dnl]. This motivation is clearly inspired by natural intelligence &mdash; living creatures in an remarkable way can easily learn a task by leveraging the knowledge from other tasks. A broader generalization of this idea is called [Lifelong Learning][lifelong-learning], in which different tasks are not even learned simultaneously.
 
-However, screw these academic stuffs, **we are [engineers][im-an-engineer]**! Why should we care about leveraging diverse features from different tasks when we can just [*slap that AI*][slapping] with more data ([kagglers][kagglers] doesn't count here)? If you are an engineer from *big [AF][as-fuck]* companies like Google, Samsung, Microsoft, etc. then *Hell Yeah* you've got a *ton* of cash to *splash out* on labellers! Just hire them to get more data. Thus, our main motivation for Multi-Task learning are less obvious, but even more important from an engineering and consumer standpoint:
+However, as [**engineers**][im-an-engineer], why should we care about leveraging diverse features from different tasks when we can just [*slap that AI*][slapping] with more data? If you are an engineer from *big [AF][as-fuck]* companies like Google, Samsung, Microsoft, etc. then *Hell Yeah* you've got a *ton* of cash to *splash out* on labellers! Just hire them to get more data. Thus, our main motivation for Multi-Task learning are less obvious, but even more important from an engineering and consumer standpoint:
 
 -  **To optimize multiple objectives at once.** For instance, in [GANs][gan], it is shown in various tasks that often incorporating additonal loss functions can yield much better results ([Isola et al. 2017][pix2pix]; [Wang et al. 2018][vid2vid]). A [regularization term][regularization] can also be considered as additional objective.
 
--  **To reduce the cost of running multiple models**. My Korean boss always yells at my team *"we need faster CNNs!"* in his typical asian accent (no offense, I'm also asian). How can we further speed up the 5 models that are already optimized both in size and speed by more than 40 times? Oh, yeah, we can merge all of them into a single Multi-Task model!
+-  **To reduce the cost of running multiple models**. In mobile apps, we want to perform more intelligent tasks with less hardware requirements. How can we further speed up the 5 models that are already optimized both in size and speed? Oh, yeah, we can merge all of them into a single Multi-Task model!
 
 In this article, I will only focus on the two motivation above. The *motto* of this article is: *simple as instant noodle*, i.e. easy to implement and effective as heck! This blog post serves me as a lecture note as well, so here you will find more in-depth theoretical stuffs (that normally only the full papers have) than a typical survey will do. For a more comprehensive survey that gives you a bird-eye-view on a whole field of MTL and focused on the *mutually-benefitial sharing* aspect of Multi-Task Learning, it is recommended to read [Ruder's (2017)][ruder-mtl] paper.
-
-{% comment %}
-This article will be structured as following:
-
--  In [**Section 1**][section-1], I will outline the challenges of optimizing multiple objectives at once and describe a cool paper from [NeurIPS 2018][nips2018] that fits our motto of *instant noodleness.* Then, in [**subsection 1.4**][subsection-1-4], I will make some remarks and propose some modifications of my own to it that generalizes the approach to more complicated architectures that I used in practical applications.
-
--  In [**Section 2**][section-2], I will discuss the challenges when for each input sample, we don't have ground truth to each of the tasks to it &mdash; a very common situation in MTL. Then, I will describe the *next noodle for ya* &mdash; a simple yet effective solution proposed on [WACV 2018][wacv2018]. In [**subsection 2.3**][subsection-2-3], I will also expand this idea to a more *industrial* setting, and propose minor improvements using my experience in [Knowledge Distillation][knowledge-distillation].
-
--  In [**Section 3&frac12;**][section-3-and-a-half], I will give a brief survey on different architectures for MTL that might be useful for you. Most of the case, however, the simplest architecture will still do the job.
-
--  In [**Appendix A**][appendix-a], I will outline other methods that got their way to top conferences such as *CVPR*, *NIPS*, *ICML*, but are not that good in practise to be qualified as *instant noodle*. Most [engineers][im-an-engineer] won't need that, unless being forced by their bosses to increase the accuracy by $$0.01\%$$.
-{% endcomment %}
 
 [vid2vid]: https://tcwang0509.github.io/vid2vid/
 [pix2pix]: https://phillipi.github.io/pix2pix/
@@ -86,7 +74,7 @@ This article will be structured as following:
 <a name="section1"></a>
 ## 1. Too many losses? MOO to the rescue!
 
-*Sorry for bad puns.* The methods of Multi-Objective Optimization (MOO) can help you learn multiple objectives better (here and after we will use the terms *objective* and *task* interchangeably). In this section, I will discuss the challenges of learning multiple objectives, and describe a State-of-the-Art solution to it.
+The methods of Multi-Objective Optimization (MOO) can help you learn multiple objectives better (here and after we will use the terms *objective* and *task* interchangeably). In this section, I will discuss the challenges of learning multiple objectives, and describe a State-of-the-Art solution to it.
 
 <a name="section11"></a>
 ### 1.1. Forming the formal formulation
