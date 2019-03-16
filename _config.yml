@@ -3,6 +3,7 @@ name: Chan Kha Vu
 title: The everyday AI engineer
 email: chankhavu@gmail.com
 ava: assets/img/myface.jpg
+description: Hi, my name is Kha Vu, I'm an AI engineer, a Go player, and an amateur travel photographer. Welcome to my blog!
 
 # Site info
 logo: assets/img/ava.jpeg
@@ -15,3 +16,7 @@ linkedin_username: ha-vu-tran-35b350a0
 
 # Comments
 disqus_shortname: tranhavu
+
+# Additional stuffs
+plugins:
+  - jekyll-sitemap
