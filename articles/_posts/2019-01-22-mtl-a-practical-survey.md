@@ -159,10 +159,13 @@ A solution $$\,\theta^\star$$ is called Pareto optimal if there exists no soluti
 {% endcapture %}
 {% include gallery images=imblock12 cols=1 %}
 
-The multi-objective optimization can be solved to local minimality (in a Pareto sense) via Multiple Gradient Descent Algorithm (MGDA), thoroughly studied by [Désidéri (2012)][mgda]. This algorithm leverages the [Karush&ndash;Kuhn&ndash;Tucker (KKT) conditions][kkt-cond] which are neccessary for optimality. In this case, the KKT conditions for both shared and task-specific parameters are follows:
+The multi-objective optimization can be solved to local minimality (in a Pareto sense) via Multiple Gradient Descent Algorithm (MGDA), thoroughly studied by [Désidéri (2012)][mgda]. This algorithm leverages the [Karush&ndash;Kuhn&ndash;Tucker (KKT) conditions][kkt-cond] which are neccessary for optimality.
 
--  There exists $$\lambda^1 \dots \lambda^T$$ such that $$\sum _ {t=1}^T \lambda^t = 1$$ and the [convex combination][convex-comb] of gradients with respect to shared paramethers $$\sum _ {t=1}^T \lambda^t \nabla _ {\theta^{sh}} \hat{\mathcal{L}}^t(\theta^{sh},\theta^t) = 0$$.
--  For all tasks $$t$$, the gradients with respect to task-specific parameters $$\nabla _ {\theta^t} \hat{\mathcal{L}} (\theta^{sh}, \theta^{t}) = 0$$.
+Intuitively, the [KKT conditions][kkt-cond] generalizes the notion of stationarity for [Pareto-dominance][pareto-opt] formulation. It describes the situation, where the gradients of task-specific parameters $$\nabla_{\theta^T} \hat{\mathcal{L}} (\theta^t, \theta^{sh})$$ are all $$0$$, and we can find a convex combination where $$\nabla_{\theta^{sh}} \hat{\mathcal{L}} (\theta^t, \theta^{sh})$$ cancels each other. In this case, the KKT conditions for both shared and task-specific parameters are follows:
+
+> [**Karush&ndash;Kuhn&ndash;Tucker (KKT) conditions**][kkt-cond]
+> -  There exists $$\lambda^1 \dots \lambda^T$$ such that $$\sum _ {t=1}^T \lambda^t = 1$$ and the [convex combination][convex-comb] of gradients with respect to shared paramethers $$\sum _ {t=1}^T \lambda^t \nabla _ {\theta^{sh}} \hat{\mathcal{L}}^t(\theta^{sh},\theta^t) = 0$$.
+> -  For all tasks $$t$$, the gradients with respect to task-specific parameters $$\nabla _ {\theta^t} \hat{\mathcal{L}} (\theta^{sh}, \theta^{t}) = 0$$.
 
 The solutions satisfying these conditions are also called a **Pareto stationary** point. It is worth noting that although every Pareto optimal point is Pareto stationary, the reverse may not be true. Now, we formulate the optimization problem for coefficients $$\lambda^1, \ldots, \lambda^T$$ as follows:
 
@@ -203,8 +206,11 @@ This new method outperforms [Chen et al. (2017)][chen2017] and [Kendall et al. (
 
 The upper-bound formulation of \eqref{eq:lambdaopt} by the authors, although it is designed for encoder-decoder architecture, can be generalized to a tree-like structures that will be described in [Section 3.3][section-3-3]. The extended proof is provided in [Appendix B.1][appendix-b-1].
 
+> **Question:** What if the objectives $$\hat{\mathcal{L}} (\theta^{sh}, \theta^t)$$ are not equally important?
+
 This algorithm will not preserve the Pareto Optimality in case your objectives are not equal in importance, i.e. a collection of constraints $$
 \|\lambda^{t_1}\nabla _ {\theta^{sh}} \hat{\mathcal{L}}^{t_1}(\theta^{sh},\theta^{t_1})\| \ge \|\lambda^{t_2} \nabla _ {\theta^{sh}} \hat{\mathcal{L}}^{t_2}(\theta^{sh},\theta^{t_2})\|$$ is added for tasks $$t_1$$ and $$t_2$$. This is a convex constraint, and a combination of it is also convex. So, we can still use the [Frank&ndash;Wolfe solver][frank-wolfe] here. The difference will be in situation when $$\sum _ {t=1}^T \lambda^t \nabla _ {\theta^{sh}} \hat{\mathcal{L}}^t(\theta^{sh},\theta^t) = 0$$, i.e. when the zero point is inside the convex hull of directions. The importance constraint in this case means that we should ignore the less important objective and minimize \eqref{eq:lambdaopt} with respect to the other objectives, as preserving Pareto optimality will be impossible in this case. In [Section 2.3][section-2-3], however, I will show the case when this is actually a desired behaviour &mdash; when we combine this *Instant Noodle* with another *Instant Noodle* to create an ultimate *Instant Noodle*.
+
 
 [moo]: https://en.wikipedia.org/wiki/Multi-objective_optimization
 [nips2018]: https://nips.cc/Conferences/2018/Schedule?type=Poster
@@ -293,7 +299,7 @@ A more general idea to [Section 2.2][section-2-2] is to distill the knowledge fr
 
 One can even go a step further &mdash; to ellaborate the more aggressive knowledge transfer techniques that distills hidden representations, such as *FitNets* ([Romero, 2015][fitnets]), to train the Multi-Task model faster (however, I won't recommend more constrained distillation methods, such as [Yim et al. 2017][gift-from-kd]). It can be helpful when one needs to perform a Neural Architecture Search for the most efficient MTL architecture. Simple, yet effective. A true *Instant Noodle!*
 
-Note that this approach can be simply combined with the approach described in [Section 1.3][section-1-3], with a minor modification described in [Section 1.4][section-1-4]. For each pair of task (objective) and its distillation counterpart, we require that the gradient direction should be more more biased towards the real objective. Strictly speaking, we require $$\|\lambda^t \nabla_{\theta^{sh}} \hat{\mathcal{L}}^t\| > \|\bar{\lambda}^t \nabla_{\theta^{sh}} \hat{\mathcal{L}}^t_{\text{distill}}\|$$ (note that we used the strict $$>$$ comparison instead of $$\ge$$ &mdash; it is to eliminate the equilibrium point at $$0$$).
+Note that this approach can be simply combined with the approach described in [Section 1.3][section-1-3], with a minor modification described in [Section 1.4][section-1-4]. For each pair of task (objective) and its distillation counterpart, we require that the gradient direction should be more more biased towards the real objective. Strictly speaking, we denote $$\nabla_{\theta^{sh}} \hat{\mathcal{L}}^t$$ as a more important objective than $$\nabla_{\theta^{sh}} \hat{\mathcal{L}}^t_{\text{distill}}$$.
 
 [catastrophic-forgetting]: https://en.wikipedia.org/wiki/Catastrophic_interference
 [ubernet]: https://arxiv.org/abs/1609.02132
@@ -551,14 +557,3 @@ which is the same as the summation loss \eqref{eq:mtloss}, where we assign $$\la
 [max-likelihood]: https://en.wikipedia.org/wiki/Maximum_likelihood_estimation
 [regularization]: https://en.wikipedia.org/wiki/Regularization_(mathematics)
 [black-magic]: http://memecrunch.com/meme/HXNV/black-magic/image.jpg
-
-
-
-
-
-## Appendix B: Some proofs
-
-### B.1. MGDA-UB for more general architectures
-
-### B.2. Why averaging is bad
-
