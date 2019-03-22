@@ -13,7 +13,7 @@ comments: true
 
 
 
-> Industry ML/AI [Engineers][im-an-engineer] are [**weirdos**][weirdo]: they hunt the latest papers, they crave for State-of-the-Art, they talk about craziest ideas that might enhance the whole field, yet they are too lazy to implement harder-than-a-resnet idea. This article is written **for** such [Engineers][im-an-engineer].
+> An in-depth survey on Multi-Task Learning techniques that works like a charm as-is right from the box and are easy to implement &ndash; just like instant noodle!. I will keep this article up-to-date with new results, so stay tuned!
 
 [weirdo]: https://www.urbandictionary.com/define.php?term=weirdo
 [im-an-engineer]: https://www.youtube.com/watch?v=rp8hvyjZWHs
@@ -34,13 +34,15 @@ If you found yourself in a strange situation, where you want your Neural Network
 
 Traditionally, the development of Multi-Task Learning was aimed to improve the generalization of multiple task predictors by jointly training them, while allowing some sort of knowledge transfer and between them [(Caruana, 1997)][caruana1997]. If you, for example, train a *surface normal prediction* model and *depth prediction* model together, they will definitely share mutually-benefitial features together [(Eigen et al. 2015)][eigen-dnl]. This motivation is clearly inspired by natural intelligence &mdash; living creatures in an remarkable way can easily learn a task by leveraging the knowledge from other tasks. A broader generalization of this idea is called [Lifelong Learning][lifelong-learning], in which different tasks are not even learned simultaneously.
 
-However, as [**engineers**][im-an-engineer], why should we care about leveraging diverse features from different tasks when we can just [*slap that AI*][slapping] with more data? If you are an engineer from *big [AF][as-fuck]* companies like Google, Samsung, Microsoft, etc. then *Hell Yeah* you've got a *ton* of cash to *splash out* on labellers! Just hire them to get more data. Thus, our main motivation for Multi-Task learning are less obvious, but even more important from an engineering and consumer standpoint:
+For [engineers][im-an-engineer], there is more to it than just knowledge sharing between tasks. The reasons why we want to do Multi-Task Learning are:
 
 -  **To optimize multiple objectives at once.** For instance, in [GANs][gan], it is shown in various tasks that often incorporating additonal loss functions can yield much better results ([Isola et al. 2017][pix2pix]; [Wang et al. 2018][vid2vid]). A [regularization term][regularization] can also be considered as additional objective.
 
 -  **To reduce the cost of running multiple models**. In mobile apps, we want to perform more intelligent tasks with less hardware requirements. How can we further speed up the 5 models that are already optimized both in size and speed? Oh, yeah, we can merge all of them into a single Multi-Task model!
 
-In this article, I will only focus on the two motivation above. The *motto* of this article is: *simple as instant noodle*, i.e. easy to implement and effective as heck! This blog post serves me as a lecture note as well, so here you will find more in-depth theoretical stuffs (that normally only the full papers have) than a typical survey will do. For a more comprehensive survey that gives you a bird-eye-view on a whole field of MTL and focused on the *mutually-benefitial sharing* aspect of Multi-Task Learning, it is recommended to read [Ruder's (2017)][ruder-mtl] paper.
+-  **To improve the accuracy on each task**. We hope that the tasks will share mutually-benefitial features. This is an active area of research, that is currently limited, unfortunately, to our understanding of neural representation.
+
+The *motto* of this article is: **simple as instant noodle**, i.e. I will only describe methods that are easy to implement and effective as heck! This article serves me as a lecture note as well, so here you will find more in-depth theoretical stuffs (that normally only the full papers have) than a typical survey will do. For a more comprehensive survey with a bird-eye-view on the whole field of MTL and more focused on the *mutually-benefitial sharing* aspect of Multi-Task Learning, it is recommended to read [Ruder's (2017)][ruder-mtl] paper.
 
 [vid2vid]: https://tcwang0509.github.io/vid2vid/
 [pix2pix]: https://phillipi.github.io/pix2pix/
@@ -88,7 +90,7 @@ f(x, \theta) = \left( f^1(x; \theta^{sh}, \theta^1), \dots, f^T(x; \theta^{sh}, 
 \end{equation}
 $$
 
-where $$\theta^{sh}$$ are network parameters shared between tasks, and $$\theta^t$$ are task-specific parameters. Task-specific outputs $$f^t(x; \theta^{sh}, \theta^t)$$ maps the inputs from $$\mathcal{X}$$ to task-specific outputs $$\mathcal{Y}^t$$. In Multi-Task Learning literature, the following formal summation formulation of the problem often yields:
+where $$\theta^{sh}$$ are network parameters shared between tasks, and $$\theta^t$$ are task-specific parameters. Task-specific outputs $$f^t(x; \theta^{sh}, \theta^t)$$ maps the inputs from $$\mathcal{X}$$ to task-specific outputs $$\mathcal{Y}^t$$. In Multi-Task Learning literature, the following summation formulation of the problem often yields:
 
 $$
 \begin{equation}
@@ -177,7 +179,7 @@ $$
 \end{equation}
 $$
 
-Denoting $$p^t = \nabla _ {\theta^{sh}} \hat{\mathcal{L}}^t (\theta^{sh},\theta^t)$$, this optimization problem with respect to $$\lambda^t$$ is equivalent to finding a minimum-norm point in the convex hull of the set of input points $$p^t$$. This problem arises naturally in computational geometry: it is equivalent to finding the closest point within a convex hull to a given query point. Basically, \eqref{eq:lambdaopt} is a convex quadratic problem with linear constraints. If you are like me, chances are you're also sick of the [non-convex][non-convex-rage] optimization problems appearing every day of your career! Having a [convex problem][convex-opt-boyd] popping out of nowhere like this is nothing short of joy. The [Frank&ndash;Wolfe solver][frank-wolfe] was used as a most suitable convex optimization algorithm in this case. The following theorem highlights the nice properties of this optimization problem:
+Denoting $$p^t = \nabla _ {\theta^{sh}} \hat{\mathcal{L}}^t (\theta^{sh},\theta^t)$$, this optimization problem with respect to $$\lambda^t$$ is equivalent to finding a minimum-norm point in the convex hull of the set of input points $$p^t$$. This problem arises naturally in computational geometry: it is equivalent to finding the closest point within a convex hull to a given query point. Basically, \eqref{eq:lambdaopt} is a convex quadratic problem with linear constraints. If you are like me, chances are you're also sick of the [non-convex][non-convex-rage] optimization problems appearing every day of your career! Having a [convex problem][convex-opt-boyd] popping out of nowhere like this is nothing short of joy. The [Frank&ndash;Wolfe solver][frank-wolfe] was used as a most suitable convex optimization algorithm in this case, just because you have an analytical solution in the case of 2 tasks (more in the paper by [Sener and Koltun][mtl-as-moo]). The following theorem highlights the nice properties of this optimization problem:
 
 > **Theorem ([Désidéri][mgda]).** If $$\,\lambda^1, \dots, \lambda^T$$ is the solution of \eqref{eq:lambdaopt}, either of the following is true:
 > - $$\sum _ {t=1}^T {\lambda^t \nabla _ {\theta^{sh}} \hat{\mathcal{L}}^t (\theta^{sh},\theta^t)} = 0$$ and the resulting $$\,\lambda^1, \ldots, \lambda^T$$ satisfies the KKT conditions.
@@ -195,7 +197,9 @@ It is easy to notice that in this case, we need to compute $$\nabla _ {\theta^{s
 <a name="section14"></a>
 ### 1.4. Remarks and Modifications
 
-Absolutely brilliant! [ten out of ten][chuck-ten]! It outperforms [Chen et al. (2017)][chen2017] and [Kendall et al. (2018)][kendall2018] consistently with a large margin! Heck, it even outperforms the single-task classifier in most of the benchmarks! Absolute insanity! The [second author][vkoltun] is also a beast in modern Machine Learning! This is by far the most tasty *instant noodle* in this survey!
+This new method outperforms [Chen et al. (2017)][chen2017] and [Kendall et al. (2018)][kendall2018] consistently with a large margin! Heck, it even outperforms the single-task classifier in most of the benchmarks! Absolute insanity! This is by far the most tasty *instant noodle* in this survey!
+
+> **Question:** Can I use this algorithm effectively with other network architectures?
 
 The upper-bound formulation of \eqref{eq:lambdaopt} by the authors, although it is designed for encoder-decoder architecture, can be generalized to a tree-like structures that will be described in [Section 3.3][section-3-3]. The extended proof is provided in [Appendix B.1][appendix-b-1].
 
@@ -235,7 +239,7 @@ This algorithm will not preserve the Pareto Optimality in case your objectives a
 <a name="section2"></a>
 ## 2. Forgot something? Hallucinate it!
 
-*No, I don't propagandize drugs and weed.* In this section, I will describe the problem of [catastrophic forgetting][catastrophic-forgetting] that occurs when the tasks you are trying to learn are very different so you don't have ground truth labels for each tasks for every input (or, in case of Unsupervised/GANs/Reinforcement &mdash; you can't evaluate the model for all its actions). Then, I will describe the ways to overcome it that were proposed on [WACV 2018][wacv2018] and discuss how it can be improved in the industry setting with abundant resources.
+In this section, I will describe the problem of [catastrophic forgetting][catastrophic-forgetting] that occurs when the tasks you are trying to learn are very different so you don't have ground truth labels for each tasks for every input (or, in case of Unsupervised/GANs/Reinforcement &mdash; you can't evaluate the model for all its actions). Then, I will describe the ways to overcome it that were proposed on [WACV 2018][wacv2018] and discuss how it can be improved in the industry setting with abundant resources.
 
 ### 2.1. Interference of Tasks and Forgetting Effect
 
@@ -345,7 +349,7 @@ This is the most straight-forward approach, as shown in Fig. $$(3.a)$$, and is t
 {% endcapture %}
 {% include gallery images=imblock32 cols=1 %}
 
-*It ain't a communist slogan.* This family of architectures is also referred as *Soft Parameter Sharing* in literature, the core idea is shown in Fig. $$(3.b)$$ &mdash; each task has its own layer of task-specific parameters at each shared depth. They then define a mechanism to share knowledge (i.e. parameters) between tasks at each shared depth (i.e. sharing between columns).
+This family of architectures is also referred as *Soft Parameter Sharing* in literature, the core idea is shown in Fig. $$(3.b)$$ &mdash; each task has its own layer of task-specific parameters at each shared depth. They then define a mechanism to share knowledge (i.e. parameters) between tasks at each shared depth (i.e. sharing between columns).
 
 The most *instant noodley* approach is Cross-Stich Networks ([Mirsa et al. 2016][mirsa2016]), illustrated in Fig. $$(a)$$. It allows the model to determine in what way the task-specific columns should combine knowledge from other columns, by learning a linear combination of the output of previous layers. *Use this if you need a noodley.*
 
@@ -448,6 +452,22 @@ I just want to make a quick note that the *Instant Noodles* in [Section 1][secti
 
 
 <br><br>
+<a name="conclusion"></a>
+## Okay, that's all cool, but how should I Multi-Task?
+
+Just use the *Instant Noodles* described above. More specifically, combine the technique of Multi-Gradient Descent in [Section 1][section-1] together with gradients normalization described in [Appendix A.1][appendix-a-1]. Then, if you have problems with missing data, use the stochastic gradient update or the self-distillation idea that was analyzed in detail in [Section 2][section-2]. Choosing the right architecture might be tricky, so you will need to account for all the pros and cons in [Section 3][section-3]. Finally, subscribe and comment to this blog for more cool stuffs!
+
+[section-1]: #section1
+[section-2]: #section2
+[section-3]: #section3
+[appendix-a-1]: #appendixa1
+
+
+
+
+
+
+<br><br>
 ## Appendix A: other noodles that ain't the yummiest noodle
 
 In this section, I will describe the other approaches that I had experience with, but won't recommend them for others. On their own, they are quite good and convenient, just not the best out there (comparing to methods described above).
@@ -537,3 +557,8 @@ which is the same as the summation loss \eqref{eq:mtloss}, where we assign $$\la
 
 
 ## Appendix B: Some proofs
+
+### B.1. MGDA-UB for more general architectures
+
+### B.2. Why averaging is bad
+
