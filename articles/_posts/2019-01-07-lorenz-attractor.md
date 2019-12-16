@@ -12,7 +12,7 @@ excerpt: "The connection between the proof of the existance of the Lorenz Attrac
 comments: true
 ---
 
-> This is a small diary of my journey of understanding the solution and some non-trivial topological implications of one of the [Smale's Problems for the Next Century][smales-problems] &mdash; in particular, the **14th Problem**. Here, I will outline an intuitive overview that hides away most of the complicated mathematical parts.
+> This is a small diary of my journey of understanding the solution and some non-trivial topological implications of one of the [Smale's Problems for the Next Century][smales-problems] &mdash; in particular, the **14th Problem**. Here, I will outline the gist of the solution that hides away most of the complicated computational rigors.
 
 
 
@@ -139,7 +139,7 @@ I will describe the geometric model more detailed in the next section. Now, one 
 ## 4. The Geometric Model
 
 What exactly is the *Geometric Lorenz Attractor* in the *Problem 14 formulation* in previous section?
-As it was untractable to extract rigorous information of the dynamics of system \eqref{eq:lorenzsys}, a geometric model of the Lorenz Flow was proposed by [John Guckenheimer (1976)][geometric-model]. The model was extensively studied, but the original equations remained a puzzle. It is important to node that while the geometric model is not a single model but a *family* of models that implies a [vector field][vector-field] with certain features, the [original proof (W. Tucker, 2002)][orig-proof] only considers a specific model.
+As it was untractable to extract rigorous information of the dynamics of system \eqref{eq:lorenzsys}, a geometric model of the Lorenz Flow was proposed by [John Guckenheimer (1976)][geometric-model]. The model was extensively studied, but the original equations remained a puzzle. It is important to note that while the geometric model is not a single model but a *family* of models that implies a [vector field][vector-field] with certain features, the [original proof (W. Tucker, 2002)][orig-proof] only considers a specific model.
 
 {% capture imblock2 %}
     {{ site.url }}/articles/images/2019-01-07-lorenz-attractor/geometric_model.svg
@@ -184,7 +184,7 @@ In the model, we also assume that the global flow $$G$$ preserves the $$x_2$$ di
 
 ## 5. Solution to the 14-th Problem
 
-In this section, I will briefly describe the beautiful idea of the proof for the 14-th Smale's Problem. First, we need to understand the notion of *SRB measure* and how it relates to dynamical systems.
+In this section, I will briefly describe the beautiful idea of the proof for the 14-th Smale's Problem (basically highlighting the key details of [Warwick's paper](orig-proof)). First, we need to understand the notion of *SRB measure* and how it relates to dynamical systems.
 
 
 ### 5.1. The notion of Sinai&ndash;Ruelle&ndash;Bowen Measure
@@ -233,7 +233,7 @@ The reason we have to explicitly analyze the cube near origin and the local flow
 ### 5.4. Inspecting the Local Flow near the Origin
 
 {% capture imblock4 %}
-    {{ site.url }}/articles/images/2019-01-07-lorenz-attractor/varchange.svg
+    {{ site.url }}/articles/images/2019-01-07-lorenz-attractor/varchange2.svg
 {% endcapture %}
 {% include gallery images=imblock4 cols=1 %}
 
@@ -241,7 +241,7 @@ To inspect the local flow near origin, a change of coordinates is introduced tha
 
 The following pair of propositions allows us to go back and forth from the original Lorenz form to a normal form, allowing us to perform further analysis and calculations:
 
-> **Theorem 1 (change of coordinates).** There exists a close to identity change of variables in the small neighborhood of the origin
+> **Lemma 1 (change of coordinates).** There exists a close to identity change of variables in the small neighborhood of the origin
 >
 $$
 \begin{equation}
@@ -256,7 +256,7 @@ $$
 
 In these new coordinates, the unstable manifold coincides with the $$\zeta_1$$-axis, and the stable manifold coincides with the $$\zeta_2\zeta_3$$ plane. The norm $$\| \cdot \| _ r$$ is defined as follows: let the modulo $$\vert \zeta \vert = \max\{\vert\zeta_1\vert, \vert\zeta_2\vert, \vert\zeta_3\vert\}$$, and the norm is defined in a $$r$$-neighborhood $$\| f \| _ r = \sup\{ \vert f \vert \colon \vert \zeta \vert \le r\}$$. This permits us to estimate the evolution of the flow analytically. When changing back to the original coordinates, the out-going flow is once again deformed, but still in a controllable fashion, as shown in the following theorem:
 
-> **Theorem 2 (inverse coordinate change).** For $$\vert \zeta \vert \le r \le \frac{1}{2}$$, the change of variables $$\xi = \zeta + \phi(\zeta)$$ in the previous theorem has a well defined inverse $$\,\zeta = \xi + \psi(\xi)$$ in the ball $$\,\vert \xi \vert \le \tilde{r} = r - \| \phi \| _ r$$ satisfying
+> **Lemma 2 (inverse coordinate change).** For $$\vert \zeta \vert \le r \le \frac{1}{2}$$, the change of variables $$\xi = \zeta + \phi(\zeta)$$ in the previous theorem has a well defined inverse $$\,\zeta = \xi + \psi(\xi)$$ in the ball $$\,\vert \xi \vert \le \tilde{r} = r - \| \phi \| _ r$$ satisfying
 >
 $$
 \| \psi \| _ {\tilde{r}} \le \| \phi \| _ {r}
@@ -266,9 +266,9 @@ $$
 
 Combining the theorems *1* and *2* on the change of coordinates and inverse change, we get the cyclic scheme as in figure $$(e)$$ and the ability to enter and leave the cube around the origin without much iterruption to the flow. This allows us to analyze the normal flow instead.
 
-It is also proven that the normal form in \eqref{eq:coordchange} of the real Lorenz flow and the linear flow introduced by Geometric Model have very similar behaviour. The following lemma holds true:
+It is also proven that the normal form in \eqref{eq:coordchange} of the real Lorenz flow and the linear flow introduced by Geometric Model have very similar behaviour. The following shows the similarity of their $$C_1$$ properties:
 
-> **Theorem 3 (linearity of normal flow).** Let $$\psi(\zeta, t)$$ be the normal flow, i.e. denotes the solution to the equations $$\dot{\zeta} = A\zeta + G(\zeta)$$. Let $$\phi(\zeta, t)$$ denote the flow of the linearized Lorenz equations $$\zeta = A\zeta$$. For all trajectories starting from the lid of the cube $$\{\zeta \colon \vert \zeta \vert \le r \}$$, where $$r \le \frac{1}{4}$$, we have:
+> **Lemma 3 (linearity of normal flow).** Let $$\psi(\zeta, t)$$ be the normal flow, i.e. denotes the solution to the equations $$\dot{\zeta} = A\zeta + G(\zeta)$$. Let $$\phi(\zeta, t)$$ denote the flow of the linearized Lorenz equations $$\zeta = A\zeta$$. For all trajectories starting from the lid of the cube $$\{\zeta \colon \vert \zeta \vert \le r \}$$, where $$r \le \frac{1}{4}$$, we have:
 >
 $$
 \left\vert
@@ -282,14 +282,50 @@ $$
 >
 > where $$\kappa = 2 \cdot 10^{-19}$$ and $$\lambda_i\$$ are eigenvalues of $$\phi$$. These estimates holds throughout the cube.
 
-This theorem says that in our small cube illustrated in $$(c)$$, the normal flow expands and contracts [tangent vectors][tangent-vector] at almost the same rate as the linear flow does. So, with some care, we can treat them similarly. I will not further provide the comparison of properties of the normal flow and linear flow here, since the objective of this article is just to provide the reader with a general vision on the topic.
+This theorem says that in our small cube illustrated in $$(c)$$, the normal flow expands and contracts [tangent vectors][tangent-vector] at almost the same rate as the linear flow does.
+It is important to point out that $$9(\lambda_3 + \kappa) + \lambda_j$$ is negative, which means that the error decreases as the exit-time increases, i.e. as we take $$\vert \zeta_1 \vert$$ small.
+
+<blockquote markdown="1">
+**Lemma 4 (normal flow tracing).** The next table shows the similarity of the $$C_0$$ properties of the coordinate variables $$\zeta_1, \zeta_2, \zeta_3$$ and the exit time $$\tau_e(\zeta)$$ for all trajectories starting from the lid of the cube $$\{\zeta \colon \vert \zeta \vert \le r \}$$:
+
+<table>
+<thread>
+  <tr>
+    <th>Linear Flow</th>
+    <th>Normal Flow</th>
+  </tr>
+</thread>
+<tbody>
+  <tr>
+    <td rowspan="2">$$\textstyle \phi_i (\zeta, t) = e^{\lambda_i t} \zeta_i\,,$$ $$\textstyle i = 1, 2, 3$$</td>
+    <td>$$\textstyle \vert \zeta_i \vert e^{(\lambda_i - \kappa)t} \le \vert \psi_i(\zeta, t)\vert \le \vert \zeta_i \vert e^{(\lambda_i + \kappa)t}\,, i = 1, 3$$</td>
+  </tr>
+  <tr>
+    <td>$$\textstyle \left(\zeta_2 - \kappa r(1 - e^{-3t})\right) e^{\lambda_2 t} \le \psi_2(\zeta, t) \le \left(\zeta_2 + \kappa r(1 - e^{-3t})\right) e^{\lambda_2 t}$$</td>
+  </tr>
+  <tr>
+  	<td>$$\textstyle \tau_e(\zeta) = \frac{1}{\lambda_1} \log \frac{r}{\vert \zeta_1 \vert}$$</td>
+  	<td>$$\textstyle \frac{1}{\lambda_1 + \kappa} \log \frac{r}{\vert \zeta_1 \vert} \le \tau_e(\zeta) \le \frac{1}{\lambda_1 - \kappa} \log \frac{r}{\vert \zeta_1 \vert}$$</td>
+  </tr>
+</tbody>
+</table>
+
+where $$r \le \frac{1}{4}$$ and $$\kappa = 2 \cdot 10^{-19}$$
+</blockquote>
+
+
+So, with some care, we can treat them similarly. I will not further provide the comparison of properties of the normal flow and linear flow here, since the objective of this article is just to provide the reader with a general vision on the topic.
 
 The stages of propagating a rectangle on the cross-section $$\Sigma$$ through the cube illustrated in figure $$(c)$$ are follows: first, we distort it by performing the change of coordinates \eqref{eq:coordchange}; if the rectangle intersects with $$D$$ &mdash; cross-section of stable manifold $$W^s(0)$$, we split it in two parts and propagate each part separately, as shown in figure $$(f_1)$$, else we propagate it as a whole, as shown in figure $$(f_2)$$; once we reach the exit boundary of the box, we distort the region back by performing the inverse change of coordinates; then, we hand the region to the program that deals with the global flow.
 
 
 ### 5.5. Investigating the Global Flow
 
-The flow around the origin is hard to analyze numerically because it is highly unstable, so we did an analytic trick. For the global flow, however, we cannot use such approach. So, we will need some assistance from the computer.
+The flow around the origin is hard to analyze numerically because it is highly unstable, so we did an analytic trick. For the global flow, however, we cannot use such approach. Here is where computer modelling kicks in &mdash; if we can model the flow and prove that it is bounded, then it automatically means that the attractor exists.
+
+
+
+
 
 <!-- References for the general solution outline part -->
 [c2-diffeomorphism]: https://en.wikipedia.org/wiki/Diffeomorphism
