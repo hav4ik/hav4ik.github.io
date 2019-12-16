@@ -8,17 +8,30 @@
     margin-left: 50%;
     border-left: 5px solid #333;
     text-align: left;
+    padding-left: 55px;
+    padding-right: 20px;
+
+    .timelinelogo {
+      left: -33px;
+    }
   }
   .timelineitem:nth-child(even) {
     margin-right: 50%;
     margin-left: 5px;
     border-right: 5px solid #333;
     text-align: right;
+    padding-left: 20px;
+    padding-right: 55px;
+
+    .timelinelogo {
+      right: -33px;
+    }
   }
   .timelineitem {
     width: 50%;
     position: relative;
-    padding: 20px;
+    padding-top: 0px;
+    padding-bottom: 30px;
   }
   .timelineitem:nth-child(odd):before {
    left: -8px;
@@ -28,24 +41,55 @@
   }
 }
 
+.timelinelogo {
+  width: 60px;
+  height: 60px;
+  display: block;
+  position: absolute;
+  background-color: #fff;
+  top: 0;
+  border-radius: 30px;
+  text-align: center;
+  border: 2px solid;
+
+  img {
+    left: 50%;
+    top: 50%;
+    position: absolute;
+    display: block;
+    vertical-align: middle;
+    width: 60%;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/*
 .timelineitem:before {
+  content: "";
   width: 11px;
   height: 11px;
   background: #333;
-  content: "";
   display: block;
   position: absolute;
   top: 0;
   border-radius: 5px;
 }
+*/
 
 @media (max-width: 768px) {
   .timelineitem {
     border-left: 5px solid #333;
     text-align: left;
-    margin-left: 10px;
+    margin-left: 50px;
     padding: 5px;
+    padding-top: 5px;
+    padding-bottom: 15px;
+    padding-left: 50px;
     position: relative;
+
+    .timelinelogo {
+      left: -33px;
+    }
   }
   .timelineitem:before {
     left: -8px;
