@@ -130,8 +130,33 @@ li .highlight pre {
 
 // table
 table {
-	width: 100%;
-}
+  width: 100%;
+  border-collapse: collapse; 
+  border-spacing: 0;
+  text-align: center;
+  vertical-align: middle;
+  padding: 0; }
+  table tr {
+    border-top: 1px solid #cccccc;
+    background-color: white;
+    margin: 0;
+    padding: 0; }
+    table tr th {
+      font-weight: bold;
+      border: 1px solid #cccccc;
+      text-align: center;
+      margin: 0;
+      padding: 6px 13px; }
+    table tr td {
+      border: 1px solid #cccccc;
+      text-align: center;
+      margin: 0;
+      padding: 6px 13px; }
+    table tr th :first-child, table tr td :first-child {
+      margin-top: 0; }
+    table tr th :last-child, table tr td :last-child {
+      margin-bottom: 0; }
+
 
 // notice
 .notice {
