@@ -4,12 +4,13 @@ permalink: /articles/:title
 type: "article"
 title: "How to dominate on technical interviews"
 image:
-  feature: "articles/images/2020-02-08-how-to-dominate-on-tech-interviews/trollface.jpg"
+  feature: "articles/images/2020-02-08-how-to-dominate-on-tech-interviews/trollfacaaaae.jpg"
   display: false
 commits: https://github.com/hav4ik/hav4ik.github.io/commits/master/articles/_posts/2019-01-07-lorenz-attractor.md
 tags: [math]
 excerpt: "Do you want to dominate your interviewer? Wanna bring him to your knees? Make him think that you're superior? I'll tell you how!"
 comments: true
+hidden: true
 ---
 
 We all know the frustration of technical interviews, when other candidates gets an offer not because they are better than you, but just because they were able to convince the interviewer that they are smarter. Basically, **the technical interview is a battle of persuasion**, not a test of one's engineering proficiency.
