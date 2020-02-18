@@ -75,7 +75,43 @@ Let's put that to an end. You are not going to an interview to have the intervie
 * **Chad:** Compute it's [first homology group][nlab-homology] of it. If it's not [torsion-free][wiki-torsion-free], then it's not Hamiltonian. [*(source)*][sol-hamilton]
 
 
+#### Q: Place $$n$$ queens on an $$n \times n$$ chessboard such that no two queens attack each other.
+
+* **Virgin:** <s>(1) Start in the leftmost column. (2) If all queens are placed then return true. (3) Try all rows in the current column. Do following for every tried row. (3a) If the queen can be placed safely in this row then mark this [row, column] as part of the solution and recursively check if placing queen here leads to a solution. (3b) If placing the queen in [row, column] leads to a solution then return true. (3c) If placing queen doesn't lead to a solution then unmark this [row, column] and go to step (3a) to try other rows. If all rows have been tried and nothing worked, return false to trigger backtracking.</s>
+
+* **Chad:** Construct a $$n \times n$$ [magic square][wiki-magic-square] (e.g. using a combination of [de la Loubère][wiki-siamese-method] and [LUX][wolfram-magic-square] methods). Replace each entry $$a_{ij}$$ with $$b_{ij} \equiv a_{ij} \mod n + 1$$. Every row, comlumn, and modular diagonal yields a superimposable solutions for $$n$$-queens. [*(source)*][sol-nqueens]
+
+
+
+--------------------------------------------------
+
+## Combinatorics
+
+#### Q: In how many ways one can choose $$k$$ items from $$n$$ items?
+
+* **Virgin:** <s>You take the total number of permutations. Then, you divide it by the number of ways to arange the first k elements (the chosen elements), and divide that to the number of ways to arange the last n-k elements, the ones that we don't choose. So, the formula is n! / (k! (n-k)!).</s>
+
+* **Chad:** Just compute the [residue][wiki-residue] $$\displaystyle \frac{1}{2\pi i} \oint \frac{(1 + z)^n\,dz}{z^{k+1}}$$ around $$0$$ (e.g. using [Gauss-Legendre][wiki-gauss-legendre-integration]). [*(source)*][wiki-egorychev-method]
+
+
+#### Q: What is the number of expressions containing $$n$$ pairs of parentheses which are correctly matched?
+
+* **Virgin:** <s>This is the n-th Catalan Number, which can be calculated recursively. The leftmost opening parenthesis l corresponds to certain closing bracket r, which divides the sequence into 2 parts which in turn should be a correct sequence of brackets. Thus formula is also divided into 2 parts. If we denote k=r−l−1, then for fixed r, there will be exactly C_k * C_{n−1−k} such bracket sequences. Summing this over all admissible k′s, we get the recurrence relation on C_n.</s>
+
+* **Chad:** Calculate the [generating function][nlab-generating-function] of it using the [continued fraction][nlab-continued-fraction] $$\textstyle \cfrac{1}{1-\cfrac{z^2}{1-\cfrac{z^2}{\dots}}}\,.$$ [*(source)*][sol-catalan]
+
+
+#### Q: What is the number of permutation of $$n$$ elements such that no element appears in its original position?
+
+* **Virgin:** <s>There are n – 1 ways for element 0. Let 0 be placed at index i. There are now two possibilities, depending on whether or not element i is placed at 0 in return. If i is placed at 0, it is equivalent to solving the problem for n-2 elements as two elements have just swapped their positions. Otherwise, it is equivalent to solving the problem for n-1 elements as now there are n-1 elements, n-1 positions and every element has n-2 choices. The recursive relation is D(n) = (n - 1) * [D(n - 1) + D(n - 2)].</s>
+
+* **Chad:** Just compute the [generating function][nlab-generating-function] of it, which is simply $$\textstyle \cfrac{1}{1-\cfrac{1^2 z^2}{1-2z-\cfrac{2^2 z^2}{\dots}}}\,.$$ [*(source)*][sol-derangements]
+
+
+
 [nlab-chain-complex]: https://ncatlab.org/nlab/show/chain+complex
+[nlab-continued-fraction]: https://ncatlab.org/nlab/show/continued+fraction
+[nlab-generating-function]: https://ncatlab.org/nlab/show/generating+function
 [nlab-homology]: https://ncatlab.org/nlab/show/homology
 [nlab-ideal]: https://ncatlab.org/nlab/show/ideal
 [nlab-kernel]: https://ncatlab.org/nlab/show/kernel
@@ -83,16 +119,25 @@ Let's put that to an end. You are not going to an interview to have the intervie
 [nlab-vanishing-locus]: https://ncatlab.org/nlab/show/zero+locus
 
 [wiki-adjacency-matrix]: https://en.wikipedia.org/wiki/Adjacency_matrix
+[wiki-egorychev-method]: https://en.wikipedia.org/wiki/Egorychev_method
+[wiki-gauss-legendre-integration]: https://en.wikipedia.org/wiki/Gaussian_quadrature
 [wiki-graph-laplacian]: https://en.wikipedia.org/wiki/Laplacian_matrix
 [wiki-groebner-basis]: https://en.wikipedia.org/wiki/Gr%C3%B6bner_basis
 [wiki-incidence-matrix]: https://en.wikipedia.org/wiki/Incidence_matrix
+[wiki-magic-square]: https://en.wikipedia.org/wiki/Magic_square
+[wiki-residue]: https://en.wikipedia.org/wiki/Residue_(complex_analysis)
+[wiki-siamese-method]: https://en.wikipedia.org/wiki/Siamese_method
 [wiki-spectrum-of-a-matrix]: https://en.wikipedia.org/wiki/Spectrum_of_a_matrix
 [wiki-torsion-free]: https://en.wikipedia.org/wiki/Torsion_(algebra)#torsion-free_group
 
 [wolfram-irreducible-matrix]: http://mathworld.wolfram.com/IrreducibleMatrix.html
+[wolfram-magic-square]: http://mathworld.wolfram.com/MagicSquare.html
 [wolfram-univariate-polynomial]: http://mathworld.wolfram.com/UnivariatePolynomial.html
 [wolfram-bivariate-polynomial]: http://mathworld.wolfram.com/BivariatePolynomial.html
 
 
-[sol-sudoku]: https://www.cambridge.org/core/books/a-first-course-in-computational-algebraic-geometry/sudoku/29C4710314733FB36D793D70F914B7A5
+[sol-catalan]: http://algo.inria.fr/flajolet/Publications/Flajolet80b.pdf
+[sol-derangements]: http://algo.inria.fr/flajolet/Publications/Flajolet80b.pdf
 [sol-hamilton]: https://arxiv.org/pdf/1912.06603.pdf
+[sol-nqueens]: https://www.sciencedirect.com/science/article/pii/S0012365X07010394
+[sol-sudoku]: https://www.cambridge.org/core/books/a-first-course-in-computational-algebraic-geometry/sudoku/29C4710314733FB36D793D70F914B7A5
