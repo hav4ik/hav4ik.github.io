@@ -60,10 +60,10 @@
     img {
       margin-left: 1px;
       margin-right: 1px;
-      width: calc(100% - 2px);
       // margin-bottom: 10px;
       // @include rounded(4px);
     }
+
     &.half {
       // @media only screen and (min-width: 62.5em) {
         img {

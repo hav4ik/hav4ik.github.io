@@ -3,6 +3,7 @@
 {% assign cols = include.cols %}
 {% assign width = include.width %}
 {% assign additional = include.additional %}
+{% assign oversize = include.oversize %}
 
 {% case cols %}
     {% when 1 %}
@@ -15,12 +16,12 @@
         {% assign class = "" %}
 {% endcase %}
 
-<figure class="{{ class }} {{ additional }}">
+<figure class="{{ class }} {{ additional }}" {% if oversize %}style="width: calc(100vw - 30px); width: -webkit-calc(100vw - 30px); left: 50%; margin-left: calc(15px - 50vw); position: relative; text-align: center;"{% endif %}>
     {% for image in images %}
     {% if width %}
-    <a href="{{ image }}"><img src="{{ image }}" style="width:{{ width }};margin-right:auto;margin-left:auto;display:block;" alt=""></a>
+    <a href="{{ image }}"><img src="{{ image }}" style="width: {{ width }}; max-width: calc(100vw - 30px); margin-right:auto;margin-left:auto;display:block;" alt=""></a>
     {% else %}
-    <a href="{{ image }}"><img src="{{ image }}" alt=""></a>
+    <a href="{{ image }}"><img src="{{ image }}" style="width: calc(100% - 2px)" alt=""></a>
     {% endif %}
     {% endfor %}
     {% if caption %}

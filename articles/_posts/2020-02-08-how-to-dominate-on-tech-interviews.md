@@ -4,7 +4,7 @@ permalink: /articles/:title
 type: "article"
 title: "How to dominate on technical interviews"
 image:
-  feature: "articles/images/2020-02-08-how-to-dominate-on-tech-interviews/virgin_vs_chad_interview.png"
+  feature: "articles/images/2020-02-08-how-to-dominate-on-tech-interviews/virgin-vs-chad-interview.png"
   display: false
 commits: https://github.com/hav4ik/hav4ik.github.io/commits/master/articles/_posts/2020-02-08-how-to-dominate-on-tech-interviews.md
 tags: [math]
@@ -20,9 +20,9 @@ I've interviewed for top tech companies, including Google, Facebook, Samsung, Mi
 
 
 {% capture imblock1 %}
-    {{ site.url }}/articles/images/2020-02-08-how-to-dominate-on-tech-interviews/virgin_vs_chad_interview.png
+    {{ site.url }}/articles/images/2020-02-08-how-to-dominate-on-tech-interviews/virgin-vs-chad-interview.png
 {% endcapture %}
-{% include gallery images=imblock1 cols=1 %}
+{% include gallery images=imblock1 cols=1 oversize=true width="1000px" %}
 
 
 Below are the most common interview questions, taken from [Geek4Geeks: top interview questions][geek-for-geeks-questions], and examples of answers that will help you achieve **total domination.** Here we go, topic-by-topic:
