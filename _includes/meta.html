@@ -19,7 +19,7 @@
 <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
 <meta http-equiv=X-UA-Compatible content="IE=edge,chrome=1">
 <title>{% if page.title %}{{ page.title }} &#8211; {% endif %}{{ site.name }}</title>
-<meta name="description" content="{% if page.excerpt %}{{ page.excerpt }}{% else %}{{ site.description }}{% endif %}">
+<meta name="description" content="{% if page.excerpt %}{{ page.excerpt | markdownify | strip_html | strip_newlines | escape_once }}{% else %}{{ site.description }}{% endif %}">
 {% if page.tags %}
   <meta name="keywords" content="{{ page.tags | join: ', ' }}">
 {% endif %}
@@ -34,25 +34,19 @@
   <meta name="twitter:card" content="summary">
   <meta name="twitter:image" content="{{ site.url }}/{{ site.logo }}">
 {% endif %}
-<meta name="twitter:title" content="{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}">
-{% if page.excerpt %}
-  <meta name="twitter:description" content="{{ page.excerpt | markdownify | strip_html | strip_newlines | escape_once }}">
-{% endif %}
+  <meta name="twitter:title" content="{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}">
+  <meta name="twitter:description" content="{% if page.excerpt %}{{ page.excerpt | markdownify | strip_html | strip_newlines | escape_once }}{% else %}{{ site.description }}{% endif %}">
 {% if site.twitter %}
   <meta name="twitter:site" content="@{{ site.twitter }}">
   <meta name="twitter:creator" content="@{{ site.twitter }}">
 {% endif %}
 
 <!-- Open Graph -->
-<meta property="og:locale" content="{{ site.locale }}">
 <meta property="og:type" content="article">
-<meta property="og:title" content="{% if page.title %}{{ page.title }}{% else %}{{ site.name }}{% endif %}">
-{% if page.excerpt %}
-  <meta property="og:description" content="{{ page.excerpt | markdownify | strip_html | strip_newlines | escape_once }}">
-{% endif %}
+<meta property="og:title" content="{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}">
+<meta property="og:description" content="{% if page.excerpt %}{{ page.excerpt | markdownify | strip_html | strip_newlines | escape_once }}{% else %}{{ site.description }}{% endif %}">
 <meta property="og:url" content="{{ page.url | replace:'index.html','' | prepend: site.url }}">
 <!--<meta property="og:site_name" content="{{ site.title }}">-->
-<meta property="og:image" content="{{ site.url }}/{{ site.logo }}">
 {% if page.image.feature %}
   {% capture feature %}{{ page.image.feature }}{% endcapture %}
   {% capture feature %}{{ site.url }}/{{ feature }}{% endcapture %}
@@ -60,3 +54,5 @@
 {% else %}
   <meta property="og:image" content="{{ site.url }}/{{ site.logo }}">
 {% endif %}
+
+<meta name="viewport" content="width=device-width, initial-scale=1">

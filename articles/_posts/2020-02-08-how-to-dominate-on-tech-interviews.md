@@ -12,9 +12,9 @@ excerpt: "Do you want to dominate your interviewer? Wanna bring him to his knees
 comments: true
 ---
 
-We all know the frustration of technical interviews, when other candidates gets an offer not because they are better than you, but just because they were able to convince the interviewer that they are smarter. Basically, **the technical interview is a battle of persuasion**, not a test of one's engineering proficiency.
+We all know the frustration of technical interviews when other candidates get an offer not because they are better than you, but just because they were able to convince the interviewer that they are smarter. Basically, **the technical interview is a battle of persuasion**, not a test of one's engineering proficiency.
 
-Let's put that to an end. You are NOT going to an interview to have the interviewer judge your skills. You are coming to the interview to **consolidate your dominance** and **bring the interviewer to his knees** with your knowledge. Show that you are **superior** than other candidates by using methods listed in this article.
+Let's put that to an end. You are NOT going to an interview to have the interviewer judge your skills. You are coming to the interview to **consolidate your dominance** and **bring the interviewer to his knees** with your knowledge. Show that you are **superior** to other candidates by using methods listed in this article.
 
 I've interviewed for top tech companies, including Google, Facebook, Samsung, Microsoft, and got offers in most of them. I know what I'm talking about! Trust me!
 
@@ -25,7 +25,7 @@ I've interviewed for top tech companies, including Google, Facebook, Samsung, Mi
 {% include gallery images=imblock1 cols=1 %}
 
 
-Below are most common interview questions, taken from [Geek4Geeks: top interview questions][geek-for-geeks-questions], and examples of answers that will help you achieve **total domination.** Here we go, topic-by-topic:
+Below are the most common interview questions, taken from [Geek4Geeks: top interview questions][geek-for-geeks-questions], and examples of answers that will help you achieve **total domination.** Here we go, topic-by-topic:
 
 * [Graph Algorithms](#graph-algorithms)
 * [Backtracking Algorithms](#backtracking-algorithms)
@@ -54,7 +54,7 @@ Below are most common interview questions, taken from [Geek4Geeks: top interview
 
 * **Virgin:** <s><font color="#777">We can use Kosaraju’s algorithm. First, create an empty stack ‘S’ and do DFS traversal of a graph. In DFS traversal, after calling recursive DFS for adjacent vertices of a vertex, push the vertex to stack. Then, reverse directions of all arcs to obtain the transpose graph. One by one pop a vertex ‘v’ from S while S is not empty. Take v as source and do DFS. The DFS starting from v prints strongly connected component of v.</font></s>
 
-* **Chad:** Simply check if its [adjacency matrix][wiki-adjacency-matrix] is [irreducible][wolfram-irreducible-matrix]. 
+* **Chad:** Simply check if its [adjacency matrix][wiki-adjacency-matrix] is [irreducible][wolfram-irreducible-matrix].
 
 
 #### Q: How to check if a graph is bipartite?
@@ -68,7 +68,7 @@ Below are most common interview questions, taken from [Geek4Geeks: top interview
 
 * **Virgin:** <s><font color="#777"> From every node of the graph, we can run a DFS to calculate the shortest distance from all nodes to the current node. Remember the distance to the furthest node. The diameter of our graph is the maximum from rememberred distances. Complexity is O(V * (E+V))</font></s>
 
-* **Chad:** It's simply $$\inf_{k \in \mathbb{N}} \{ A^k_{i,j} \ne 0 \}$$, where $$A$$ is the [adjacency matrix][wiki-adjacency-matrix]. 
+* **Chad:** It's simply $$\inf_{k \in \mathbb{N}} \{ A^k_{i,j} \ne 0 \}$$, where $$A$$ is the [adjacency matrix][wiki-adjacency-matrix].
 
 
 

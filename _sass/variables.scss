@@ -22,12 +22,12 @@ $comp-color 	     : complement(#222);
 
 //media
 $small               : "only screen and (max-width: 30em)";
-$medium              : "only screen and (min-width: 30.1em) and (max-width: 48em)";
-$large               : "only screen and (min-width: 48.1em)";
+$medium              : "only screen and (min-width: 30.1em) and (max-width: 35em)";
+$large               : "only screen and (min-width: 35.1em)";
 $notsmall            : "only screen and (min-width: 30.1em)";
 
-$mobile_devices      : "only screen and (max-width: 900px)";
-$desktop_devices     : "only screen and (min-width: 901px)";
+$mobile_devices      : "only screen and (max-width: 870px)";
+$desktop_devices     : "only screen and (min-width: 871px)";
 
 // fonts
 $font2               : "Inconsolata";
