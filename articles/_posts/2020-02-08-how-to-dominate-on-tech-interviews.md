@@ -14,7 +14,7 @@ comments: true
 
 We all know the frustration of technical interviews, when other candidates gets an offer not because they are better than you, but just because they were able to convince the interviewer that they are smarter. Basically, **the technical interview is a battle of persuasion**, not a test of one's engineering proficiency.
 
-Let's put that to an end. You are NOT going to an interview to have the interviewer judge your skills. You are coming to the interview to **consolidate your dominance** and **bring the interviewer to his knees** with your knowledge. Show that you are **superior** than other candidates by mentioning other methods listed in this article that requires deep theoretical background.
+Let's put that to an end. You are NOT going to an interview to have the interviewer judge your skills. You are coming to the interview to **consolidate your dominance** and **bring the interviewer to his knees** with your knowledge. Show that you are **superior** than other candidates by using methods listed in this article.
 
 I've interviewed for top tech companies, including Google, Facebook, Samsung, Microsoft, and got offers in most of them. I know what I'm talking about! Trust me!
 
@@ -25,7 +25,7 @@ I've interviewed for top tech companies, including Google, Facebook, Samsung, Mi
 {% include gallery images=imblock1 cols=1 %}
 
 
-Below are most common interview questions, taken from [Geek4Geeks: top interview questions][geek-for-geeks-questions], and examples of **total domination.** Here we go, topic-by-topic:
+Below are most common interview questions, taken from [Geek4Geeks: top interview questions][geek-for-geeks-questions], and examples of answers that will help you achieve **total domination.** Here we go, topic-by-topic:
 
 * [Graph Algorithms](#graph-algorithms)
 * [Backtracking Algorithms](#backtracking-algorithms)
