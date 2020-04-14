@@ -26,5 +26,8 @@ $medium              : "only screen and (min-width: 30.1em) and (max-width: 48em
 $large               : "only screen and (min-width: 48.1em)";
 $notsmall            : "only screen and (min-width: 30.1em)";
 
+$mobile_devices      : "only screen and (max-width: 900px)";
+$desktop_devices     : "only screen and (min-width: 901px)";
+
 // fonts
 $font2               : "Inconsolata";

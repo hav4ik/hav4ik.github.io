@@ -24,7 +24,8 @@
 
 .wrapper {
 	// width: calc(100% - 1rem);
-    width: 60%;
+    // width: 60%;
+    width: 850px;
 	max-width: 850px;
 	margin: 4rem auto;
 	background: $white;
@@ -32,7 +33,7 @@
 	padding: 2em 0em;
 	border-radius: 3px;
 /*	box-shadow: 0 0 10px 0 rgba($color_shark,0.3);*/
-	@media #{$medium} {
+	@media #{$mobile_devices} {
 		width: 100%;
 		padding: 2em 0;
 	    box-shadow: none;

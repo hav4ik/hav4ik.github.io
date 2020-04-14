@@ -5,3 +5,4 @@
 # jekyll stuff
 _site/
 .sass-cache/
+.jekyll-cache/
