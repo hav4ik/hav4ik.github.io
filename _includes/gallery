@@ -21,7 +21,7 @@
     {% if width %}
     <a href="{{ image }}"><img src="{{ image }}" style="width: {{ width }}; max-width: calc(100vw - 30px); margin-right:auto;margin-left:auto;display:block;" alt=""></a>
     {% else %}
-    <a href="{{ image }}"><img src="{{ image }}" style="width: calc(100% - 2px)" alt=""></a>
+    <a href="{{ image }}"><img src="{{ image }}" alt=""></a>
     {% endif %}
     {% endfor %}
     {% if caption %}

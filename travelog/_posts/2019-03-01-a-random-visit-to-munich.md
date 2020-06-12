@@ -186,7 +186,7 @@ I came to Munich unprepared &mdash; without any reason, without any purpose, wit
 {% capture imblock_8a %}
 	https://i.imgur.com/D9K6oDM.jpg
 {% endcapture %}
-{% include gallery images=imblock_8a cols=1 additional="largeim" %}
+{% include gallery images=imblock_8a cols=1 oversize=true width="1200px" %}
 
 
 

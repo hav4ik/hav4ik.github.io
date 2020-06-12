@@ -60,6 +60,7 @@
     img {
       margin-left: 1px;
       margin-right: 1px;
+      width: calc(100% - 2px);
       // margin-bottom: 10px;
       // @include rounded(4px);
     }
