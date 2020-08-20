@@ -1,0 +1,28 @@
+---
+permalink: /
+---
+<!DOCTYPE html>
+<html>
+  <head>
+    {% include meta.html %}
+
+    <!--<link rel="stylesheet" href="{{ site.url }}/assets/css/bootstrap_min.css">-->
+    <!--<link rel="stylesheet" href="{{ site.url }}/assets/css/portfolio.css">-->
+    <link rel="stylesheet" href="{{ site.url }}/assets/css/base.css">
+    <link rel="stylesheet" href="{{ site.url }}/assets/css/folio.css">
+
+  </head>
+
+  <body>
+    {% include nav.html %}
+
+    <div class="portfolio-wrap">
+    {% include_relative templates/header.html %}
+    {% include_relative templates/about.html %}
+    {% include_relative templates/timeline.html %}
+    <!-- {% include_relative templates/research.html %} -->
+    {% include_relative templates/misc.html %}
+    </div>
+
+  </body>
+</html>
