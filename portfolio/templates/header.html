@@ -12,6 +12,13 @@
           </a>
         </li>
       {% endif %}
+      {% if site.kaggle %}
+        <li>
+          <a target="_blank" href="https://www.kaggle.com/{{ site.kaggle }}" class="button button--sacnite button--round-l">
+            <i class="fab fa-kaggle"></i>
+          </a>
+        </li>
+      {% endif %}
       {% if site.twitter %}
         <li>
           <a target="_blank" href="https://twitter.com/{{ site.twitter }}" class="button button--sacnite button--round-l">
@@ -19,7 +26,6 @@
           </a>
         </li>
       {% endif %}
-      <!--
       {% if site.linkedin %}
         <li>
           <a target="_blank" href="https://linkedin.com/in/{{ site.linkedin }}" class="button button--sacnite button--round-l">
@@ -27,7 +33,6 @@
           </a>
         </li>
       {% endif %}
-      -->
       {% if site.stackoverflow %}
         <li>
           <a target="_blank" href="https://stackoverflow.com/users/{{ site.stackoverflow }}" class="button button--sacnite button--round-l">
