@@ -2,13 +2,13 @@
 layout: post
 permalink: /articles/:title
 type: "article"
-title: "Supervised Deep Metric Learning: a (Long) Survey"
+title: "Deep Metric Learning: a (Long) Survey"
 image:
-  feature: "articles/images/2020-02-08-how-to-dominate-on-tech-interviews/virgin-vs-chad-interview.png"
+  feature: "/articles/images/2020-12-11-deep-metric-learning-survey/metric_losses.png"
   display: false
 commits: https://github.com/hav4ik/hav4ik.github.io/commits/master/articles/_posts/2020-02-08-how-to-dominate-on-tech-interviews.md
 tags: [deep-learning, survey]
-excerpt: "Do you want to dominate your interviewer? Wanna bring him to his knees? Make him think that you're superior? I'll tell you how!"
+excerpt: "In this post, I'll briefly go over the common approaches for Deep Metric Learning, as well as the new methods proposed in recent years."
 comments: true
 hidden: true
 ---
@@ -22,7 +22,7 @@ Although this blog post is mainly about Deep Metric Learning and is self-suffici
 The methods described in this blog post are divided into two groups: **Common Methods** that were very popular until the recent takeover of angular margin methods, and **State-of-the-Art Methods** that I recommend using (as of 2020). At the end of this article, I will discuss various Metric Learning problems and which methods have worked in each case. I will try to (hopefully) keep this article up to date with the latest developments.
 
 
----------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
 
 
 - [Common Approaches](#)
@@ -46,10 +46,19 @@ The methods described in this blog post are divided into two groups: **Common Me
 - [References](#)
 
 
---------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
 
 
 ## Common Approaches
+
+{% capture imblock1 %}
+    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/metric_losses.png
+{% endcapture %}
+{% capture imcaption1 %}
+  Fig 1: An overview of different metric loss functions [(Source: Kaya & Bilge, 2019)](https://www.mdpi.com/2073-8994/11/9/1066/htm)
+{% endcapture %}
+{% include gallery images=imblock1 cols=1 caption=imcaption1 %}
+
 
 
 [sklearn_metric_learning_guide]: http://contrib.scikit-learn.org/metric-learn/introduction.html
