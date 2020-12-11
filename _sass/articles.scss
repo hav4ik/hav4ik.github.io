@@ -1,3 +1,5 @@
+@import "variables";
+
 .post-preview {
   padding-top: 1.5em;
   padding-bottom: 1.5em;
@@ -5,6 +7,18 @@
   padding-right: 20px;
   display:flex;
   flex-direction:row;
+
+  @media #{$medium} {
+    display: block;
+    padding-left: 1.5em;
+    padding-right: 1.5em;
+  }
+
+  @media #{$small} {
+    display: block;
+    padding-left: 1.5em;
+    padding-right: 1.5em;
+  }
 }
 
 .post-preview-title {
@@ -41,6 +55,16 @@
     padding-left:2px;
     padding-right:2px;
     margin-right:0.25;
+
+    @media #{$medium} {
+      margin-left: 1em;
+      margin-right: 1em;
+    }
+
+    @media #{$small} {
+      margin-left: 1em;
+      margin-right: 1em;
+    }
   }
 
   a:hover {
@@ -71,11 +95,33 @@
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
+
+  @media #{$medium} {
+    width: 100%;
+    padding-bottom: 50%;
+  }
+
+  @media #{$small} {
+    width: 100%;
+    padding-bottom: 50%;
+  }
 }
 
 .info-preview {
   flex-direction: row;
   margin-left: 2em;
+
+  @media #{$medium} {
+    padding-top: 1em;
+    margin-left: 0em;
+    margin-right: 0em;
+  }
+
+  @media #{$small} {
+    padding-top: 1em;
+    margin-left: 0em;
+    margin-right: 0em;
+  }
 }
 
 hr {

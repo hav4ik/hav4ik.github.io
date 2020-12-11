@@ -62,10 +62,10 @@
 .portfolio-about-bio {
   margin-left: 2em;
   @media #{$medium} {
-    margin: 0 2rem;
+    margin: 0 1rem;
   }
   @media #{$small} {
-    margin: 0 2rem;
+    margin: 0 1rem;
   }
 }
 
@@ -229,13 +229,15 @@ ul.icons a {
 
     @media #{$medium} {
       width: 100%;
-      padding-left: 2rem;
+      padding-left: 1rem;
+      padding-right: 1rem;
       padding-bottom: 2rem;
     }
     @media #{$small} {
       width: 100%;
       padding-bottom: 2rem;
-      padding-left: 2rem;
+      padding-left: 1rem;
+      padding-right: 1rem;
     }
   }
   .research-desc {
@@ -248,13 +250,13 @@ ul.icons a {
 
     @media #{$medium} {
       width: 100%;
-      padding-left: 2rem;
-      padding-right: 2rem;
+      padding-left: 1rem;
+      padding-right: 1rem;
     }
     @media #{$small} {
       width: 100%;
-      padding-left: 2rem;
-      padding-right: 2rem;
+      padding-left: 1rem;
+      padding-right: 1rem;
     }
   }
 }
