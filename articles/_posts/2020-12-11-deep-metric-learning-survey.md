@@ -10,7 +10,7 @@ commits: https://github.com/hav4ik/hav4ik.github.io/commits/master/articles/_pos
 tags: [deep-learning, survey]
 excerpt: "In this post, I'll briefly go over the common approaches for Deep Metric Learning, as well as the new methods proposed in recent years."
 comments: true
-hidden: false
+hidden: true
 ---
 
 
