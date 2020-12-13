@@ -43,7 +43,7 @@ This article is organized as follows. In the **"Common Approaches"** section, I 
     - [Improving the Triplet Loss](#improving-triplet-loss)
 
 - [State-of-the-Art Approaches](#sota-approaches)
-    - [What's Wrong with Cosine Softmax?](#)
+    - [Fixing the Expansion and Sampling Issues](#fixing-issues)
     - [CosFace, ArcFace, and SphereFace](#)
     - [AdaCos &mdash; Adaptive $$s$$ Parameter](#)
     - [Sub-Center ArcFace](#)
@@ -68,13 +68,14 @@ This article is organized as follows. In the **"Common Approaches"** section, I 
 <a name="problem-setting"></a>
 ## Problem Setting of Supervised Metric Learning
 
-Generally speaking, Deep Metric Learning is a group of techniques that aims to measure the similarity between data samples. More specifically, for a set of data points $$\mathcal{X}$$ and their corresponding labels $$\mathcal{Y}$$, the goal is to train an embedding neural model $$f_{\theta}(\cdot)\, \colon \mathcal{X} \to \mathbb{R}^n$$ (where $$\theta$$ are learned weights) together with a distance $$\mathcal{D}\, \colon \mathbb{R}^n \to \mathbb{R}$$ (which is usually fixed beforehand), so that the combination $$\mathcal{D}\left(f_{\theta}(x_1), f_{\theta}(x_2)\right)$$ produces small values if the labels $$y_1, y_2 \in \mathcal{Y}$$ of the samples $$x_1, x_2 \in \mathcal{X}$$ are equal, and larger values if they aren't.
+Generally speaking, Deep Metric Learning is a group of techniques that aims to measure the similarity between data samples. More specifically, for a set of data points $$\mathcal{X}$$ and their corresponding labels $$\mathcal{Y}$$, the goal is to train an [embedding][embedding_nlab] neural model (also referred to as feature extractor) $$f_{\theta}(\cdot)\, \colon \mathcal{X} \to \mathbb{R}^n$$ (where $$\theta$$ are learned weights) together with a distance $$\mathcal{D}\, \colon \mathbb{R}^n \to \mathbb{R}$$ (which is usually fixed beforehand), so that the combination $$\mathcal{D}\left(f_{\theta}(x_1), f_{\theta}(x_2)\right)$$ produces small values if the labels $$y_1, y_2 \in \mathcal{Y}$$ of the samples $$x_1, x_2 \in \mathcal{X}$$ are equal, and larger values if they aren't.
 
 Thus, the Deep Metric Learning problem boils down to just choosing the architecture for $$f_{\boldsymbol{\theta}}$$ and choosing the loss function $$\mathcal{L}(\theta)$$ to train it with. One might wonder why we cannot just use the classification objective for the metric learning problem? In fact, the [Softmax loss][softmax_loss] is also a valid objective for metric learning, albeit inferior to other objectives as we will see later in this article.
 
 
 [softmax_loss]: https://cs231n.github.io/linear-classify/#softmax
 [softmax_func_vs_softmax_loss]: https://medium.com/@liangjinzhenggoon/the-difference-between-softmax-and-softmax-loss-173d385120c2
+[embedding_nlab]: https://ncatlab.org/nlab/show/embedding+of+topological+spaces
 
 
 ---------------------------------------------------------------------------------
@@ -83,7 +84,7 @@ Thus, the Deep Metric Learning problem boils down to just choosing the architect
 <a name="common-approaches"></a>
 ## Common Approaches
 
-I will glance throught the most common approaches very quickly for two reasons:
+I will glance throught the most common approaches in this section very quickly without getting too much into details for two reasons:
 
 - The methods described here are already covered in other tutorials, videos, and blog posts online in great detail. I highly recommend the great survey by [Kaya & Bilge (2019)][deep_metric_learning_survey].
 - The methods that I will describe in the next section outperforms these approaches in most cases, so I have no motivation to delve too deep into the details in this section.
@@ -155,7 +156,7 @@ Triplet Loss is [still being widely used][paperswithcode_tripletloss] despite be
 <a name="improving-triplet-loss"></a>
 ### Improving the Triplet Loss
 
-Despite its popularity, Triplet Loss has a lot of limitations. Over the past years, there have been a lot of efforts to improve the Triplet Loss objective, building on the same idea of pulling similar samples and pushing away dissimilar ones.
+Despite its popularity, Triplet Loss has a lot of limitations. Over the past years, there have been a lot of efforts to improve the Triplet Loss objective, building on the same idea of sampling a bunch of data points, then pulling together similar samples and pushing away dissimilar ones in $$l_2$$ metric space.
 
 {% capture imblock_metriclosses %}
     {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/metric_losses.png
@@ -165,6 +166,7 @@ Despite its popularity, Triplet Loss has a lot of limitations. Over the past yea
 {% endcapture %}
 {% include gallery images=imblock_metriclosses cols=1 caption=imcaption_metriclosses %}
 
+<a name="quadruplet-loss"></a>
 **Quadruplet Loss** ([Chen et al. 2017][quadruplet_loss_paper]) is an attempt to make inter-class variation of the features $$f_\theta(x)$$ larger and intra-class variation smaller, contrary to the Triplet Loss that doesn't care about class variation of the features. For samples $$x_a, x_p, x_n, x_s$$ and their corresponding labels $$y_a = y_p = y_s$$, $$y_a \ne y_n$$, the Quadruplet Loss is defined as:
 
 $$
@@ -229,7 +231,7 @@ As consequence, the embedding vector for an example is only guaranteed to be far
 >
 > In practice, the hope is that, after looping over sufficiently many randomly sampled triplets, the final distance metric can be balanced correctly; but individual update can still be unstable and the convergence would be slow.  Specifically, towards the end of training, most randomly selected negative examples can no longer yield non-zero triplet loss error.
 
-Other attemts to design a better metric learning objective based on the core idea of the Triplet Loss objective includes **Magnet Loss** ([Rippel et al. 2015][magnet_loss_paper]) and **Clustering Loss** ([Song et al. 2017][clustering_loss_paper]). Both objectives are defined on the dataset distribution as a whole, not only on single elements. However, they didn't received much traction due to the scaling difficulties, and simply because of their complexity.
+Other attemts to design a better metric learning objective based on the core idea of the Triplet Loss objective includes **Magnet Loss** ([Rippel et al. 2015][magnet_loss_paper]) and **Clustering Loss** ([Song et al. 2017][clustering_loss_paper]). Both objectives are defined on the dataset distribution as a whole, not only on single elements. However, they didn't received much traction due to the scaling difficulties, and simply because of their complexity. There has been some attempt to compare these approaches, notably by [Horiguchi et al. (2017)][comparing_classification_and_metric], but they performed experiments on very small datasets and were unable to achieve meaningful results.
 
 
 [backpropagation_wiki]: https://en.wikipedia.org/wiki/Backpropagation
@@ -248,6 +250,7 @@ Other attemts to design a better metric learning objective based on the core ide
 [magnet_loss_paper]: https://arxiv.org/abs/1511.05939
 [clustering_loss_paper]: https://openaccess.thecvf.com/content_cvpr_2017/papers/Song_Deep_Metric_Learning_CVPR_2017_paper.pdf
 [pytorch_metric_learning]: https://github.com/KevinMusgrave/pytorch-metric-learning
+[comparing_classification_and_metric]: https://openreview.net/forum?id=HyQWFOVge
 
 
 ---------------------------------------------------------------------------------
@@ -256,6 +259,71 @@ Other attemts to design a better metric learning objective based on the core ide
 <a name="sota-approaches"></a>
 ## State-of-the-Art Approaches
 
+After countless of research papers attempting to solve the problems and limitations of [Triplet Loss](#triplet-loss), it became clear that learning to directly minimize/maximize euclidean ($$l_2$$) distance between samples with the same/different labels may not be the way to go. There are two main issues of such approaches:
+
+- **Expansion Issue** &mdash; it is very hard to ensure that samples with similar label will be pulled together to a common region in space as noted by [Sohn (2016)][n_pair_loss_paper] (mentioned in the previous section). [Quadruplet Loss](#quadruplet-loss) only improves the variability, and [Structured Loss](#structured-loss) can only enforce the structure locally for the samples in the batch, not globally. Attempts to solve this problem directly with a global objective ([Magnet Loss, Rippel et al. 2015][magnet_loss_paper] and [Clustering Loss, Song et al. 2017][clustering_loss_paper]) were not successful in gaining much traction due to scalability issues.
+
+- **Sampling Issue** &mdash; all of the Deep Metric Learning approaches that tries to directly minimize/maximize $$l_2$$ distance between samples relies heavily on sophisticated sample mining techniques that chooses the "most useful" samples for learning for each training batch. This is inconvenient enough in the local setting (think about GPU utilization), and can become quite problematic in a distributed training setting (e.g. when you train on 10s of [cloud TPUs][cloud_tpu] and pull the samples from a remote GCS bucket).
+
+
+<a name="fixing-issues"></a>
+### Fixing the Expansion and Sampling Issues
+
+**Center Loss** ([Wen et al. 2016][center_loss_paper]) is one of the first successful attemts to solve both of the above mentioned issues. Before getting into the details of it, let's talk about the Softmax Loss.
+
+Let $$z = f_\theta(x)$$ be the feature vector of the sample $$x$$ after propagating through the neural network $$f_\theta$$. In the classification setting of $$m$$ classes, on top of the backbone neural network $$f_\theta$$ we usually have a linear classification layer $$\hat{y} = W^\intercal z + b$$, where $$W \in \mathbb{R}^{n \times m}$$ and $$b \in \mathbb{R}^m$$. The Softmax Loss (that we're all familiar with and know by heart) for a batch of $$N$$ samples is then presented as follows:
+
+$$
+\begin{equation*}
+\mathcal{L}_\text{softmax} =
+- \frac{1}{N} \sum_{i=1}^{N}{
+\log \frac{
+\exp\left\{W^\intercal_{y_i} z_i + b_{y_i}\right\}
+}{
+\sum_{j=1}^{m} \exp\left\{W^\intercal_{j} z_i + b_{j}\right\}
+}}
+\end{equation*}
+$$
+
+Let's have a look at the training dynamics of the Softmax objective and how the resulting feature vectors are distributed relative to each other:
+
+{% capture imblock_softmaxmnist %}
+  {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/softmax_train.gif
+  {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/softmax_test.gif
+{% endcapture %}
+{% capture imcaption_softmaxmnist %}
+  Fig 3: The training dynamics of Softmax Loss on MNIST. The feature maps were projected onto 2D space to produce this visualization. On the left is the dynamics on train set, and on the right is the dynamics on test set. (Image source: [KaiYang Zhou](https://github.com/KaiyangZhou/pytorch-center-loss))
+{% endcapture %}
+{% include gallery images=imblock_softmaxmnist cols=2 caption=imcaption_softmaxmnist %}
+
+As illustrated above, the Softmax objective is not discriminative enough, still there's still a significant intra-class variation even on such a simple dataset as MNIST. So, the idea of Center Loss is to add a new term to the Softmax Loss to pull the features to corresponding class centers:
+
+$$
+\begin{equation*}
+\mathcal{L}_\text{center} = \mathcal{L}_\text{softmax} +
+\frac{\lambda}{2} \sum_{i=1}^N \| z_i - c_{y_i} \|_2^2
+\end{equation*}
+$$
+
+where $$c_j$$ is also updated using $$\mathcal{L}_\text{center}$$ and can be thought of as moving mean vector of the set of feature vectors of class $$j$$. If we now visualize the training dynamics and resulting distribution of feature vectors of Center Loss on MNIST, we will see that it is much more discriminative comparing to Softmax Loss.
+
+{% capture imblock_centermnist %}
+  {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/center_train.gif
+  {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/center_test.gif
+{% endcapture %}
+{% capture imcaption_centermnist %}
+  Fig 3: The training dynamics of Center Loss on MNIST. The feature maps were projected onto 2D space to produce this visualization. On the left is the dynamics on train set, and on the right is the dynamics on test set. (Image source: [KaiYang Zhou](https://github.com/KaiyangZhou/pytorch-center-loss))
+{% endcapture %}
+{% include gallery images=imblock_centermnist cols=2 caption=imcaption_centermnist %}
+
+The Center Loss solves the Expansion Issue by providing the class centers $$c_j$$, thus forcing the samples to cluster together to the corresponding class center; it also solves the Sampling issue because we don't need to perform hard sample mining anymore.
+
+
 
 
 [hold_on_to_your_papers]: https://www.youtube.com/channel/UCbfYPyITQ-7l4upoX8nvctg
+[n_pair_loss_paper]: https://www.nec-labs.com/uploads/images/Department-Images/MediaAnalytics/papers/nips16_npairmetriclearning.pdf
+[magnet_loss_paper]: https://arxiv.org/abs/1511.05939
+[clustering_loss_paper]: https://openaccess.thecvf.com/content_cvpr_2017/papers/Song_Deep_Metric_Learning_CVPR_2017_paper.pdf
+[cloud_tpu]: https://cloud.google.com/tpu
+[center_loss_paper]: https://link.springer.com/chapter/10.1007/978-3-319-46478-7_31
