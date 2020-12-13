@@ -16,7 +16,9 @@ hidden: true
 
 One of the most amazing aspects of the human's visual system is the ability to recognize similar objects and scenes. We don't need hundreds of photos of the same face to be able to differentiate it among thousands of other faces that we've seen. We don't need thousands of images of the Eiffel Tower to recognize that unique architecture landmark when we visit Paris. Is it possible to design a Deep Neural Network with the similar ability to tell which objects are visually similar and which ones are not? That's essentially what **Deep Metric Learning** attempts to solve.
 
+<!--
 Advanced readers may immediately recognize by the description that this topic is intimately related to One-Shot Learning. The techniques of Metric Learning are commonly embraced in the field of One-Shot Learning, and sometimes these terms are even used interchangeably (e.g. by [Andrew Ng][andrewng_meme] in his [Deep Learning course][andrewng_one_shot_learning]). However, they are completely different fields &mdash; One-Shot Learning uses more than just Metric Learning techniques, and Metric Learning can be applied in other problems as well.
+-->
 
 Although this blog post is mainly about **Supervised Deep Metric Learning** and is self-sufficient by its own, it would be benefitial for you to consider getting familiar with traditional Metric Learning methods (i.e. without Neural Networks) to develop a broader understanding on this topic. I highly recommend the [introductory guides on Metric Learning][sklearn_metric_learning_guide] as a starter. If you want to get into the formal mathematical side of things, I recommend the tutorial by [Diaz et al. (2020)][diaz_tutorial_metric_math]. More advanced Metric Learning methods includes the popular [t-SNE (van der Maaten & Hinton, 2008)][tsne_paper] and the new shiny [UMAP (McInnes et al., 2018)][umap_paper] that everybody uses nowadays for data clustering and visualization.
 
@@ -38,9 +40,10 @@ This article is organized as follows. In the **"Common Approaches"** section, I 
 - [Common Approaches](#common-approaches)
     - [Contrastive Loss](#contrastive-loss)
     - [Triplet Loss](#triplet-loss)
-    - [Quadruplet Loss](#quadruplet-loss)
+    - [Improving the Triplet Loss](#improving-triplet-loss)
 
-- [State-of-the-Art Approaches](#)
+- [State-of-the-Art Approaches](#sota-approaches)
+    - [What's Wrong with Cosine Softmax?](#)
     - [CosFace, ArcFace, and SphereFace](#)
     - [AdaCos &mdash; Adaptive $$s$$ Parameter](#)
     - [Sub-Center ArcFace](#)
@@ -85,31 +88,16 @@ I will glance throught the most common approaches very quickly for two reasons:
 - The methods described here are already covered in other tutorials, videos, and blog posts online in great detail. I highly recommend the great survey by [Kaya & Bilge (2019)][deep_metric_learning_survey].
 - The methods that I will describe in the next section outperforms these approaches in most cases, so I have no motivation to delve too deep into the details in this section.
 
-From the bird's eye view, each iteration of the approaches for Deep Metric Learning described in this section consists of 3 steps:
-
-1. <a name="common-approaches-step-1"></a> Run the inference step for $$f_\theta$$ on a few data samples.
-2. Apply a loss function on the resulting feature vectors from [step 1](#common-approaches-step-1).
-3. Perform [Backpropagation][backpropagation_wiki] and update the network's weights.
-
-Sometimes, there's an additional step of choosing the useful training data samples for the next step using Negative Samples Mining. The distance function for these approaches is usually fixed as $$l_2$$ metric:
+The distance function for these approaches is usually fixed as $$l_2$$ metric:
 
 $$
 \begin{equation*}
-\mathcal{D}\left(p, q\right) = \|p - q\|_2^2 = \sqrt{\sum_{i=1}^n \left(p_i - q_i\right)^2}
+\mathcal{D}\left(p, q\right) = \|p - q\|_2 = \left(\sum_{i=1}^n \left(p_i - q_i\right)^2\right)^{1/2}
 \end{equation*}
 $$
 
-
-{% capture imblock1 %}
-    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/metric_losses.png
-{% endcapture %}
-{% capture imcaption1 %}
-  Fig 1: A visual overview of different metric loss functions (Image source: [Kaya & Bilge, 2019](https://www.mdpi.com/2073-8994/11/9/1066/htm))
-{% endcapture %}
-{% include gallery images=imblock1 cols=1 caption=imcaption1 %}
-
-
 For the ease of notation, let's denote $$\mathcal{D}_{f_\theta}(x_1, x_2)$$ as a shortcut for $$\mathcal{D} \left( f_\theta(x_1), f_\theta(x_2) \right)$$, where $$x_1, x_2 \in \mathcal{X}$$ are samples from the dataset. Also, for some condition $$A$$, let's denote $$\unicode{x1D7D9}_A$$ as the identity function that is equal to $$1$$ if $$A$$ is true, and $$0$$ otherwise.
+
 
 
 <a name="contrastive-loss"></a>
@@ -121,66 +109,127 @@ $$
 \begin{equation*}
 \mathcal{L}_\text{contrast} = 
 \unicode{x1D7D9}_{y_1 = y_2}
-\mathcal{D}_{f_\theta}(x_1, x_2)
+\mathcal{D}^2_{f_\theta}(x_1, x_2)
 +
 \unicode{x1D7D9}_{y_1 \ne y_2}
-\max\left(0, \alpha - \mathcal{D}_{f_\theta}(x_1, x_2)\right)
+\max\left(0, \alpha - \mathcal{D}^2_{f_\theta}(x_1, x_2)\right)
 \end{equation*}
 $$
 
 where $$\alpha$$ is the margin. The reason we need a margin value is because otherwise, our network $$f_\theta$$ will learn to "cheat" by mapping all $$\mathcal{X}$$ to the same point, making distances between any samples to be equal to zero. [Here][contrastive_explained] and [here][contrastive_explained_2] are very great in-depth explanation for this loss function.
 
 
+
 <a name="triplet-loss"></a>
 ### Triplet Loss
 
+{% capture imblock_tripletloss %}
+    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/triplet_loss.png
+{% endcapture %}
+{% capture imcaption_tripletloss %}
+  Fig 1: The core idea of Triplet Loss (Image source: [Schroff et al. 2015](https://arxiv.org/abs/1503.03832))
+{% endcapture %}
+{% include gallery images=imblock_tripletloss cols=1 caption=imcaption_tripletloss %}
+
+
 **Triplet Loss** [(Schroff et al. 2015)][triplet_loss_paper] is by far the most popular and widely used loss function for metric learning. It is also featured in [Andrew Ng's deep learning course][andrew_ng_triplet_loss].
 
-Let $$x_a, x_p, x_n$$ be some samples from the dataset and $$y_a, y_p, y_n$$ be their corresponding labels, so that $$y_a = y_p$$ and $$y_a \ne y_n$$ ($$x_a$$ is called **anchor** sample, $$x_p$$ is called **positive** sample because it has the same label as $$x_a$$, and $$x_n$$ is called **negative** sample because it has a different label. It is defined as:
+Let $$x_a, x_p, x_n$$ be some samples from the dataset and $$y_a, y_p, y_n$$ be their corresponding labels, so that $$y_a = y_p$$ and $$y_a \ne y_n$$. Usually, $$x_a$$ is called **anchor** sample, $$x_p$$ is called **positive** sample because it has the same label as $$x_a$$, and $$x_n$$ is called **negative** sample because it has a different label. It is defined as:
 
 $$
 \begin{equation*}
 \mathcal{L}_\text{triplet} =
 \max\left(0,
-\mathcal{D}_{f_\theta}(x_a, x_p) -
-\mathcal{D}_{f_\theta}(x_a, x_n)
+\mathcal{D}^2_{f_\theta}(x_a, x_p) -
+\mathcal{D}^2_{f_\theta}(x_a, x_n)
 + \alpha\right)
 \end{equation*}
 $$
 
 where $$\alpha$$ is the margin to discourage our network $$f_\theta$$ to map the whole dataset $$\mathcal{X}$$ to the same point. The key ingredient to make Triplet Loss work in practice is **Negative Samples Mining** &mdash; on each training step, we sample such triplets that such triplets $$x_a, x_p, x_n$$ that satisfies $$\mathcal{D}_{f_\theta}(x_a, x_n) < \mathcal{D}_{f_\theta}(x_a, x_p) + \alpha$$, i.e. the samples that our network $$f_\theta$$ fails to discriminate or is not able to discriminate with high confidence. You can find in-depth description and analysis of Triplet Loss in [this awesome blog post][triplet_loss_explained].
 
-Triplet Loss is [still being widely used][paperswithcode_tripletloss], despite recent advances in Metric Learning (which we will learn about in the next section), due to its relative effectiveness and the wide availability of code samples online for all deep learning frameworks.
+Triplet Loss is [still being widely used][paperswithcode_tripletloss] despite being inferior to the recent advances in Metric Learning (which we will learn about in the next section) due to its relative effectiveness, simplicity, and the wide availability of code samples online for all deep learning frameworks.
 
 
-<a name="quadruplet-loss"></a>
-### Quadruplet Loss
 
-One of the limitations for Triplet Loss is that it does not care about inter- and intra-class variations of the feature vectors $$f_\theta(x)$$. **Quadruplet Loss** ([Chen et al. 2017][quadruplet_loss_paper]) was developed to address exactly that &mdash; it makes inter-class variation larger and intra-class variation smaller.
+<a name="improving-triplet-loss"></a>
+### Improving the Triplet Loss
 
-Similar to Triplet Loss, Quadruplet Loss also have $$x_a, x_p, x_n$$ (anchor, positive, negative) samples with labels $$y_a, y_p, y_n$$ with $$y_a = y_p$$ and $$y_a \ne y_n$$. However, it has one more sample $$x_s$$ with label $$y_s = y_a$$, which is used for regularizing the class variations. The loss value is defined as follows:
+Despite its popularity, Triplet Loss has a lot of limitations. Over the past years, there have been a lot of efforts to improve the Triplet Loss objective, building on the same idea of pulling similar samples and pushing away dissimilar ones.
+
+{% capture imblock_metriclosses %}
+    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/metric_losses.png
+{% endcapture %}
+{% capture imcaption_metriclosses %}
+  Fig 2: A visual overview of different deep metric learning approaches that are based on the same idea as the Triplet Loss objective (Image source: [Kaya & Bilge, 2019](https://www.mdpi.com/2073-8994/11/9/1066/htm))
+{% endcapture %}
+{% include gallery images=imblock_metriclosses cols=1 caption=imcaption_metriclosses %}
+
+**Quadruplet Loss** ([Chen et al. 2017][quadruplet_loss_paper]) is an attempt to make inter-class variation of the features $$f_\theta(x)$$ larger and intra-class variation smaller, contrary to the Triplet Loss that doesn't care about class variation of the features. For samples $$x_a, x_p, x_n, x_s$$ and their corresponding labels $$y_a = y_p = y_s$$, $$y_a \ne y_n$$, the Quadruplet Loss is defined as:
 
 $$
 \begin{eqnarray*}
 \mathcal{L}_\text{quadruplet}
 = &
 \max\left(0,
-\mathcal{D}_{f_\theta}(x_a, x_p) -
-\mathcal{D}_{f_\theta}(x_a, x_s)
+\mathcal{D}^2_{f_\theta}(x_a, x_p) -
+\mathcal{D}^2_{f_\theta}(x_a, x_s)
 + \alpha_1\right) \\
 + &
 \max\left(0,
-\mathcal{D}_{f_\theta}(x_a, x_s) -
-\mathcal{D}_{f_\theta}(x_a, x_n)
+\mathcal{D}^2_{f_\theta}(x_a, x_s) -
+\mathcal{D}^2_{f_\theta}(x_a, x_n)
 + \alpha_2\right)
 \end{eqnarray*}
 $$
 
-where $$\alpha_1$$ is intra-class margin that prevents $$f_\theta$$ to collapse samples from the same class to a single point, and $$\alpha_2$$ is inter-class margin with the same purpose as $$\alpha$$ in triplet and contrastive losses. You can find more about the intricacy of the quadruplet loss in comparison to the triplet loss in [this article][triplet_vs_quadruplet].
+<a name="structured-loss"></a>
+**Structured Loss** ([Song et al. 2016][structured_loss_paper]) was proposed to improve the sample effectiveness of Triplet Loss and make full use of the samples in each batch of training data. Here, I will describe the generalized version of it by [Hermans et al. (2017)][generalized_structured_loss_paper].
 
+Let $$\mathcal{B} = (x_1, \ldots, x_b)$$ be one batch of data, $$\mathcal{P}$$ be the set of all positive pairs in the batch ($$x_i, x_j \in \mathcal{P}$$ if their corresponding labels satisfies $$y_i = y_j$$) and $$\mathcal{N}$$ is the set of all negative pairs ($$x_i, x_j \in \mathcal{N}$$ if corresponding labels satisfies $$y_i \ne y_j$$). The Structured Loss is then defined as:
 
+$$
+\begin{eqnarray*}
+\widehat{\mathcal{J}}_{i,j}
+=&&
+\max\left(
+\max_{(i,k) \in \mathcal{N}} \left\{\alpha - \mathcal{D}_{f_\theta}(x_i, x_k)\right\},
+\max_{(l,j) \in \mathcal{N}} \left\{\alpha - \mathcal{D}_{f_\theta}(x_l, x_j)\right\}
+\right) + \mathcal{D}_{f_\theta}(x_i, x_j)
+\\
+\widehat{\mathcal{L}}_\text{structured}
+=&&
+\frac{1}{2|\mathcal{P}|} \sum_{(i,j) \in \mathcal{P}}
+\max\left( 0, \widehat{\mathcal{J}}_{i,j} \right)^2
+\end{eqnarray*}
+$$
 
+Intuitively, the formula above means that for each pair of positive samples, we compute the distance to the closes negative sample to that pair, and we try to maximize it for every positive pair in the batch. To make it differentiable, the authords proposed to optimize an upper bound instead:
 
+$$
+\begin{eqnarray*}
+\mathcal{J}_{i,j}
+=&&
+\log\left(
+\sum_{(i,k) \in \mathcal{N}} \exp\left\{\alpha - \mathcal{D}_{f_\theta}(x_i, x_k)\right\},
+\sum_{(l,j) \in \mathcal{N}} \exp\left\{\alpha - \mathcal{D}_{f_\theta}(x_l, x_j)\right\}
+\right) + \mathcal{D}_{f_\theta}(x_i, x_j)
+\\
+\mathcal{L}_\text{structured}
+=&&
+\frac{1}{2|\mathcal{P}|} \sum_{(i,j) \in \mathcal{P}}
+\max\left( 0, \mathcal{J}_{i,j} \right)^2
+\end{eqnarray*}
+$$
+
+The **N-Pair Loss** [(Sohn, 2016)][n_pair_loss_paper] paper discusses in great detail one of the main limitations of the Triplet Loss, while proposing a similar idea to [Structured Loss](#structured-loss) of using positive and negative pairs:
+
+> During one update, the triplet loss only compares an example with one negative example while ignoring negative examples from the rest of the classes.
+As consequence, the embedding vector for an example is only guaranteed to be far from the selected negative class but not necessarily the others. Thus we can end up only differentiating an example from a limited selection of negative classes yet still maintain a small distance from many other classes.
+>
+> In practice, the hope is that, after looping over sufficiently many randomly sampled triplets, the final distance metric can be balanced correctly; but individual update can still be unstable and the convergence would be slow.  Specifically, towards the end of training, most randomly selected negative examples can no longer yield non-zero triplet loss error.
+
+Other attemts to design a better metric learning objective based on the core idea of the Triplet Loss objective includes **Magnet Loss** ([Rippel et al. 2015][magnet_loss_paper]) and **Clustering Loss** ([Song et al. 2017][clustering_loss_paper]). Both objectives are defined on the dataset distribution as a whole, not only on single elements. However, they didn't received much traction due to the scaling difficulties, and simply because of their complexity.
 
 
 [backpropagation_wiki]: https://en.wikipedia.org/wiki/Backpropagation
@@ -193,3 +242,20 @@ where $$\alpha_1$$ is intra-class margin that prevents $$f_\theta$$ to collapse 
 [paperswithcode_tripletloss]: https://paperswithcode.com/method/triplet-loss
 [quadruplet_loss_paper]: https://arxiv.org/abs/1704.01719
 [triplet_vs_quadruplet]: https://towardsdatascience.com/how-to-choose-your-loss-when-designing-a-siamese-neural-net-contrastive-triplet-or-quadruplet-ecba11944ec
+[structured_loss_paper]: https://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Song_Deep_Metric_Learning_CVPR_2016_paper.pdf
+[generalized_structured_loss_paper]: https://arxiv.org/abs/1703.07737
+[n_pair_loss_paper]: https://www.nec-labs.com/uploads/images/Department-Images/MediaAnalytics/papers/nips16_npairmetriclearning.pdf
+[magnet_loss_paper]: https://arxiv.org/abs/1511.05939
+[clustering_loss_paper]: https://openaccess.thecvf.com/content_cvpr_2017/papers/Song_Deep_Metric_Learning_CVPR_2017_paper.pdf
+[pytorch_metric_learning]: https://github.com/KevinMusgrave/pytorch-metric-learning
+
+
+---------------------------------------------------------------------------------
+
+
+<a name="sota-approaches"></a>
+## State-of-the-Art Approaches
+
+
+
+[hold_on_to_your_papers]: https://www.youtube.com/channel/UCbfYPyITQ-7l4upoX8nvctg
