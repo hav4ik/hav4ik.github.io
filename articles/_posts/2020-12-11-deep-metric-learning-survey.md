@@ -37,23 +37,27 @@ This article is organized as follows. In the **"Common Approaches"** section, I 
 
 
 - [Problem Setting of Supervised Metric Learning](#problem-setting)
-- [Common Approaches](#common-approaches)
-    - [Contrastive Loss](#contrastive-loss)
-    - [Triplet Loss](#triplet-loss)
-    - [Improving the Triplet Loss](#improving-triplet-loss)
+- [Direct Approaches](#direct-approaches)
+  - [Contrastive Loss](#contrastive-loss)
+  - [Triplet Loss](#triplet-loss)
+  - [Improving the Triplet Loss](#improving-triplet-loss)
+
+- [Moving Away from Direct Approaches](#moving-away-from-direct-approaches)
+  - [Center Loss](#center-loss)
+  - [Large-Margin Softmax Loss](#large-margin-softmax-loss)
+  - [SphereFace](#sphereface)
 
 - [State-of-the-Art Approaches](#sota-approaches)
-    - [Fixing the Expansion and Sampling Issues](#fixing-issues)
-    - [CosFace, ArcFace, and SphereFace](#)
-    - [AdaCos &mdash; Adaptive $$s$$ Parameter](#)
-    - [Sub-Center ArcFace](#)
-    - [ArcFace with Dynamic Margin (2020, Unpublished)](#)
+  - [CosFace](#)
+  - [ArcFace](#)
+  - [AdaCos &mdash; Fixed and Dynamic](#)
+  - [Sub-Center ArcFace](#)
+  - [ArcFace with Dynamic Margin (2020, Unpublished)](#)
 
 - [Getting Practical](#)
-  - [Case studies: what works, and what doesn't?](#)
-    - [Kaggle: Humpack Whale Challenge](#)
-    - [Kaggle: Google Landmarks Challenge](#)
-    - [Face Recognition](#)
+  - [Kaggle: Humpack Whale Challenge](#)
+  - [Kaggle: Google Landmarks Challenge](#)
+  - [Face Recognition](#)
   - [Tricks to Make Things Work](#)
 
 - [Conclusion](#)
@@ -81,8 +85,8 @@ Thus, the Deep Metric Learning problem boils down to just choosing the architect
 ---------------------------------------------------------------------------------
 
 
-<a name="common-approaches"></a>
-## Common Approaches
+<a name="direct-approaches"></a>
+## Direct Approaches
 
 I will glance throught the most common approaches in this section very quickly without getting too much into details for two reasons:
 
@@ -256,8 +260,8 @@ Other attemts to design a better metric learning objective based on the core ide
 ---------------------------------------------------------------------------------
 
 
-<a name="sota-approaches"></a>
-## State-of-the-Art Approaches
+<a name="moving-away-from-direct-approaches"></a>
+## Moving Away from Direct Approaches
 
 After countless of research papers attempting to solve the problems and limitations of [Triplet Loss](#triplet-loss), it became clear that learning to directly minimize/maximize euclidean ($$l_2$$) distance between samples with the same/different labels may not be the way to go. There are two main issues of such approaches:
 
@@ -266,8 +270,8 @@ After countless of research papers attempting to solve the problems and limitati
 - **Sampling Issue** &mdash; all of the Deep Metric Learning approaches that tries to directly minimize/maximize $$l_2$$ distance between samples relies heavily on sophisticated sample mining techniques that chooses the "most useful" samples for learning for each training batch. This is inconvenient enough in the local setting (think about GPU utilization), and can become quite problematic in a distributed training setting (e.g. when you train on 10s of [cloud TPUs][cloud_tpu] and pull the samples from a remote GCS bucket).
 
 
-<a name="fixing-issues"></a>
-### Fixing the Expansion and Sampling Issues
+<a name="center-loss"></a>
+### Center Loss
 
 **Center Loss** ([Wen et al. 2016][center_loss_paper]) is one of the first successful attemts to solve both of the above mentioned issues. Before getting into the details of it, let's talk about the Softmax Loss.
 
@@ -296,7 +300,7 @@ Let's have a look at the training dynamics of the Softmax objective and how the 
 {% endcapture %}
 {% include gallery images=imblock_softmaxmnist cols=2 caption=imcaption_softmaxmnist %}
 
-As illustrated above, the Softmax objective is not discriminative enough, still there's still a significant intra-class variation even on such a simple dataset as MNIST. So, the idea of Center Loss is to add a new term to the Softmax Loss to pull the features to corresponding class centers:
+As illustrated above, the Softmax objective is not discriminative enough, still there's still a significant intra-class variation even on such a simple dataset as MNIST. So, the idea of Center Loss is to add a new regularization term to the Softmax Loss to pull the features to corresponding class centers:
 
 $$
 \begin{equation*}
@@ -305,7 +309,7 @@ $$
 \end{equation*}
 $$
 
-where $$c_j$$ is also updated using $$\mathcal{L}_\text{center}$$ and can be thought of as moving mean vector of the set of feature vectors of class $$j$$. If we now visualize the training dynamics and resulting distribution of feature vectors of Center Loss on MNIST, we will see that it is much more discriminative comparing to Softmax Loss.
+where $$c_j$$ is also updated using gradient descent with $$\mathcal{L}_\text{center}$$ and can be thought of as moving mean vector of the set of feature vectors of class $$j$$. If we now visualize the training dynamics and resulting distribution of feature vectors of Center Loss on MNIST, we will see that it is much more discriminative comparing to Softmax Loss.
 
 {% capture imblock_centermnist %}
   {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/center_train.gif
@@ -316,7 +320,110 @@ where $$c_j$$ is also updated using $$\mathcal{L}_\text{center}$$ and can be tho
 {% endcapture %}
 {% include gallery images=imblock_centermnist cols=2 caption=imcaption_centermnist %}
 
-The Center Loss solves the Expansion Issue by providing the class centers $$c_j$$, thus forcing the samples to cluster together to the corresponding class center; it also solves the Sampling issue because we don't need to perform hard sample mining anymore.
+The Center Loss solves the Expansion Issue by providing the **class centers** $$c_j$$, thus forcing the samples to cluster together to the corresponding class center; it also solves the Sampling issue because we don't need to perform hard sample mining anymore. Despite having its own problems and limitations (which I will describe in the next sub-section), Center Loss is still a pioneering work that helped to steer the direction of Deep Metric Learning to its current form.
+
+
+<!--
+<a name="large-margin-softmax-loss"></a>
+### Large-Margin Softmax Loss
+
+Another idea to improve the discriminativeness of the Softmax Objective is to consider the angular distance between the feature vectors of the samples (after the last layer of the backbone neural network) instead of euclidean $$l_2$$ distance, and enforce a certain **margin** between them. **Large-Margin Softmax Loss** ([Liu et al. 2017][large_margin_paper]) is designed to do just that.
+
+> TODO: Finish the description for L-Softmax Loss
+-->
+
+
+<a name="sphereface"></a>
+### SphereFace
+
+The obvious problem of the formulation of [Center Loss](#center-loss) is, ironically, the choice of centers. First, there's still no guarantee that you will have a large inter-class variability, since the clusters closer to zero will benefit less from the regularization term. To make it "fair" for each class, why don't we just enforce the class centers to be on the same distance from the center? Let's map it to a hypersphere!
+
+That's basically the main idea behind **SphereFace** ([Liu et al. 2017][sphereface_paper]). The setting of SphereFace is very simple. We start from the Softmax loss with following modifications:
+
+- Fix the bias vector $$b = 0$$ to make the future analysis easier (the whole heavy-lifting is performed by our neural network anyways).
+- Normalize the weights so that $$\smash{\| W_j \| = 1}$$. This way, when we rewrite the product $$\smash{W_j^\intercal z}$$ as $$\smash{\| W_j \| \| z \| \cos\theta_j}$$, where $$\smash{\theta_j}$$ is the angle between feature vector $$z$$ and the row vector $$\smash{W_j}$$, it becomes just $$\smash{\| z \| \cos\theta_j}$$. So, the final classification output for class $$j$$ can be though about as **projecting** the feature fector $$z$$ onto vector $$\smash{W_j}$$, which in this case, geometrically, is the **class center**.
+
+Let's denote $$\smash{\theta_{j,i}}$$ ($$\smash{0 \le \theta_{j,i} \le \pi}$$) as the angle between the feature vector $$z_i$$ and class center vector $$\smash{W_j}$$. The **Modified Softmax** objective is thus:
+
+$$
+\begin{eqnarray*}
+\mathcal{L}_\text{mod. softmax}
+=&&
+- \frac{1}{N} \sum_{i=1}^{N}{
+\log \frac{
+\exp\left\{W^\intercal_{y_i} z_i + b_{y_i}\right\}
+}{
+\sum_{j=1}^{m} \exp\left\{W^\intercal_{j} z_i + b_{j}\right\}
+}}
+\\
+=&&
+- \frac{1}{N} \sum_{i=1}^{N}{
+\log \frac{
+\exp\left\{\| W_{y_i} \| \|z_i\| \cos (\theta_{y_i, i}) + b_{y_i}\right\}
+}{
+\sum_{j=1}^{m} \exp\left\{\|z_i\| \cos (\theta_{j,i}) + b_{j}\right\}
+}}
+\\
+=&&
+- \frac{1}{N} \sum_{i=1}^{N}{
+\log \frac{
+\exp\left\{\|z_i\| \cos (\theta_{y_i, i}) \right\}
+}{
+\sum_{j=1}^{m} \exp\left\{\|z_i\| \cos (\theta_{j,i})\right\}
+}}
+\end{eqnarray*}
+$$
+
+Geometrically, it means that we assign the sample to class $$j$$ if the projection of the logits vector $$z$$ to the class center vector $$\smash{W_j}$$ is the largest, i.e. if the angle between $$\smash{W_j}$$ and $$z$$ is the smallest among all class center vectors.
+
+It is important to always keep in mind the **decision boundary**. At which point you will consider a sample as belonging to a certain class?
+
+For Modified Softmax, the dicision boundary between classes $$i$$ and $$j$$ is actually the bisector between two class center vectors $$\smash{W_i}$$ and $$\smash{W_j}$$. Having such a thin decision boundary will not make our features discriminative enough &mdash; the inter-class variation is too small. Hence the second part of SphereFace &mdash; introducing the **margins**.
+
+The idea is, instead of requiring $$\smash{\cos(\theta_i) > \cos(\theta_j)}$$ for all $$\smash{j = 1, \ldots, m\, (j \ne i)}$$ to classify a sample as belonging to $$i$$-th class as in Modified Softmax, we additionally enforce a margin $$\mu$$, so that a sample will only be classified as belonging to $$i$$-th class if $$\smash{\cos(\mu \theta_i) > \cos(\theta_j)}$$ for all $$\smash{j = 1, \ldots, m\, (j \ne i)}$$, with the requirement that $$\smash{\theta_i \in [0, \frac{\pi}{\mu}]}$$. The SphereFace objective can be then expressed as:
+
+$$
+\begin{equation*}
+\mathcal{L}_\text{SphereFace}
+=
+- \frac{1}{N} \sum_{i=1}^{N}{
+\log \frac{
+\exp\left\{\|z_i\| \cos (\mu \theta_{y_i, i}) \right\}
+}{
+\exp\left\{\|z_i\| \cos (\mu \theta_{y_i,i})\right\}
++
+\sum_{j \ne y_i} \exp\left\{\|z_i\| \cos (\theta_{j,i})\right\}
+}}
+\end{equation*}
+$$
+
+The limitations on the value of $$\mu$$ is really annoying. We can get rid of it by replacing $$\smash{\cos(\theta)}$$ with a monotonically decreasing angle function $$\smash{\psi(\theta)}$$, which we define as $$\smash{\psi(\theta) = (-1)^k \cos(\mu \theta) - 2k}$$ for $$\smash{\theta \in [k\pi/\mu, (k+1)\pi/\mu]}$$ and $$k \in [0, \mu - 1]$$. Thus the final form of **SphereFace** is:
+
+$$
+\begin{equation*}
+\mathcal{L}_\text{SphereFace}
+=
+- \frac{1}{N} \sum_{i=1}^{N}{
+\log \frac{
+\exp\left\{\|z_i\| \psi (\mu \theta_{y_i, i}) \right\}
+}{
+\exp\left\{\|z_i\| \psi (\mu \theta_{y_i,i})\right\}
++
+\sum_{j \ne y_i} \exp\left\{\|z_i\| \psi (\theta_{j,i})\right\}
+}}
+\end{equation*}
+$$
+
+The differences between Softmax, Modified Softmax, and SphereFace is schematically shown below.
+
+{% capture imblock_sphereface_1 %}
+    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/sphereface_1.svg
+{% endcapture %}
+{% capture imcaption_sphereface_1 %}
+  Fig 4: Difference between Softmax, Modified Softmax, and SphereFace. A 2D features model was trained on CASIA data to produce this visualizations. One can see that features learned by the original softmax loss can not be
+classified simply via angles, while modified softmax loss can. The SphereFace loss further increases the angular margin of learned features. (Image source: [Liu et al. 2017](https://arxiv.org/abs/1704.08063))
+{% endcapture %}
+{% include gallery images=imblock_sphereface_1 cols=1 caption=imcaption_sphereface_1 %}
 
 
 
@@ -327,3 +434,5 @@ The Center Loss solves the Expansion Issue by providing the class centers $$c_j$
 [clustering_loss_paper]: https://openaccess.thecvf.com/content_cvpr_2017/papers/Song_Deep_Metric_Learning_CVPR_2017_paper.pdf
 [cloud_tpu]: https://cloud.google.com/tpu
 [center_loss_paper]: https://link.springer.com/chapter/10.1007/978-3-319-46478-7_31
+[large_margin_paper]: https://arxiv.org/abs/1612.02295
+[sphereface_paper]: https://arxiv.org/abs/1704.08063
