@@ -1,8 +1,8 @@
 
-## Diagnosing Breast Cancer by analyzing the Interphase Nuclei of the Buccal Epithelium: a Hybrid Approach (BS thesis, 2017)
+## Breast Cancer Screening by analyzing the Interphase Nuclei of the Buccal Epithelium (BS thesis, 2017)
 
 Under the supervision of [Prof. Klyushin Dmitrii][klyushin], we provided significant improvements to the non-invasive, radiation-free approach on diagnosing Breast Cancer by [Boroday et al.][boroday] that analyses the optical density of the Interphase Nuclei of Buccal Epithelium.
-The proposed hybrid ensembling framework where CNN features are locally fused together with hand-crafted features (local fractal dimension) allowed us to achieve good results with limited amount of data.
+The proposed method of locally fusing CNN features with with hand-crafted features (i.e. local fractal dimension) allowed us to achieve good results with limited amount of data.
 
 [boroday]: #
 [klyushin]: #
