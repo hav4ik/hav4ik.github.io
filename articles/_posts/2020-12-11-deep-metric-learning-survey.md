@@ -47,8 +47,8 @@ This article is organized as follows. In the **"Common Approaches"** section, I 
   - [Large-Margin Softmax Loss](#large-margin-softmax-loss)
   - [SphereFace](#sphereface)
 
-- [State-of-the-Art Approaches](#sota-approaches)
-  - [CosFace](#)
+- [State-of-the-Art Approaches](#state-of-the-art-approaches)
+  - [CosFace](#cosface)
   - [ArcFace](#)
   - [AdaCos &mdash; Fixed and Dynamic](#)
   - [Sub-Center ArcFace](#)
@@ -427,7 +427,6 @@ classified simply via angles, while modified softmax loss can. The SphereFace lo
 
 
 
-
 [hold_on_to_your_papers]: https://www.youtube.com/channel/UCbfYPyITQ-7l4upoX8nvctg
 [n_pair_loss_paper]: https://www.nec-labs.com/uploads/images/Department-Images/MediaAnalytics/papers/nips16_npairmetriclearning.pdf
 [magnet_loss_paper]: https://arxiv.org/abs/1511.05939
@@ -436,3 +435,97 @@ classified simply via angles, while modified softmax loss can. The SphereFace lo
 [center_loss_paper]: https://link.springer.com/chapter/10.1007/978-3-319-46478-7_31
 [large_margin_paper]: https://arxiv.org/abs/1612.02295
 [sphereface_paper]: https://arxiv.org/abs/1704.08063
+
+
+
+---------------------------------------------------------------------------------
+
+
+<a name="state-of-the-art-approaches"></a>
+## State-of-the-Art Approaches
+
+
+The success of [SphereFace](#sphereface) resulted in an avalanche of new methods that are based on the idea of employing angular distance with angular margin.
+
+For many who just explored a small part of Metric Learning, it might be confusing why angular distance approaches performs so much better than the direct ones. I want to emphasise that there's nothing special in angular distance itself. The reason why these methods works is because projecting the features onto a hypersphere was an easy way to achieve good intra- and inter- class variation.
+
+
+<a name="cosface"></a>
+### CosFace
+
+[Wang et al. (2018)][cosface_paper] discussed in great details about the limitations of [SphereFace](#sphereface):
+
+> The decision boundary of the [SphereFace](#sphereface) is defined over the angular space by $$\,\smash{\cos(\mu \theta_1) = \cos(\theta_2)}$$, which has a difficulty in optimization due to the nonmonotonicity of the cosine function. To overcome such a difficulty, one has to employ an extra trick with an ad-hoc piecewise function for [SphereFace](#sphereface). More importantly, the decision margin of [SphereFace](#sphereface) depends on $$\,\smash{\theta}$$, which leads to different margins for different classes. As a result, in the decision space, some inter-class features have a larger margin while others have a smaller margin, which reduces the discriminating power.
+
+**CosFace** ([Wang et al. 2018][cosface_paper]) proposes a simpler yet more effective way to define the margin. The setting is similar to [SphereFace](#sphereface) with normalizing the rows of weight matrix $$\smash{W}$$, i.e.  $$\| \smash{W_j} \| = 1$$, and zeroing the biases $$b = 0$$. Additionally, we normalize the features $$z$$ (extracted by a neural network) as well, so $$\| z \| = 1$$. The CosFace objective is then defined as:
+
+$$
+\begin{equation*}
+\mathcal{L}_\text{CosFace} =
+- \frac{1}{N} \sum_{i=1}^{N}{
+\log \frac{
+\exp\left\{s \left(\cos (\theta_{y_i, i}) - m\right) \right\}
+}{
+\exp\left\{s \left(\cos (\theta_{y_i, i}) - m\right) \right\}
++
+\sum_{j \ne y_i} \exp\left\{s \cos (\theta_{j,i})\right\}
+}}
+\end{equation*}
+$$
+
+where $$s$$ is referred to as the **scaling** parameter, and $$m$$ is referred to as the **margin** parameter. As in [SphereFace](#sphereface), $$\smash{\theta_{j,i}}$$ denotes the angle between $$i$$-th feature vector $$z_i$$ and $$\smash{W_j}$$, and $$\smash{W_j^\intercal z_i = \cos \theta_{j,i}}$$, because $$\smash{\| W_j \| = \| z_i \| = 1}$$. Visually, it looks like follows:
+
+<a name="fig-cosface-1"></a>
+{% capture imblock_cosface_1 %}
+    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/cosface_1.svg
+{% endcapture %}
+{% capture imcaption_cosface_1 %}
+  Fig 5: Geometrical interpretation of CosFace from feature perspective. Different colors represents feature space from different classes. CosFace has a relatively compact feature region compared with Modified Softmax (Image source: [Wang et al. 2018](https://arxiv.org/abs/1801.09414))
+{% endcapture %}
+{% include gallery images=imblock_cosface_1 cols=1 caption=imcaption_cosface_1 %}
+
+From [Fig 5.](#fig-cosface-1), considering classes $$\smash{C_1}$$ and $$\smash{C_2}$$, we suppose that the normalized feature vector $$x$$ is given, $$\smash{W_i}$$ denotes the normalized weight vector, and $$\smash{\theta_i}$$ denotes the angle between $$z$$ and $$\smash{W_i}$$. For CosFace, the inter-class variance is enlarged while the intra-class variation shrinks, comparing to Modified Softmax.
+
+Choosing the right scale value $$s$$ and margin value $$m$$ is very important. In the CosFace paper ([Wang et al. 2018][cosface_paper]), it is shown that $$s$$ should have a lower bound to at least obtain the expected classification performance. Let $$\smash{C}$$ be the number of classes.  Suppose that the learned feature vectors separately lie on the surface of the hypersphere and center around the corresponding weight vector. Let $$\smash{P_{W}}$$ denote the expected minimum posterior probability of class center (i.e. $$\smash{W}$$). The lower bound of $$s$$ is given by:
+
+$$
+\begin{equation*}
+s \ge \frac{C-1}{C} \log \frac{\left(C-1\right) P_W}{1 - P_W}
+\end{equation*}
+$$
+
+Supposing that all features are well-separated, the theoretical variable scope of $$m$$ is supposed to be:
+
+$$
+\begin{equation*}
+0 \le m \le \left( 1 - \max\left( W_i^\intercal W_j \right) \right)
+\end{equation*}
+$$
+
+where $$i, j \le n$$ and $$i \ne j$$. Assuming that the optimal solution for the Modified Softmax loss should uniformly distribute the weight vectors on a unit hypersphere, the variable scope of margin $$m$$ can be inferred as follows:
+
+$$
+\begin{align*}
+0 \le m \le & 1 - \cos\frac{2\pi}{C}\,, & (K=2) \\
+0 \le m \le & \frac{C}{C-1}\,, & (C \le K + 1) \\
+0 \le m \ll & \frac{C}{C-1}\,, & (C > K + 1)
+\end{align*}
+$$
+
+where $$K$$ is the dimension of learned features. The inequalities indicate that
+as the number of classes increases, the upper bound of the cosine margin between classes are decreased correspondingly. Especially, if the number of classes is much larger than the feature dimension, the upper bound of the cosine margin will get even smaller.
+
+<a name="fig-cosface-2"></a>
+{% capture imblock_cosface_2 %}
+    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/cosface_2.svg
+{% endcapture %}
+{% capture imcaption_cosface_2 %}
+  Fig 6: Decision boundaries of different loss functions in cosine space (Image source: [Wang et al. 2018](https://arxiv.org/abs/1801.09414))
+{% endcapture %}
+{% include gallery images=imblock_cosface_2 cols=1 caption=imcaption_cosface_2 %}
+
+
+
+
+
+[cosface_paper]: https://arxiv.org/abs/1801.09414
