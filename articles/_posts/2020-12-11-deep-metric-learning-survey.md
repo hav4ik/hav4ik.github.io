@@ -484,7 +484,9 @@ where $$s$$ is referred to as the **scaling** parameter, and $$m$$ is referred t
 {% endcapture %}
 {% include gallery images=imblock_cosface_1 cols=1 caption=imcaption_cosface_1 %}
 
+<!--
 From [Fig 5.](#fig-cosface-1), considering classes $$\smash{C_1}$$ and $$\smash{C_2}$$, we suppose that the normalized feature vector $$x$$ is given, $$\smash{W_i}$$ denotes the normalized weight vector, and $$\smash{\theta_i}$$ denotes the angle between $$z$$ and $$\smash{W_i}$$. For CosFace, the inter-class variance is enlarged while the intra-class variation shrinks, comparing to Modified Softmax.
+-->
 
 Choosing the right scale value $$s$$ and margin value $$m$$ is very important. In the CosFace paper ([Wang et al. 2018][cosface_paper]), it is shown that $$s$$ should have a lower bound to at least obtain the expected classification performance. Let $$\smash{C}$$ be the number of classes.  Suppose that the learned feature vectors separately lie on the surface of the hypersphere and center around the corresponding weight vector. Let $$\smash{P_{W}}$$ denote the expected minimum posterior probability of class center (i.e. $$\smash{W}$$). The lower bound of $$s$$ is given by:
 
@@ -506,9 +508,9 @@ where $$i, j \le n$$ and $$i \ne j$$. Assuming that the optimal solution for the
 
 $$
 \begin{align*}
-0 \le m \le & 1 - \cos\frac{2\pi}{C}\,, & (K=2) \\
-0 \le m \le & \frac{C}{C-1}\,, & (C \le K + 1) \\
-0 \le m \ll & \frac{C}{C-1}\,, & (C > K + 1)
+0 \le m \le & \,1 - \cos\frac{2\pi}{C}\,, & (K=2) \\
+0 \le m \le & \,\frac{C}{C-1}\,, & (C \le K + 1) \\
+0 \le m \ll & \,\frac{C}{C-1}\,, & (C > K + 1)
 \end{align*}
 $$
 
@@ -525,7 +527,58 @@ as the number of classes increases, the upper bound of the cosine margin between
 {% include gallery images=imblock_cosface_2 cols=1 caption=imcaption_cosface_2 %}
 
 
+<a name="arcface"></a>
+### ArcFace
+
+
+**ArcFace** [(Deng et al. 2019)][arcface_paper] is very similar to [CosFace](#cosface) and addresses the same limitations of [SphereFace](#sphereface) as mentioned in the [CosFace](#cosface) description. However, instead of defining the margin in the cosine space, it defines the margin directly in the angle space.
+
+The setting is identical to [CosFace](#cosface), with the requirements that the last layer weights and feature vector should be normalized, i.e. $$\smash{\| W_j \| = 1}$$ and $$\smash{\| z \| = 1}$$ and last layer biases should be equal to zero ($$b = 0$$). The ArcFace objective is then defined as:
+
+$$
+\begin{equation*}
+\mathcal{L}_\text{ArcFace} =
+- \frac{1}{N} \sum_{i=1}^{N}{
+\log \frac{
+\exp\left\{s \cos \left(\theta_{y_i, i} + m\right) \right\}
+}{
+\exp\left\{s \cos \left(\theta_{y_i, i} + m\right) \right\}
++
+\sum_{j \ne y_i} \exp\left\{s \cos (\theta_{j,i})\right\}
+}}
+\end{equation*}
+$$
+
+where $$s$$ is the scaling parameter and $$m$$ is referred to as the margin parameter. While the differences with [CosFace](#cosface) is very minor, the results on various benchmarks shows that ArcFace is better than CosFace in most of the cases.
+
+<a name="fig-arcface"></a>
+{% capture imblock_arcface %}
+    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/arcface.svg
+{% endcapture %}
+{% capture imcaption_arcface %}
+  Fig 6: Decision boundaries of different loss functions in the angle space (Image source: [Deng et al. 2019](https://openaccess.thecvf.com/content_CVPR_2019/papers/Deng_ArcFace_Additive_Angular_Margin_Loss_for_Deep_Face_Recognition_CVPR_2019_paper.pdf))
+{% endcapture %}
+{% include gallery images=imblock_arcface cols=1 caption=imcaption_arcface %}
+
+
+<a name="adacos"></a>
+### AdaCos
+
+
+For both [CosFace](#cosface) and [ArcFace](#arcface), the choice of scaling parameter $$s$$ and margin $$m$$ is crucial. Both papers did very litle analysis on the effect of these parameters. Luckily, [Zhang et al. (2019)][adacos_paper] performed an awesome analysis on the hyperparameters of cosine-based losses.
+
+<a name="fig-adacos-s-anal"></a>
+{% capture imblock_adacos_s_anal %}
+    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/adacos_s_analysis.svg
+{% endcapture %}
+{% capture imcaption_adacos_s_anal %}
+  Fig 6: Decision boundaries of different loss functions in the angle space (Image source: [Deng et al. 2019](https://openaccess.thecvf.com/content_CVPR_2019/papers/Deng_ArcFace_Additive_Angular_Margin_Loss_for_Deep_Face_Recognition_CVPR_2019_paper.pdf))
+{% endcapture %}
+{% include gallery images=imblock_adacos_s_anal cols=1 caption=imcaption_adacos_s_anal %}
+
 
 
 
 [cosface_paper]: https://arxiv.org/abs/1801.09414
+[arcface_paper]: https://openaccess.thecvf.com/content_CVPR_2019/papers/Deng_ArcFace_Additive_Angular_Margin_Loss_for_Deep_Face_Recognition_CVPR_2019_paper.pdf
+[adacos_paper]: https://openaccess.thecvf.com/content_CVPR_2019/papers/Zhang_AdaCos_Adaptively_Scaling_Cosine_Logits_for_Effectively_Learning_Deep_Face_CVPR_2019_paper.pdf
