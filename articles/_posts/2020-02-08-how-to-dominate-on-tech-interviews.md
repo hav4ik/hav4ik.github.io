@@ -12,6 +12,10 @@ excerpt: "Do you want to dominate your interviewer? Wanna bring him to his knees
 comments: true
 ---
 
+> **NOTE**: this is a **Troll Post**, and I used strong / offensive language tone for satirical purposes. Interviewers are very good people, please treat them with respect and just show what you're capable for :)
+
+----------------------------------------------------------------------------------------------------------------------
+
 We all know the frustration of technical interviews when other candidates get an offer not because they are better than you, but just because they were able to convince the interviewer that they are smarter. Basically, **the technical interview is a battle of persuasion**, not a test of one's engineering proficiency.
 
 Let's put that to an end. You are NOT going to an interview to have the interviewer judge your skills. You are coming to the interview to **consolidate your dominance** and **bring the interviewer to his knees** with your knowledge. Show that you are **superior** to other candidates by using methods listed in this article.
