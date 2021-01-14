@@ -28,7 +28,7 @@
     width: 850px;
 	max-width: 850px;
 	margin: 4rem auto;
-	background: $white;
+	background: $background_color;
 	color: $color_tuatara;
 	padding: 2em 0em;
 	border-radius: 3px;
@@ -49,7 +49,22 @@
   text-align: justify;
 
   a {
-    text-decoration: underline;
+    color: #e0491f;
+    border-bottom: 1px dotted #bbb;
+  }
+  a:hover {
+    border-bottom: 1px solid $post_underline_color;
+  }
+  a:visited {
+    color: #e0491f;
+    text-decoration: none;
+  }
+
+  .figlink {
+    border-bottom: none;
+  }
+  .figlink:hover {
+    border-bottom: none;
   }
 
   figure {

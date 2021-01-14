@@ -20,6 +20,12 @@ $color_celeste       : #ccc;
 $color_pink_swan     : #bbb;
 $comp-color 	     : complement(#222); 
 
+//Some important colors
+$background_color    : #fdfdfd;
+$font_color          : $color_tuatara;
+$post_link_color     : #e0491f;
+$post_underline_color: #f9493f;
+
 //media
 $small               : "only screen and (max-width: 30em)";
 $medium              : "only screen and (min-width: 30.1em) and (max-width: 35em)";
