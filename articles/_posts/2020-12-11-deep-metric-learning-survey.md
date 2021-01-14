@@ -10,8 +10,13 @@ commits: https://github.com/hav4ik/hav4ik.github.io/commits/master/articles/_pos
 tags: [deep-learning, survey]
 excerpt: "In this post, I'll briefly go over the common approaches for Deep Metric Learning, as well as the new methods proposed in recent years."
 comments: true
-hidden: true
+hidden: false
 ---
+
+
+> Note: **This post is still a Draft!** If you're seeing this, then there's probably a bug in my site (since I've been changing a lot of stuffs lately).
+
+--------------------------------------------------------------------------------------------
 
 
 One of the most amazing aspects of the human's visual system is the ability to recognize similar objects and scenes. We don't need hundreds of photos of the same face to be able to differentiate it among thousands of other faces that we've seen. We don't need thousands of images of the Eiffel Tower to recognize that unique architecture landmark when we visit Paris. Is it possible to design a Deep Neural Network with the similar ability to tell which objects are visually similar and which ones are not? That's essentially what **Deep Metric Learning** attempts to solve.
@@ -22,7 +27,9 @@ Advanced readers may immediately recognize by the description that this topic is
 
 Although this blog post is mainly about **Supervised Deep Metric Learning** and is self-sufficient by its own, it would be benefitial for you to consider getting familiar with traditional Metric Learning methods (i.e. without Neural Networks) to develop a broader understanding on this topic. I highly recommend the [introductory guides on Metric Learning][sklearn_metric_learning_guide] as a starter. If you want to get into the formal mathematical side of things, I recommend the tutorial by [Diaz et al. (2020)][diaz_tutorial_metric_math]. More advanced Metric Learning methods includes the popular [t-SNE (van der Maaten & Hinton, 2008)][tsne_paper] and the new shiny [UMAP (McInnes et al., 2018)][umap_paper] that everybody uses nowadays for data clustering and visualization.
 
-This article is organized as follows. In the **"Common Approaches"** section, I will quickly glance through the methods which are commonly used for Deep Metric Learning, before the rise of angular margin methods in 2017. In the **"State-of-the-Art Approaches"** section, I will describe in more detail the advances in Metric Learning in recent years. The most useful section for both beginners and more experienced readers will be the **"Getting Practical"** section, in which I will do a case study of how Deep Metric Learning is used to achieve State-of-the-Art results in various practical problems (mostly from Kaggle and large-scale benchmarks), as well as the tricks that were used to make things work.
+This article is organized as follows. In the **"Direct Approaches"** section, I will quickly glance through the methods which are commonly used for Deep Metric Learning, before the rise of angular margin methods in 2017. Then, in **Moving Away from Direct Approaches**, I will describe the transitioning to current angular margin SOTA models and the reasons why we ditch the direct approaches. Then, in the **"State-of-the-Art Approaches"** section, I will describe in more detail the advances in Metric Learning in recent years.
+
+The most useful section for both beginners and more experienced readers will be the **"Getting Practical"** section, in which I will do a case study of how Deep Metric Learning is used to achieve State-of-the-Art results in various practical problems (mostly from Kaggle and large-scale benchmarks), as well as the tricks that were used to make things work.
 
 
 [sklearn_metric_learning_guide]: http://contrib.scikit-learn.org/metric-learn/introduction.html
