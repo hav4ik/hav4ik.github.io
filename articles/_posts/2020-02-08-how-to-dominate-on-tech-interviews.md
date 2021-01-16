@@ -2,7 +2,7 @@
 layout: post
 permalink: /articles/:title
 type: "article"
-title: "How to dominate on technical interviews"
+title: "(Trollpost) How to dominate on technical interviews"
 image:
   feature: "articles/images/2020-02-08-how-to-dominate-on-tech-interviews/virgin-vs-chad-interview.png"
   display: false
