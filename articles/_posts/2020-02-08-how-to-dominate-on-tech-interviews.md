@@ -20,7 +20,7 @@ We all know the frustration of technical interviews when other candidates get an
 
 Let's put that to an end. You are NOT going to an interview to have the interviewer judge your skills. You are coming to the interview to **consolidate your dominance** and **bring the interviewer to his knees** with your knowledge. Show that you are **superior** to other candidates by using methods listed in this article.
 
-I've interviewed for top tech companies, including Google, Facebook, Samsung, Microsoft, and got offers in most of them. I know what I'm talking about! Trust me!
+I've interviewed for top tech companies, including Google, Facebook, Samsung, Microsoft, and got offers **more often than random chance!** I know what I'm talking about! Trust me!
 
 
 {% capture imblock1 %}
