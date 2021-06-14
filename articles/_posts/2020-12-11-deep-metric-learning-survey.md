@@ -65,12 +65,9 @@ The most useful section for both beginners and more experienced readers will be 
 - [Getting Practical: a Case Study of Real-World Problems](#getting-practical)
   - [Kaggle: Humpback Whale Challenge (2019)](#humpback-whale-challenge)
   - [Kaggle: Google Landmarks Challenge (2020)](#google-landmarks-challenge)
-  - [Tricks to Make Things Work](#)
+  - [Kaggle: Shopee Price Match Guarantee (2021)](#shopee-price-match)
 
-- [Conclusion](#)
-  - [So, which method is State-of-the-Art?](#)
-- [References](#)
-
+- [So, which method is State-of-the-Art?](#what-is-sota)
 
 
 ---------------------------------------------------------------------------------
@@ -775,6 +772,7 @@ As usual, winning solutions contains a lot of tricks and wizardy. However, in th
 
 - Class imbalance was resolved by [1st place (retrieval)][glret2020_1st_place] using a weighted cross-entropy on top of ArcFace. [5th place (retrieval)][glret2020_5th_place] proposed another approach, using Focal Loss with Label Smoothing on top of ArcFace.
 - It seems like, without sophisticated post-processing, vanilla [ArcFace](#arcface) alone was not enough to achieve high leaderboard standing. Top teams in Recognition track (i.e. [2nd place][glrec2020_2nd_place] and [7th place][glrec2020_7th_place]) additionally relied local feature matching with [SuperPoint][superpoint] + [SuperGlue][superglue], which is a State-of-the-Art combo in feature matching.
+- Funny, but everyone tried Dynamic AdaCos [(Zhang et al. 2019)][adacos_paper] because the results in the published paper were extremely promising. But nobody managed to make that work.
 
 It seems to me that after this competition, the list of methods above became a standard for Metric Learning competitions on Kaggle platform.
 
@@ -791,3 +789,47 @@ It seems to me that after this competition, the list of methods above became a s
 [superpoint]: https://arxiv.org/abs/1712.07629
 [superglue]: https://arxiv.org/abs/1911.11763
 
+
+<a name="shopee-price-match"></a>
+### Kaggle: Shopee Price Match Guarantee (2021)
+
+This competition is quite different comparing to the two above. It involves Metric Learning for text data. Given an image of some product and its description, the task is to find similar products in the test set (not seen during training) by their images and text descriptions.
+
+<a name="fig-shopee-intro"></a>
+{% capture imblock_shopee_intro %}
+    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/shopee_intro.png
+{% endcapture %}
+{% capture imcaption_shopee_intro %}
+  Fig 14: Sample image of different products in the test set. Are you a Doraemon fan? :D
+{% endcapture %}
+{% include gallery images=imblock_shopee_intro cols=1 caption=imcaption_shopee_intro %}
+
+This competition is quite challenging because the train set is very small (34k images), but the test set is quite large and much more diverse than the training set (70k images). Moreover, a lot of product categories in the test set are not presented in the training set.
+
+These 2 challenges means that top competitors are forced to design very sophisticated post-processing pipelines, query expansion, and rely heavily on local features and information from text. However, it is still useful to take a look at how Deep Metric Learning is used in this competition:
+
+- [ArcFace](#arcface) and [CosFace](#cosface) is being used by a lot of top teams, including [1st place][shopee_1st_place], [4th place][shopee_4th_place], and [8th place][shopee_8th_place] winning solutions. Interestingly, it is being used to learn **both image and text embeddings!** That's soo cool &mdash; you're not limited only to image data!
+- [2nd place][shopee_2nd_place] team used a variant of ArcFace called [Curriculum Face (Huang et al. 2020)][curricular_face]. According to them, this loss function is much better than ArcFace and its variants.
+- Witnessing the return of [Triplet Loss](#triplet-loss) used by the [3rd place team][shopee_3rd_place] was quite interesting. They tried ArcFace also, but strangely it did not worked out for their team.
+- Another interesting thing that top teams have noticed is that the optimal scaling and margin parameters for ArcFace is different for image and text models. So they had to tune them individually.
+
+[shopee_1st_place]: https://www.kaggle.com/c/shopee-product-matching/discussion/238136
+[shopee_2nd_place]: https://www.kaggle.com/c/shopee-product-matching/discussion/238022
+[shopee_3rd_place]: https://www.kaggle.com/c/shopee-product-matching/discussion/238515
+[shopee_4th_place]: https://www.kaggle.com/c/shopee-product-matching/discussion/238295
+[shopee_5th_place]: https://www.kaggle.com/c/shopee-product-matching/discussion/238078
+[shopee_8th_place]: https://www.kaggle.com/c/shopee-product-matching/discussion/238125
+[curricular_face]: https://arxiv.org/pdf/2004.00288.pdf
+
+
+-----------------------------------------------------------------------------
+
+
+<a name="what-is-sota"></a>
+## So, which method is State-of-the-Art?
+
+It really depends on your specific task and your data. As of now, I would recommend the following:
+- If you don't have much data, [Triplet Loss](#triplet-loss) might still be a solid option. The 3rd place on [Shopee Price Match Guarantee Challenge](#shopee-price-match) clearly demonstrated that.
+- Otherwise, [ArcFace](#arcface) and its variants is definitely the way to go, as demonstrated by top performers of recent competitions on Kaggle. If you data has a large intra-class variability and a long tail of rare classes, [Sub-Center ArcFace](#subcenter-arcface) + [Dynamic Margin](#afdynmargin) is definitely the method you need to consider. Don't forget to use [GeM][gem_pooling] and follow the architecture as shown in [Fig. 13](#fig-net-gem-af).
+
+I will try to keep this blog post updated with the latest State-of-the-Art methods.
