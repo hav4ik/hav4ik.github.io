@@ -27,7 +27,7 @@ Advanced readers may immediately recognize by the description that this topic is
 
 Although this blog post is mainly about **Supervised Deep Metric Learning** and is self-sufficient by its own, it would be benefitial for you to consider getting familiar with traditional Metric Learning methods (i.e. without Neural Networks) to develop a broader understanding on this topic. I highly recommend the [introductory guides on Metric Learning][sklearn_metric_learning_guide] as a starter. If you want to get into the formal mathematical side of things, I recommend the tutorial by [Diaz et al. (2020)][diaz_tutorial_metric_math]. More advanced Metric Learning methods includes the popular [t-SNE (van der Maaten & Hinton, 2008)][tsne_paper] and the new shiny [UMAP (McInnes et al., 2018)][umap_paper] that everybody uses nowadays for data clustering and visualization.
 
-This article is organized as follows. In the **"Direct Approaches"** section, I will quickly glance through the methods which are commonly used for Deep Metric Learning, before the rise of angular margin methods in 2017. Then, in **Moving Away from Direct Approaches**, I will describe the transitioning to current angular margin SOTA models and the reasons why we ditch the direct approaches. Then, in the **"State-of-the-Art Approaches"** section, I will describe in more detail the advances in Metric Learning in recent years.
+This article is organized as follows. In the **"Direct Approaches"** section, I will quickly glance through the methods that were commonly used for Deep Metric Learning, before the rise of angular margin methods in 2017. Then, in **Moving Away from Direct Approaches**, I will describe the transitioning to current angular margin SOTA models and the reasons why we ditch the direct approaches. Then, in the **"State-of-the-Art Approaches"** section, I will describe in more detail the advances in Metric Learning in recent years.
 
 The most useful section for both beginners and more experienced readers will be the **"Getting Practical"** section, in which I will do a case study of how Deep Metric Learning is used to achieve State-of-the-Art results in various practical problems (mostly from Kaggle and large-scale benchmarks), as well as the tricks that were used to make things work.
 
@@ -51,17 +51,18 @@ The most useful section for both beginners and more experienced readers will be 
 
 - [Moving Away from Direct Approaches](#moving-away-from-direct-approaches)
   - [Center Loss](#center-loss)
-  - [Large-Margin Softmax Loss](#large-margin-softmax-loss)
+<!--  - [Large-Margin Softmax Loss](#large-margin-softmax-loss)-->
   - [SphereFace](#sphereface)
 
 - [State-of-the-Art Approaches](#state-of-the-art-approaches)
   - [CosFace](#cosface)
-  - [ArcFace](#)
-  - [AdaCos &mdash; Fixed and Dynamic](#)
-  - [Sub-Center ArcFace](#)
-  - [ArcFace with Dynamic Margin (2020, Unpublished)](#)
+  - [ArcFace](#arcface)
+  - [AdaCos &mdash; how to choose $$s$$ and $$m$$?
+](#adacos)
+  - [Sub-Center ArcFace](#subcenter-arcface)
+  - [ArcFace with Dynamic Margin](#afdynmargin)
 
-- [Getting Practical](#)
+- [Getting Practical: a Case Study of Real-World Problems](#getting-practical)
   - [Kaggle: Humpack Whale Challenge](#)
   - [Kaggle: Google Landmarks Challenge](#)
   - [Face Recognition](#)
@@ -404,7 +405,7 @@ $$
 \end{equation*}
 $$
 
-The limitations on the value of $$\mu$$ is really annoying. We can get rid of it by replacing $$\smash{\cos(\theta)}$$ with a monotonically decreasing angle function $$\smash{\psi(\theta)}$$, which we define as $$\smash{\psi(\theta) = (-1)^k \cos(\mu \theta) - 2k}$$ for $$\smash{\theta \in [k\pi/\mu, (k+1)\pi/\mu]}$$ and $$k \in [0, \mu - 1]$$. Thus the final form of **SphereFace** is:
+The limitations on the value of $$\smash{\theta_i \in [0, \frac{\pi}{\mu}]}$$ is really annoying. We don't normally optimize neural networks with such restrictions on weights values. We can get rid of it by replacing $$\smash{\cos(\theta)}$$ with a monotonically decreasing angle function $$\smash{\psi(\theta)}$$, which we define as $$\smash{\psi(\theta) = (-1)^k \cos(\mu \theta) - 2k}$$ for $$\smash{\theta \in [k\pi/\mu, (k+1)\pi/\mu]}$$ and $$k \in [0, \mu - 1]$$. Thus the final form of **SphereFace** is:
 
 $$
 \begin{equation*}
@@ -556,36 +557,144 @@ $$
 \end{equation*}
 $$
 
-where $$s$$ is the scaling parameter and $$m$$ is referred to as the margin parameter. While the differences with [CosFace](#cosface) is very minor, the results on various benchmarks shows that ArcFace is better than CosFace in most of the cases.
+where $$s$$ is the scaling parameter and $$m$$ is referred to as the margin parameter. While the differences with [CosFace](#cosface) is very minor, the results on various benchmarks shows that ArcFace is still slightly better than CosFace in most of the cases. Below is the illlustration of the decision boundaries of different loss functions we've reviewed so far:
 
 <a name="fig-arcface"></a>
 {% capture imblock_arcface %}
     {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/arcface.svg
 {% endcapture %}
 {% capture imcaption_arcface %}
-  Fig 6: Decision boundaries of different loss functions in the angle space (Image source: [Deng et al. 2019](https://openaccess.thecvf.com/content_CVPR_2019/papers/Deng_ArcFace_Additive_Angular_Margin_Loss_for_Deep_Face_Recognition_CVPR_2019_paper.pdf))
+  Fig 6: Decision boundaries of different loss functions in the angle space. ArcFace has a constant linear angular margin throughout the whole interval. (Image source: [Deng et al. 2019](https://openaccess.thecvf.com/content_CVPR_2019/papers/Deng_ArcFace_Additive_Angular_Margin_Loss_for_Deep_Face_Recognition_CVPR_2019_paper.pdf))
 {% endcapture %}
 {% include gallery images=imblock_arcface cols=1 caption=imcaption_arcface %}
 
 
 <a name="adacos"></a>
-### AdaCos
+### AdaCos &mdash; how to choose $$s$$ and $$m$$?
 
 
-For both [CosFace](#cosface) and [ArcFace](#arcface), the choice of scaling parameter $$s$$ and margin $$m$$ is crucial. Both papers did very litle analysis on the effect of these parameters. Luckily, [Zhang et al. (2019)][adacos_paper] performed an awesome analysis on the hyperparameters of cosine-based losses.
+For both [CosFace](#cosface) and [ArcFace](#arcface), the choice of scaling parameter $$s$$ and margin $$m$$ is crucial. Both papers did very litle analysis on the effect of these parameters. To answer the question on how to choose the optimal values of $$s$$ and $$m$$, [Zhang et al. (2019)][adacos_paper] performed an awesome analysis on the hyperparameters of cosine-based losses.
+
+We denote the pre-softmax activation vector of our network as $$f$$, and the number of classes as $$C$$. Let's consider the classification probability $$P_{i,j}$$ of $$i$$-th sample for $$j$$-th class, which is defined as:
+
+$$
+\begin{equation*}
+P_{i,j} = \frac{\exp{f_{i,j}}}{\sum_{k=1}^C \exp{f_{i,k}}}.
+\end{equation*}
+$$
+
+When scaling and margin parameters $$s$$ and $$m$$ are introduced, the pre-softmax activations $$f_{i,j}$$ for $$i$$-th sample and $$j$$-th class with ground-truth $$y_i$$ in case of [ArcFace](#arcface) are defined as follows:
+
+$$
+\begin{equation*}
+f_{i,j} = \begin{cases}
+s \cdot \cos\theta_{i,j}, & \mbox{if } j\ne y_i \\
+s \cdot \cos(\theta_{i,j} + m), & \mbox{if } j = y_i
+\end{cases}
+\end{equation*}
+$$
+
+Now, let's plot the value of $$P_{i,j}$$ against the angle $$\theta_{i,y_i}$$ between the feature vector of $$i$$-th data sample and class center of $$y_i$$-th class, for different values of $$s$$:
 
 <a name="fig-adacos-s-anal"></a>
 {% capture imblock_adacos_s_anal %}
     {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/adacos_s_analysis.svg
 {% endcapture %}
 {% capture imcaption_adacos_s_anal %}
-  Fig 6: Decision boundaries of different loss functions in the angle space (Image source: [Deng et al. 2019](https://openaccess.thecvf.com/content_CVPR_2019/papers/Deng_ArcFace_Additive_Angular_Margin_Loss_for_Deep_Face_Recognition_CVPR_2019_paper.pdf))
+  Fig 6: curves of $$P_{i,j}$$ by choosing different ArcFace scale parameters (Image source: [Zhang et al. 2019](https://openaccess.thecvf.com/content_CVPR_2019/papers/Zhang_AdaCos_Adaptively_Scaling_Cosine_Logits_for_Effectively_Learning_Deep_Face_CVPR_2019_paper.pdf))
 {% endcapture %}
 {% include gallery images=imblock_adacos_s_anal cols=1 caption=imcaption_adacos_s_anal %}
 
+As we can see, when the value of the scaling parameter $$s$$ is small (e.g. $$s = 10$$), the maximum value of $$P_{i,j}$$ couldn't reach $$1$$. This is undesirable because even when the network is very confident on a sample, the loss function would still penalize the correct results. On the other hand, when $$s$$ is too large (e.g. $$s=64$$), it would produce very high probability even when $$\theta_{i,y_i}$$ is large, which means the loss function would fail to penalize the mistakes.
 
+Let's take a look at the $$P_{i, y_i}$$ curves of different values of the margin parameter $$m$$:
+
+<a name="fig-adacos-m-anal"></a>
+{% capture imblock_adacos_m_anal %}
+    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/adacos_m_analysis.svg
+{% endcapture %}
+{% capture imcaption_adacos_m_anal %}
+  Fig 6: curves of $$P_{i,j}$$ by choosing different ArcFace margin parameters (Image source: [Zhang et al. 2019](https://openaccess.thecvf.com/content_CVPR_2019/papers/Zhang_AdaCos_Adaptively_Scaling_Cosine_Logits_for_Effectively_Learning_Deep_Face_CVPR_2019_paper.pdf))
+{% endcapture %}
+{% include gallery images=imblock_adacos_m_anal cols=1 caption=imcaption_adacos_m_anal %}
+
+Increasing the margin parameter shifts probability curve of $$P_{i,y_i}$$ to the left. Larger margin leads to lower probabilities $$P_{i,y_i}$$ and thus larger loss even with small angles $$\theta_{i,y_i}$$. This also explains why margin-based losses provides stronger supervisions for the same $$\theta_{i,y_i}$$ than cosine-based losses with no margin.
+
+You might have noticed the dashed "Fixed AdaCos" curve. In the [AdaCos paper (Zhang et al. 2019)][adacos_paper], the following fixed value of the scaling parameter $$s$$ is proposed:
+
+$$
+\begin{equation*}
+\tilde{s} \approx \sqrt{2} \cdot \log \left( C - 1 \right)
+\end{equation*}
+$$
+
+where $$C$$ is the number of classes. The reasoning behind this choice of scaling parameter is outside the scope of this blog post, and can be found at paragraph 4.1 of the [AdaCos paper][adacos_paper]. As for the other method proposed in that paper, Adaptive AdaCos &mdash; I've never seen it being successfully deployed in real-world problems.
+
+
+<a name="subcenter-arcface"></a>
+### Sub-Center ArcFace
+
+Having only one center for each class (as in [ArcFace](#arcface), [CosFace](#cosface), etc.) causes the following issues:
+- If the intra-class sample variance is high, then it doesn't make sense to enforce compression into a single cluster in the embedding space.
+- For large and noisy datasets, the noisy/bad samples can wrongly generate a large loss value, which impairs the model training.
+
+**Sub-Center ArcFace** [(Deng et al. 2020)][subcenter_arcface_paper] solves that by introducing **sub-centers**. The idea is that each class would have multiple class centers. The majority of samples would be contracted to dominant centers, and noisy or hard samples would be pulled to other centers. The formula for Sub-Center ArcFace looks almost the same as [ArcFace](#arcface):
+
+$$
+\begin{equation*}
+\mathcal{L}_\text{SCAF} =
+- \frac{1}{N} \sum_{i=1}^{N}{
+\log \frac{
+\exp\left\{s \cos \left(\tilde{\theta}_{y_i, i} + m\right) \right\}
+}{
+\exp\left\{s \cos \left(\tilde{\theta}_{y_i, i} + m\right) \right\}
++
+\sum_{j \ne y_i} \exp\left\{s \cos (\tilde{\theta}_{j,i})\right\}
+}}
+\end{equation*}
+$$
+
+with the exception of the angle $$\tilde{\theta}_{y_i, i}$$, which is defined as the angle to the closest sub-center among $$K$$ sub-centers $$W_{j, 1} \ldots W_{j, K}$$ (as opposed to being just the angle to class center as in [ArcFace](#arcface)):
+
+$$
+\begin{equation*}
+\tilde{\theta}{i,j} = \arccos \left( \max_k\left(W^\intercal_{j, k} z_i \right) \right)\,, \quad k \in \{ 1, \ldots ,K \}
+\end{equation*}
+$$
+
+
+<a name="afdynmargin"></a>
+### ArcFace with Dynamic Margin
+
+**ArcFace with Dynamic Margin** [(Ha et al. 2020)][glc2020_3rd_place_paper] is a simple modification of [ArcFace](#arcface) proposed by the 3rd place winners of [Google Landmarks Challenge 2020][kaggle_glr2020]. The main motivation for having different margin values for different classes is the extreme imbalance of the dataset &mdash; some classes can have tens of thousands samples, while other classes may have only 10 samples.
+
+For models to converge better in the presence of heavy imbalance, smaller classes need to have bigger margins as they are harder to learn. The proposed formula for margin value $$m_i$$ of $$i$$-th class is simple:
+
+$$
+\begin{equation*}
+m_i = a \cdot n_i ^ {-\lambda} + b
+\end{equation*}
+$$
+
+where $$n_i$$ is number of samples in training data for $$i$$-th class, $$a$$, $$b$$ are parameters that controls the upper and lower bound of the margin, and $$\lambda > 0$$ determines the shape of the margin function. Together with [Sub-Center ArcFace](#subcenter-arcface), this method turns out to be much more effective than [ArcFace](#arcface).
 
 
 [cosface_paper]: https://arxiv.org/abs/1801.09414
 [arcface_paper]: https://openaccess.thecvf.com/content_CVPR_2019/papers/Deng_ArcFace_Additive_Angular_Margin_Loss_for_Deep_Face_Recognition_CVPR_2019_paper.pdf
 [adacos_paper]: https://openaccess.thecvf.com/content_CVPR_2019/papers/Zhang_AdaCos_Adaptively_Scaling_Cosine_Logits_for_Effectively_Learning_Deep_Face_CVPR_2019_paper.pdf
+[subcenter_arcface_paper]: https://www.ecva.net/papers/eccv_2020/papers_ECCV/papers/123560715.pdf
+[glc2020_3rd_place_paper]: https://arxiv.org/pdf/2010.05350.pdf
+[kaggle_glr2020]: https://www.kaggle.com/c/landmark-recognition-2020
+
+
+---------------------------------------------------------------------------------
+
+
+<a name="getting-practical"></a>
+## Getting Practical: a Case Study of Real-World Problems
+
+
+Sadly, it's a [well-known fact][reproducibility_crisis] that the reported SOTA results on academic benchmarks of cool and shiny new methods might not reflect its performance in real-world problems. That's why in this section, we will take a look at how Deep Metric Learning is being used in real-world problems, and which methods were used to achieve the best results.
+
+
+[reproducibility_crisis]: https://www.wired.com/story/artificial-intelligence-confronts-reproducibility-crisis/
