@@ -63,9 +63,8 @@ The most useful section for both beginners and more experienced readers will be 
   - [ArcFace with Dynamic Margin](#afdynmargin)
 
 - [Getting Practical: a Case Study of Real-World Problems](#getting-practical)
-  - [Kaggle: Humpack Whale Challenge](#)
-  - [Kaggle: Google Landmarks Challenge](#)
-  - [Face Recognition](#)
+  - [Kaggle: Humpback Whale Challenge (2019)](#humpback-whale-challenge)
+  - [Kaggle: Google Landmarks Challenge (2020)](#google-landmarks-challenge)
   - [Tricks to Make Things Work](#)
 
 - [Conclusion](#)
@@ -324,7 +323,7 @@ where $$c_j$$ is also updated using gradient descent with $$\mathcal{L}_\text{ce
   {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/center_test.gif
 {% endcapture %}
 {% capture imcaption_centermnist %}
-  Fig 3: The training dynamics of Center Loss on MNIST. The feature maps were projected onto 2D space to produce this visualization. On the left is the dynamics on train set, and on the right is the dynamics on test set. (Image source: [KaiYang Zhou](https://github.com/KaiyangZhou/pytorch-center-loss))
+  Fig 4: The training dynamics of Center Loss on MNIST. The feature maps were projected onto 2D space to produce this visualization. On the left is the dynamics on train set, and on the right is the dynamics on test set. (Image source: [KaiYang Zhou](https://github.com/KaiyangZhou/pytorch-center-loss))
 {% endcapture %}
 {% include gallery images=imblock_centermnist cols=2 caption=imcaption_centermnist %}
 
@@ -428,7 +427,7 @@ The differences between Softmax, Modified Softmax, and SphereFace is schematical
     {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/sphereface_1.svg
 {% endcapture %}
 {% capture imcaption_sphereface_1 %}
-  Fig 4: Difference between Softmax, Modified Softmax, and SphereFace. A 2D features model was trained on CASIA data to produce this visualizations. One can see that features learned by the original softmax loss can not be
+  Fig 5: Difference between Softmax, Modified Softmax, and SphereFace. A 2D features model was trained on CASIA data to produce this visualizations. One can see that features learned by the original softmax loss can not be
 classified simply via angles, while modified softmax loss can. The SphereFace loss further increases the angular margin of learned features. (Image source: [Liu et al. 2017](https://arxiv.org/abs/1704.08063))
 {% endcapture %}
 {% include gallery images=imblock_sphereface_1 cols=1 caption=imcaption_sphereface_1 %}
@@ -488,7 +487,7 @@ where $$s$$ is referred to as the **scaling** parameter, and $$m$$ is referred t
     {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/cosface_1.svg
 {% endcapture %}
 {% capture imcaption_cosface_1 %}
-  Fig 5: Geometrical interpretation of CosFace from feature perspective. Different colors represents feature space from different classes. CosFace has a relatively compact feature region compared with Modified Softmax (Image source: [Wang et al. 2018](https://arxiv.org/abs/1801.09414))
+  Fig 6: Geometrical interpretation of CosFace from feature perspective. Different colors represents feature space from different classes. CosFace has a relatively compact feature region compared with Modified Softmax (Image source: [Wang et al. 2018](https://arxiv.org/abs/1801.09414))
 {% endcapture %}
 {% include gallery images=imblock_cosface_1 cols=1 caption=imcaption_cosface_1 %}
 
@@ -530,7 +529,7 @@ as the number of classes increases, the upper bound of the cosine margin between
     {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/cosface_2.svg
 {% endcapture %}
 {% capture imcaption_cosface_2 %}
-  Fig 6: Decision boundaries of different loss functions in cosine space (Image source: [Wang et al. 2018](https://arxiv.org/abs/1801.09414))
+  Fig 7: Decision boundaries of different loss functions in cosine space (Image source: [Wang et al. 2018](https://arxiv.org/abs/1801.09414))
 {% endcapture %}
 {% include gallery images=imblock_cosface_2 cols=1 caption=imcaption_cosface_2 %}
 
@@ -564,7 +563,7 @@ where $$s$$ is the scaling parameter and $$m$$ is referred to as the margin para
     {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/arcface.svg
 {% endcapture %}
 {% capture imcaption_arcface %}
-  Fig 6: Decision boundaries of different loss functions in the angle space. ArcFace has a constant linear angular margin throughout the whole interval. (Image source: [Deng et al. 2019](https://openaccess.thecvf.com/content_CVPR_2019/papers/Deng_ArcFace_Additive_Angular_Margin_Loss_for_Deep_Face_Recognition_CVPR_2019_paper.pdf))
+  Fig 8: Decision boundaries of different loss functions in the angle space. ArcFace has a constant linear angular margin throughout the whole interval. (Image source: [Deng et al. 2019](https://openaccess.thecvf.com/content_CVPR_2019/papers/Deng_ArcFace_Additive_Angular_Margin_Loss_for_Deep_Face_Recognition_CVPR_2019_paper.pdf))
 {% endcapture %}
 {% include gallery images=imblock_arcface cols=1 caption=imcaption_arcface %}
 
@@ -601,7 +600,7 @@ Now, let's plot the value of $$P_{i,j}$$ against the angle $$\theta_{i,y_i}$$ be
     {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/adacos_s_analysis.svg
 {% endcapture %}
 {% capture imcaption_adacos_s_anal %}
-  Fig 6: curves of $$P_{i,j}$$ by choosing different ArcFace scale parameters (Image source: [Zhang et al. 2019](https://openaccess.thecvf.com/content_CVPR_2019/papers/Zhang_AdaCos_Adaptively_Scaling_Cosine_Logits_for_Effectively_Learning_Deep_Face_CVPR_2019_paper.pdf))
+  Fig 9: curves of $$P_{i,j}$$ by choosing different ArcFace scale parameters (Image source: [Zhang et al. 2019](https://openaccess.thecvf.com/content_CVPR_2019/papers/Zhang_AdaCos_Adaptively_Scaling_Cosine_Logits_for_Effectively_Learning_Deep_Face_CVPR_2019_paper.pdf))
 {% endcapture %}
 {% include gallery images=imblock_adacos_s_anal cols=1 caption=imcaption_adacos_s_anal %}
 
@@ -614,7 +613,7 @@ Let's take a look at the $$P_{i, y_i}$$ curves of different values of the margin
     {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/adacos_m_analysis.svg
 {% endcapture %}
 {% capture imcaption_adacos_m_anal %}
-  Fig 6: curves of $$P_{i,j}$$ by choosing different ArcFace margin parameters (Image source: [Zhang et al. 2019](https://openaccess.thecvf.com/content_CVPR_2019/papers/Zhang_AdaCos_Adaptively_Scaling_Cosine_Logits_for_Effectively_Learning_Deep_Face_CVPR_2019_paper.pdf))
+  Fig 10: curves of $$P_{i,j}$$ by choosing different ArcFace margin parameters (Image source: [Zhang et al. 2019](https://openaccess.thecvf.com/content_CVPR_2019/papers/Zhang_AdaCos_Adaptively_Scaling_Cosine_Logits_for_Effectively_Learning_Deep_Face_CVPR_2019_paper.pdf))
 {% endcapture %}
 {% include gallery images=imblock_adacos_m_anal cols=1 caption=imcaption_adacos_m_anal %}
 
@@ -693,8 +692,39 @@ where $$n_i$$ is number of samples in training data for $$i$$-th class, $$a$$, $
 <a name="getting-practical"></a>
 ## Getting Practical: a Case Study of Real-World Problems
 
-
 Sadly, it's a [well-known fact][reproducibility_crisis] that the reported SOTA results on academic benchmarks of cool and shiny new methods might not reflect its performance in real-world problems. That's why in this section, we will take a look at how Deep Metric Learning is being used in real-world problems, and which methods were used to achieve the best results.
 
-
 [reproducibility_crisis]: https://www.wired.com/story/artificial-intelligence-confronts-reproducibility-crisis/
+
+
+<a name="humpback-whale-challenge"></a>
+### Humpback Whale Challenge (2019)
+
+The main goal of the [Kaggle Humpback Whale Challenge][humpback_whale_challenge] was to identify, whether the given photo of the whale fluke belongs to one of the 5004 known individuals of whales, or it is a new_whale, never observed before.
+
+The puzzling aspect of this competition was a huge class imbalance. For more than 2000 of classes there was only one training sample. What’s more, the important part of the competition is to classify whether the given whale is new or not.
+
+<a name="fig-humpback-intro"></a>
+{% capture imblock_humpback_intro %}
+    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/humpback_whale_intro.png
+{% endcapture %}
+{% capture imcaption_humpback_intro %}
+  Fig 11: Example of 9 photos of the same whale from the training data
+{% endcapture %}
+{% include gallery images=imblock_humpback_intro cols=1 caption=imcaption_humpback_intro %}
+
+A short survey of the methods used by top-performing teams (i.e. Gold medalists):
+- [ArcFace](#arcface) is used by [2nd place][humpback_2nd_place], [3rd place][humpback_3rd_place], 6th place, and [9th place][humpback_9th_place] medalists.
+- [CosFace](#cosface) is used as part of the [9th place's][humpback_9th_place] solution as well.
+- [Triplet Loss](#triplet-loss) is used by [2nd place][humpback_2nd_place] (in combination with [ArcFace](#arcface) and Focal losses) and [9th place][humpback_9th_place] solutions (in combination with local keypoints matching).
+- The [2nd place][humpback_2nd_place] also used Focal Loss to combat class imbalances.
+- [4th place][humpback_4th_place] used a good old Siamese network which, given two images, will tell if they are from the same whale or not. They also used keypoint matching with SIFT and ROOTSIFT.
+- Interestingly, the [1st place][humpback_1st_place] team used only classification models, and used some grandmaster's wizardy to come up on top.
+
+[humpback_whale_challenge]: https://www.kaggle.com/c/humpback-whale-identification
+[humpback_1st_place]: https://www.kaggle.com/c/humpback-whale-identification/discussion/82366
+[humpback_2nd_place]: https://github.com/SeuTao/Humpback-Whale-Identification-Challenge-2019_2nd_palce_solution
+[humpback_3rd_place]: https://www.kaggle.com/c/humpback-whale-identification/discussion/82484
+[humpback_4th_place]: https://www.kaggle.com/c/humpback-whale-identification/discussion/82356
+[humpback_9th_place]: https://medium.com/@anastasiya.mishchuk/thanks-radek-7th-place-solution-to-hwi-2019-competition-metric-learning-story-c94b74a3eaa2
+[humpback_9th_place]: https://www.kaggle.com/c/humpback-whale-identification/discussion/82427
