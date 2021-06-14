@@ -698,11 +698,9 @@ Sadly, it's a [well-known fact][reproducibility_crisis] that the reported SOTA r
 
 
 <a name="humpback-whale-challenge"></a>
-### Humpback Whale Challenge (2019)
+### Kaggle: Humpback Whale Challenge (2019)
 
 The main goal of the [Kaggle Humpback Whale Challenge][humpback_whale_challenge] was to identify, whether the given photo of the whale fluke belongs to one of the 5004 known individuals of whales, or it is a new_whale, never observed before.
-
-The puzzling aspect of this competition was a huge class imbalance. For more than 2000 of classes there was only one training sample. What’s more, the important part of the competition is to classify whether the given whale is new or not.
 
 <a name="fig-humpback-intro"></a>
 {% capture imblock_humpback_intro %}
@@ -713,13 +711,17 @@ The puzzling aspect of this competition was a huge class imbalance. For more tha
 {% endcapture %}
 {% include gallery images=imblock_humpback_intro cols=1 caption=imcaption_humpback_intro %}
 
-A short survey of the methods used by top-performing teams (i.e. Gold medalists):
+The puzzling aspect of this competition was a huge class imbalance. For more than 2000 of classes there was only one training sample. What’s more, the important part of the competition is to classify whether the given whale is new or not.
+
+While a lot of methods tricks were used by top performers in this competition, I will focus only on Deep Metric Learning methods. A short survey of the methods used by top teams (i.e. Gold medalists):
 - [ArcFace](#arcface) is used by [2nd place][humpback_2nd_place], [3rd place][humpback_3rd_place], 6th place, and [9th place][humpback_9th_place] medalists.
 - [CosFace](#cosface) is used as part of the [9th place's][humpback_9th_place] solution as well.
 - [Triplet Loss](#triplet-loss) is used by [2nd place][humpback_2nd_place] (in combination with [ArcFace](#arcface) and Focal losses) and [9th place][humpback_9th_place] solutions (in combination with local keypoints matching).
 - The [2nd place][humpback_2nd_place] also used Focal Loss to combat class imbalances.
 - [4th place][humpback_4th_place] used a good old Siamese network which, given two images, will tell if they are from the same whale or not. They also used keypoint matching with SIFT and ROOTSIFT.
 - Interestingly, the [1st place][humpback_1st_place] team used only classification models, and used some grandmaster's wizardy to come up on top.
+
+At the time of this competition, [ArcFace](#arcface) and [CosFace](#cosface) were still pretty new and untested techniques, so they were not widely adopted by top teams. We will see that in the next case studies, [ArcFace](#arcface) and [CosFace](#cosface) will be the most popular methods used by top performers.
 
 [humpback_whale_challenge]: https://www.kaggle.com/c/humpback-whale-identification
 [humpback_1st_place]: https://www.kaggle.com/c/humpback-whale-identification/discussion/82366
@@ -728,3 +730,64 @@ A short survey of the methods used by top-performing teams (i.e. Gold medalists)
 [humpback_4th_place]: https://www.kaggle.com/c/humpback-whale-identification/discussion/82356
 [humpback_9th_place]: https://medium.com/@anastasiya.mishchuk/thanks-radek-7th-place-solution-to-hwi-2019-competition-metric-learning-story-c94b74a3eaa2
 [humpback_9th_place]: https://www.kaggle.com/c/humpback-whale-identification/discussion/82427
+
+
+<a name="google-landmarks-challenge"></a>
+### Kaggle: Google Landmarks Challenge (2020)
+
+The [Google Landmarks Challenge][kaggle_glc2020] is a large scale competition, with more than 5'000'000 images of more than 200'000 human-made or natural landmarks. The competition is divided into 2 tracks:
+- **Retrieval Track** &mdash; matching a specific object in an input image to all other instances of that object in a catalog of reference images. Think of it as the Reverse Image Search feature of Google.
+- **Recognition Track** &mdash; recognizing specific instances of objects, e.g. distinguishing Niagara Falls from just any waterfall.
+
+<a name="fig-google-landmarks-intro"></a>
+{% capture imblock_google_landmarks_intro %}
+    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/google_landmarks_intro.png
+{% endcapture %}
+{% capture imcaption_google_landmarks_intro %}
+  Fig 12: Some beautiful samples from Google Landmarks Dataset V2
+{% endcapture %}
+{% include gallery images=imblock_google_landmarks_intro cols=1 caption=imcaption_google_landmarks_intro %}
+
+Aside from the gigantic size of this dataset, there are a lot of challenges that makes it an ideal testbed for Deep Metric Learning techniques:
+- **Class Imbalance.** For popular landmarks such as the Eiffel Tower, there can be thousands of images, while a less-known boathouse in Seattle will have less than 10 images per class.
+- **Real-World Conditions.** To mimic a realistic setting, only 1% of the test images are within the target domain of landmarks, while 99% are out-of-domain images.
+- **Noisy Data.** The data is collected in a croudsourced setting, so incorrect labels and low-quality out-of-domain samples is expected to be present in the training set.
+- **Intra-Class Variability.** Since images of the same class can include indoor and outdoor views, as well as images of indirect relevance to a class, such as paintings in a museum.
+
+It is hard to evaluate the importance of this challenge. The methods developed in this competition are being used in all following metric learning competitions. Large companies with image search services were closely monitoring this competition as well.
+
+As usual, winning solutions contains a lot of tricks and wizardy. However, in this blog post, I will only provide a short recap on the Metric Learning methods used by top performing teams:
+- [ArcFace](#arcface), [CosFace](#cosface), or some variants of these methods were used by ALL competitors in top 100. It's a huge contrast to previous Google Landmarks competitions, where [Triplet Loss](#triplet-loss) and variants of it were the most popular ones.
+- [1st place winners (recognition)][glrec2020_1st_place], in contrast to all other teams, were able to solve the out-of-domain test images problem. They designed an inference process that takes into account the all-pair similarity between test images, landmark images, and non-landmark images.
+- [3rd place winners (recognition)][glrec2020_3rd_place] used [Sub-Center ArcFace](#subcenter-arcface) with [Dynamic Margin](#afdynmargin). It is quite amazing that were able to achieve such results (with a huge margin with 4th place team) with only raw Metric Learning, without relying on sophisticated post-processing or local features matching as other top-performing teams.
+- The combinations of the methods developed by [1st place (recognition)][glrec2020_1st_place] and [3rd place (recognition)][glrec2020_3rd_place] teams can be combined into a powerful image recognition and retrieval algorithm.
+- [GeM][gem_pooling] (with $$p=3$$) and [GAP][gap_pooling] pooling methods, followed by a linear layer, is used by all competitors in top 100. There's no visible difference between those pooling methods. Some teams tried to train $$p$$ in [GeM][gem_pooling] as well, but the performance gain was minimal.
+- The general network architecture looks pretty similar to the following schema:
+
+<a name="fig-net-gem-af"></a>
+{% capture imblock_net_gem_af %}
+    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/arcface_network_arch.png
+{% endcapture %}
+{% capture imcaption_net_gem_af %}
+  Fig 13: The variants of this architecture were used by all teams in top 100.
+{% endcapture %}
+{% include gallery images=imblock_net_gem_af cols=1 caption=imcaption_net_gem_af%}
+
+- Class imbalance was resolved by [1st place (retrieval)][glret2020_1st_place] using a weighted cross-entropy on top of ArcFace. [5th place (retrieval)][glret2020_5th_place] proposed another approach, using Focal Loss with Label Smoothing on top of ArcFace.
+- It seems like, without sophisticated post-processing, vanilla [ArcFace](#arcface) alone was not enough to achieve high leaderboard standing. Top teams in Recognition track (i.e. [2nd place][glrec2020_2nd_place] and [7th place][glrec2020_7th_place]) additionally relied local feature matching with [SuperPoint][superpoint] + [SuperGlue][superglue], which is a State-of-the-Art combo in feature matching.
+
+It seems to me that after this competition, the list of methods above became a standard for Metric Learning competitions on Kaggle platform.
+
+
+[kaggle_glc2020]: https://www.kaggle.com/c/landmark-recognition-2020
+[glrec2020_1st_place]: https://www.kaggle.com/c/landmark-recognition-2020/discussion/187821
+[glrec2020_2nd_place]: https://www.kaggle.com/c/landmark-recognition-2020/discussion/188299
+[glrec2020_3rd_place]: https://www.kaggle.com/c/landmark-recognition-2020/discussion/187757
+[glrec2020_7th_place]: https://www.kaggle.com/c/landmark-recognition-2020/discussion/187894
+[glret2020_1st_place]: https://www.kaggle.com/c/landmark-retrieval-2020/discussion/176037
+[glret2020_5th_place]: https://www.kaggle.com/c/landmark-retrieval-2020/discussion/176151
+[gem_pooling]: https://amaarora.github.io/2020/08/30/gempool.html
+[gap_pooling]: https://paperswithcode.com/method/global-average-pooling
+[superpoint]: https://arxiv.org/abs/1712.07629
+[superglue]: https://arxiv.org/abs/1911.11763
+
