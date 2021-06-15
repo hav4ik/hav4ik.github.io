@@ -68,6 +68,7 @@ The most useful section for both beginners and more experienced readers will be 
   - [Kaggle: Shopee Price Match Guarantee (2021)](#shopee-price-match)
 
 - [So, which method is State-of-the-Art?](#what-is-sota)
+- [References](#references)
 
 
 ---------------------------------------------------------------------------------
@@ -108,11 +109,10 @@ $$
 For the ease of notation, let's denote $$\mathcal{D}_{f_\theta}(x_1, x_2)$$ as a shortcut for $$\mathcal{D} \left( f_\theta(x_1), f_\theta(x_2) \right)$$, where $$x_1, x_2 \in \mathcal{X}$$ are samples from the dataset. Also, for some condition $$A$$, let's denote $$\unicode{x1D7D9}_A$$ as the identity function that is equal to $$1$$ if $$A$$ is true, and $$0$$ otherwise.
 
 
-
 <a name="contrastive-loss"></a>
 ### Contrastive Loss
 
-This is a classic loss function for metric learning. **Contrastive Loss** is one of the simplest and most intuitive training objectives. Let $$x_1, x_2$$ be some samples in the dataset, and $$y_1, y_2$$ are their corresponding labels. The loss function is then defined as follows:
+This is a classic loss function for metric learning. **Contrastive Loss** ([Chopra et al. 2005][contrastive_loss_paper]) is one of the simplest and most intuitive training objectives. Let $$x_1, x_2$$ be some samples in the dataset, and $$y_1, y_2$$ are their corresponding labels. The loss function is then defined as follows:
 
 $$
 \begin{equation*}
@@ -241,7 +241,10 @@ As consequence, the embedding vector for an example is only guaranteed to be far
 
 Other attemts to design a better metric learning objective based on the core idea of the Triplet Loss objective includes **Magnet Loss** ([Rippel et al. 2015][magnet_loss_paper]) and **Clustering Loss** ([Song et al. 2017][clustering_loss_paper]). Both objectives are defined on the dataset distribution as a whole, not only on single elements. However, they didn't received much traction due to the scaling difficulties, and simply because of their complexity. There has been some attempt to compare these approaches, notably by [Horiguchi et al. (2017)][comparing_classification_and_metric], but they performed experiments on very small datasets and were unable to achieve meaningful results.
 
+The methods described in this section are part of a wider family of machine learning methods, called "Contrastive Representation Learning". I highly recommend [this blog post][lillog_contrastive] for more details.
 
+
+[contrastive_loss_paper]: http://yann.lecun.com/exdb/publis/pdf/chopra-05.pdf
 [backpropagation_wiki]: https://en.wikipedia.org/wiki/Backpropagation
 [deep_metric_learning_survey]: https://www.mdpi.com/2073-8994/11/9/1066/htm
 [contrastive_explained]: https://medium.com/@maksym.bekuzarov/losses-explained-contrastive-loss-f8f57fe32246
@@ -259,6 +262,7 @@ Other attemts to design a better metric learning objective based on the core ide
 [clustering_loss_paper]: https://openaccess.thecvf.com/content_cvpr_2017/papers/Song_Deep_Metric_Learning_CVPR_2017_paper.pdf
 [pytorch_metric_learning]: https://github.com/KevinMusgrave/pytorch-metric-learning
 [comparing_classification_and_metric]: https://openreview.net/forum?id=HyQWFOVge
+[lillog_contrastive]: https://lilianweng.github.io/lil-log/2021/05/31/contrastive-representation-learning.html
 
 
 ---------------------------------------------------------------------------------
@@ -450,8 +454,6 @@ classified simply via angles, while modified softmax loss can. The SphereFace lo
 
 
 The success of [SphereFace](#sphereface) resulted in an avalanche of new methods that are based on the idea of employing angular distance with angular margin.
-
-For many who just explored a small part of Metric Learning, it might be confusing why angular distance approaches performs so much better than the direct ones. I want to emphasise that there's nothing special in angular distance itself. The reason why these methods works is because projecting the features onto a hypersphere was an easy way to achieve good intra- and inter- class variation.
 
 
 <a name="cosface"></a>
@@ -799,10 +801,7 @@ This competition is quite different comparing to the two above. It involves Metr
 {% capture imblock_shopee_intro %}
     {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/shopee_intro.png
 {% endcapture %}
-{% capture imcaption_shopee_intro %}
-  Fig 14: Sample image of different products in the test set. Are you a Doraemon fan? :D
-{% endcapture %}
-{% include gallery images=imblock_shopee_intro cols=1 caption=imcaption_shopee_intro %}
+{% include gallery images=imblock_shopee_intro cols=1 %}
 
 This competition is quite challenging because the train set is very small (34k images), but the test set is quite large and much more diverse than the training set (70k images). Moreover, a lot of product categories in the test set are not presented in the training set.
 
@@ -831,5 +830,66 @@ These 2 challenges means that top competitors are forced to design very sophisti
 It really depends on your specific task and your data. As of now, I would recommend the following:
 - If you don't have much data, [Triplet Loss](#triplet-loss) might still be a solid option. The 3rd place on [Shopee Price Match Guarantee Challenge](#shopee-price-match) clearly demonstrated that.
 - Otherwise, [ArcFace](#arcface) and its variants is definitely the way to go, as demonstrated by top performers of recent competitions on Kaggle. If you data has a large intra-class variability and a long tail of rare classes, [Sub-Center ArcFace](#subcenter-arcface) + [Dynamic Margin](#afdynmargin) is definitely the method you need to consider. Don't forget to use [GeM][gem_pooling] and follow the architecture as shown in [Fig. 13](#fig-net-gem-af).
+- Depending on the task, Metric Learning alone would often not be enough. Usually, it is used with [Query Expansion][wiki_qe], [Feature Matching][wiki_pfm], and other post-processing methods.
 
 I will try to keep this blog post updated with the latest State-of-the-Art methods.
+
+
+[wiki_qe]: https://en.wikipedia.org/wiki/Query_expansion
+[wiki_pfm]: https://en.wikipedia.org/wiki/Point_feature_matching
+
+
+-----------------------------------------------------------------------------
+
+
+Cite as:
+
+```
+@online{hav4ik2021deepmetriclearning,
+  author = {Kha Vu, Chan},
+  title = {Deep Metric Learning: A (Long) Survey},
+  year = 2021,
+  url = {https://hav4ik.github.io/articles/deep-metric-learning-survey},
+}
+```
+
+
+<a name="references"></a>
+## References
+
+[1] Chopra, Hadsell, and LeCun. ["Learning a Similarity Metric Discriminatively, with Application to Face Verification."](http://yann.lecun.com/exdb/publis/pdf/chopra-05.pdf) CVPR 2005.
+
+[2] Schroff, Kalenichenko, and Philbin. ["FaceNet: A Unified Embedding for Face Recognition and Clustering."](https://arxiv.org/abs/1503.03832) CVPR 2015.
+
+[3] Weihua Chen et al. ["Beyond triplet loss: a deep quadruplet network for person re-identification."](https://arxiv.org/abs/1704.01719)
+ CVPR 2017.
+
+[4] Hyun Oh Song et al. ["Deep Metric Learning via Lifted Structured Feature Embedding."](https://arxiv.org/abs/1511.06452) CVPR 2016.
+
+[5] Herman, Beyer, and Leibe. ["In Defense of the Triplet Loss for Person Re-Identification."](https://arxiv.org/abs/1703.07737) CVPR 2017.
+
+[6] Kihyuk Sohn. ["Improved Deep Metric Learning with Multi-class N-pair Loss Objective."](https://www.nec-labs.com/uploads/images/Department-Images/MediaAnalytics/papers/nips16_npairmetriclearning.pdf) NIPS 2016.
+
+[7] Oren Rippel et al. ["Metric Learning with Adaptive Density Discrimination."](https://arxiv.org/abs/1511.05939) ICLR 2016.
+
+[8] Hyun Oh Song et al. ["Deep Metric Learning via Facility Location."](https://openaccess.thecvf.com/content_cvpr_2017/papers/Song_Deep_Metric_Learning_CVPR_2017_paper.pdf) CVPR 2017.
+
+[9] Horiguchi, Ikami, Aizawa. ["Significance of Softmax-based Features in Comparison to Distance Metric Learning-based Features."](https://arxiv.org/abs/1712.10151). Arxiv:1712.10151
+
+[10] Kaya and Bilge. ["Deep Metric Learning: A Survey."](https://www.mdpi.com/2073-8994/11/9/1066/htm) Symmetry 2019.
+
+[11] Wen, Zhang, and Li. ["A Discriminative Feature Learning Approach for Deep Face Recognition."](https://link.springer.com/chapter/10.1007/978-3-319-46478-7_31) ECCV 2016.
+
+[12] Weiyang Liu et al. ["SphereFace: Deep Hypersphere Embedding for Face Recognition."](https://arxiv.org/abs/1704.08063) CVPR 2017.
+
+[13] Hao Wang et al. ["CosFace: Large Margin Cosine Loss for Deep Face Recognition."](https://arxiv.org/abs/1801.09414) CVPR 2018.
+
+[14] Jiankang Deng et al. ["ArcFace: Additive Angular Margin Loss for Deep Face Recognition."](https://openaccess.thecvf.com/content_CVPR_2019/papers/Deng_ArcFace_Additive_Angular_Margin_Loss_for_Deep_Face_Recognition_CVPR_2019_paper.pdf) CVPR 2019.
+
+[15] Xiao Zhang et al. ["AdaCos: Adaptively Scaling Cosine Logits for Effectively Learning Deep Face Representations."](https://openaccess.thecvf.com/content_CVPR_2019/papers/Zhang_AdaCos_Adaptively_Scaling_Cosine_Logits_for_Effectively_Learning_Deep_Face_CVPR_2019_paper.pdf) CVPR 2019.
+
+[16] Jiankang Deng et al. ["Sub-center ArcFace: Boosting Face Recognition by Large-scale Noisy Web Faces."](https://www.ecva.net/papers/eccv_2020/papers_ECCV/papers/123560715.pdf) ECCV 2020.
+
+[17] Quishen Ha et al. ["Google Landmark Recognition 2020 Competition Third Place Solution"](https://arxiv.org/pdf/2010.05350.pdf) Arxiv:2010.05350
+
+[18] Tobias Weyand et al. ["Google Landmarks Dataset v2 &ndash; A Large-Scale Benchmark for Instance-Level Recognition and Retrieval."](https://arxiv.org/abs/2004.01804) CVPR 2020.
