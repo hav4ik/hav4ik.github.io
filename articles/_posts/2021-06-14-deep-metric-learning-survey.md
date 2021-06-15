@@ -4,19 +4,14 @@ permalink: /articles/:title
 type: "article"
 title: "Deep Metric Learning: a (Long) Survey"
 image:
-  feature: "/articles/images/2020-12-11-deep-metric-learning-survey/metric_losses.png"
+  feature: "/articles/images/2021-06-14-deep-metric-learning-survey/metric_losses.png"
   display: false
-commits: https://github.com/hav4ik/hav4ik.github.io/commits/master/articles/_posts/2020-12-11-deep-metric-learning-survey.md
+commits: https://github.com/hav4ik/hav4ik.github.io/commits/master/articles/_posts/2021-06-14-deep-metric-learning-survey.md
 tags: [deep-learning, survey]
 excerpt: "In this post, I'll briefly go over the common approaches for Deep Metric Learning, as well as the new methods proposed in recent years."
 comments: true
 hidden: false
 ---
-
-
-> Note: **This post is still a Draft!** If you're seeing this, then there's probably a bug in my site (since I've been changing a lot of stuffs lately).
-
---------------------------------------------------------------------------------------------
 
 
 One of the most amazing aspects of the human's visual system is the ability to recognize similar objects and scenes. We don't need hundreds of photos of the same face to be able to differentiate it among thousands of other faces that we've seen. We don't need thousands of images of the Eiffel Tower to recognize that unique architecture landmark when we visit Paris. Is it possible to design a Deep Neural Network with the similar ability to tell which objects are visually similar and which ones are not? That's essentially what **Deep Metric Learning** attempts to solve.
@@ -133,7 +128,7 @@ where $$\alpha$$ is the margin. The reason we need a margin value is because oth
 ### Triplet Loss
 
 {% capture imblock_tripletloss %}
-    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/triplet_loss.png
+    {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/triplet_loss.png
 {% endcapture %}
 {% capture imcaption_tripletloss %}
   Fig 1: The core idea of Triplet Loss (Image source: [Schroff et al. 2015](https://arxiv.org/abs/1503.03832))
@@ -167,7 +162,7 @@ Triplet Loss is [still being widely used][paperswithcode_tripletloss] despite be
 Despite its popularity, Triplet Loss has a lot of limitations. Over the past years, there have been a lot of efforts to improve the Triplet Loss objective, building on the same idea of sampling a bunch of data points, then pulling together similar samples and pushing away dissimilar ones in $$l_2$$ metric space.
 
 {% capture imblock_metriclosses %}
-    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/metric_losses.png
+    {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/metric_losses.png
 {% endcapture %}
 {% capture imcaption_metriclosses %}
   Fig 2: A visual overview of different deep metric learning approaches that are based on the same idea as the Triplet Loss objective (Image source: [Kaya & Bilge, 2019](https://www.mdpi.com/2073-8994/11/9/1066/htm))
@@ -300,8 +295,8 @@ $$
 Let's have a look at the training dynamics of the Softmax objective and how the resulting feature vectors are distributed relative to each other:
 
 {% capture imblock_softmaxmnist %}
-  {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/softmax_train.gif
-  {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/softmax_test.gif
+  {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/softmax_train.gif
+  {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/softmax_test.gif
 {% endcapture %}
 {% capture imcaption_softmaxmnist %}
   Fig 3: The training dynamics of Softmax Loss on MNIST. The feature maps were projected onto 2D space to produce this visualization. On the left is the dynamics on train set, and on the right is the dynamics on test set. (Image source: [KaiYang Zhou](https://github.com/KaiyangZhou/pytorch-center-loss))
@@ -320,8 +315,8 @@ $$
 where $$c_j$$ is also updated using gradient descent with $$\mathcal{L}_\text{center}$$ and can be thought of as moving mean vector of the set of feature vectors of class $$j$$. If we now visualize the training dynamics and resulting distribution of feature vectors of Center Loss on MNIST, we will see that it is much more discriminative comparing to Softmax Loss.
 
 {% capture imblock_centermnist %}
-  {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/center_train.gif
-  {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/center_test.gif
+  {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/center_train.gif
+  {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/center_test.gif
 {% endcapture %}
 {% capture imcaption_centermnist %}
   Fig 4: The training dynamics of Center Loss on MNIST. The feature maps were projected onto 2D space to produce this visualization. On the left is the dynamics on train set, and on the right is the dynamics on test set. (Image source: [KaiYang Zhou](https://github.com/KaiyangZhou/pytorch-center-loss))
@@ -425,7 +420,7 @@ $$
 The differences between Softmax, Modified Softmax, and SphereFace is schematically shown below.
 
 {% capture imblock_sphereface_1 %}
-    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/sphereface_1.svg
+    {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/sphereface_1.svg
 {% endcapture %}
 {% capture imcaption_sphereface_1 %}
   Fig 5: Difference between Softmax, Modified Softmax, and SphereFace. A 2D features model was trained on CASIA data to produce this visualizations. One can see that features learned by the original softmax loss can not be
@@ -483,7 +478,7 @@ where $$s$$ is referred to as the **scaling** parameter, and $$m$$ is referred t
 
 <a name="fig-cosface-1"></a>
 {% capture imblock_cosface_1 %}
-    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/cosface_1.svg
+    {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/cosface_1.svg
 {% endcapture %}
 {% capture imcaption_cosface_1 %}
   Fig 6: Geometrical interpretation of CosFace from feature perspective. Different colors represents feature space from different classes. CosFace has a relatively compact feature region compared with Modified Softmax (Image source: [Wang et al. 2018](https://arxiv.org/abs/1801.09414))
@@ -525,7 +520,7 @@ as the number of classes increases, the upper bound of the cosine margin between
 
 <a name="fig-cosface-2"></a>
 {% capture imblock_cosface_2 %}
-    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/cosface_2.svg
+    {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/cosface_2.svg
 {% endcapture %}
 {% capture imcaption_cosface_2 %}
   Fig 7: Decision boundaries of different loss functions in cosine space (Image source: [Wang et al. 2018](https://arxiv.org/abs/1801.09414))
@@ -559,7 +554,7 @@ where $$s$$ is the scaling parameter and $$m$$ is referred to as the margin para
 
 <a name="fig-arcface"></a>
 {% capture imblock_arcface %}
-    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/arcface.svg
+    {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/arcface.svg
 {% endcapture %}
 {% capture imcaption_arcface %}
   Fig 8: Decision boundaries of different loss functions in the angle space. ArcFace has a constant linear angular margin throughout the whole interval. (Image source: [Deng et al. 2019](https://openaccess.thecvf.com/content_CVPR_2019/papers/Deng_ArcFace_Additive_Angular_Margin_Loss_for_Deep_Face_Recognition_CVPR_2019_paper.pdf))
@@ -596,7 +591,7 @@ Now, let's plot the value of $$P_{i,j}$$ against the angle $$\theta_{i,y_i}$$ be
 
 <a name="fig-adacos-s-anal"></a>
 {% capture imblock_adacos_s_anal %}
-    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/adacos_s_analysis.svg
+    {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/adacos_s_analysis.svg
 {% endcapture %}
 {% capture imcaption_adacos_s_anal %}
   Fig 9: curves of $$P_{i,j}$$ by choosing different ArcFace scale parameters (Image source: [Zhang et al. 2019](https://openaccess.thecvf.com/content_CVPR_2019/papers/Zhang_AdaCos_Adaptively_Scaling_Cosine_Logits_for_Effectively_Learning_Deep_Face_CVPR_2019_paper.pdf))
@@ -609,7 +604,7 @@ Let's take a look at the $$P_{i, y_i}$$ curves of different values of the margin
 
 <a name="fig-adacos-m-anal"></a>
 {% capture imblock_adacos_m_anal %}
-    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/adacos_m_analysis.svg
+    {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/adacos_m_analysis.svg
 {% endcapture %}
 {% capture imcaption_adacos_m_anal %}
   Fig 10: curves of $$P_{i,j}$$ by choosing different ArcFace margin parameters (Image source: [Zhang et al. 2019](https://openaccess.thecvf.com/content_CVPR_2019/papers/Zhang_AdaCos_Adaptively_Scaling_Cosine_Logits_for_Effectively_Learning_Deep_Face_CVPR_2019_paper.pdf))
@@ -703,7 +698,7 @@ The main goal of the [Kaggle Humpback Whale Challenge][humpback_whale_challenge]
 
 <a name="fig-humpback-intro"></a>
 {% capture imblock_humpback_intro %}
-    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/humpback_whale_intro.png
+    {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/humpback_whale_intro.png
 {% endcapture %}
 {% capture imcaption_humpback_intro %}
   Fig 11: Example of 9 photos of the same whale from the training data
@@ -740,7 +735,7 @@ The [Google Landmarks Challenge][kaggle_glc2020] is a large scale competition, w
 
 <a name="fig-google-landmarks-intro"></a>
 {% capture imblock_google_landmarks_intro %}
-    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/google_landmarks_intro.png
+    {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/google_landmarks_intro.png
 {% endcapture %}
 {% capture imcaption_google_landmarks_intro %}
   Fig 12: Some beautiful samples from Google Landmarks Dataset V2
@@ -765,7 +760,7 @@ As usual, winning solutions contains a lot of tricks and wizardy. However, in th
 
 <a name="fig-net-gem-af"></a>
 {% capture imblock_net_gem_af %}
-    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/arcface_network_arch.png
+    {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/arcface_network_arch.png
 {% endcapture %}
 {% capture imcaption_net_gem_af %}
   Fig 13: The variants of this architecture were used by all teams in top 100.
@@ -799,7 +794,7 @@ This competition is quite different comparing to the two above. It involves Metr
 
 <a name="fig-shopee-intro"></a>
 {% capture imblock_shopee_intro %}
-    {{ site.url }}/articles/images/2020-12-11-deep-metric-learning-survey/shopee_intro.png
+    {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/shopee_intro.png
 {% endcapture %}
 {% include gallery images=imblock_shopee_intro cols=1 %}
 
