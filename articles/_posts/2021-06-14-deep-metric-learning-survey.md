@@ -4,7 +4,7 @@ permalink: /articles/:title
 type: "article"
 title: "Deep Metric Learning: a (Long) Survey"
 image:
-  feature: "/articles/images/2021-06-14-deep-metric-learning-survey/metric_losses.png"
+  feature: "/articles/images/2021-06-14-deep-metric-learning-survey/feature.png"
   display: false
 commits: https://github.com/hav4ik/hav4ik.github.io/commits/master/articles/_posts/2021-06-14-deep-metric-learning-survey.md
 tags: [deep-learning, survey]
