@@ -14,13 +14,13 @@ hidden: false
 ---
 
 
-One of the most amazing aspects of the human's visual system is the ability to recognize similar objects and scenes. We don't need hundreds of photos of the same face to be able to differentiate it among thousands of other faces that we've seen. We don't need thousands of images of the Eiffel Tower to recognize that unique architecture landmark when we visit Paris. Is it possible to design a Deep Neural Network with the similar ability to tell which objects are visually similar and which ones are not? That's essentially what **Deep Metric Learning** attempts to solve.
+One of the most amazing aspects of the human visual system is the ability to recognize similar objects and scenes. We don't need hundreds of photos of the same face to be able to differentiate it among thousands of other faces that we've seen. We don't need thousands of images of the Eiffel Tower to recognize that unique architectureal landmark when we visit Paris. Is it possible to design a Deep Neural Network with a similar ability to tell which objects are visually similar and which ones are not? That's essentially what **Deep Metric Learning** attempts to solve.
 
 <!--
 Advanced readers may immediately recognize by the description that this topic is intimately related to One-Shot Learning. The techniques of Metric Learning are commonly embraced in the field of One-Shot Learning, and sometimes these terms are even used interchangeably (e.g. by [Andrew Ng][andrewng_meme] in his [Deep Learning course][andrewng_one_shot_learning]). However, they are completely different fields &mdash; One-Shot Learning uses more than just Metric Learning techniques, and Metric Learning can be applied in other problems as well.
 -->
 
-Although this blog post is mainly about **Supervised Deep Metric Learning** and is self-sufficient by its own, it would be benefitial for you to consider getting familiar with traditional Metric Learning methods (i.e. without Neural Networks) to develop a broader understanding on this topic. I highly recommend the [introductory guides on Metric Learning][sklearn_metric_learning_guide] as a starter. If you want to get into the formal mathematical side of things, I recommend the tutorial by [Diaz et al. (2020)][diaz_tutorial_metric_math]. More advanced Metric Learning methods includes the popular [t-SNE (van der Maaten & Hinton, 2008)][tsne_paper] and the new shiny [UMAP (McInnes et al., 2018)][umap_paper] that everybody uses nowadays for data clustering and visualization.
+Although this blog post is mainly about **Supervised Deep Metric Learning** and is self-sufficient on its own, it would be beneficial for you to consider getting familiar with traditional Metric Learning methods (i.e. without Neural Networks) to develop a broader understanding of this topic. I highly recommend the [introductory guides on Metric Learning][sklearn_metric_learning_guide] as a starter. If you want to get into the formal mathematical side of things, I recommend the tutorial by [Diaz et al. (2020)][diaz_tutorial_metric_math]. More advanced Metric Learning methods include the popular [t-SNE (van der Maaten & Hinton, 2008)][tsne_paper] and the new shiny [UMAP (McInnes et al., 2018)][umap_paper] that everybody uses nowadays for data clustering and visualization.
 
 This article is organized as follows. In the **"Direct Approaches"** section, I will quickly glance through the methods that were commonly used for Deep Metric Learning, before the rise of angular margin methods in 2017. Then, in **Moving Away from Direct Approaches**, I will describe the transitioning to current angular margin SOTA models and the reasons why we ditch the direct approaches. Then, in the **"State-of-the-Art Approaches"** section, I will describe in more detail the advances in Metric Learning in recent years.
 
@@ -88,7 +88,7 @@ Thus, the Deep Metric Learning problem boils down to just choosing the architect
 <a name="direct-approaches"></a>
 ## Direct Approaches
 
-I will glance throught the most common approaches in this section very quickly without getting too much into details for two reasons:
+I will glance through the most common approaches in this section very quickly without getting too much into details for two reasons:
 
 - The methods described here are already covered in other tutorials, videos, and blog posts online in great detail. I highly recommend the great survey by [Kaya & Bilge (2019)][deep_metric_learning_survey].
 - The methods that I will describe in the next section outperforms these approaches in most cases, so I have no motivation to delve too deep into the details in this section.
@@ -120,7 +120,7 @@ $$
 \end{equation*}
 $$
 
-where $$\alpha$$ is the margin. The reason we need a margin value is because otherwise, our network $$f_\theta$$ will learn to "cheat" by mapping all $$\mathcal{X}$$ to the same point, making distances between any samples to be equal to zero. [Here][contrastive_explained] and [here][contrastive_explained_2] are very great in-depth explanation for this loss function.
+where $$\alpha$$ is the margin. The reason we need a margin value is that otherwise, our network $$f_\theta$$ will learn to "cheat" by mapping all $$\mathcal{X}$$ to the same point, making distances between any samples to be equal to zero. [Here][contrastive_explained] and [here][contrastive_explained_2] are very great in-depth explanation for this loss function.
 
 
 
@@ -189,7 +189,7 @@ $$
 $$
 
 <a name="structured-loss"></a>
-**Structured Loss** ([Song et al. 2016][structured_loss_paper]) was proposed to improve the sample effectiveness of Triplet Loss and make full use of the samples in each batch of training data. Here, I will describe the generalized version of it by [Hermans et al. (2017)][generalized_structured_loss_paper].
+**Structured Loss** ([Song et al. 2016][structured_loss_paper]) was proposed to improve the sampling effectiveness of Triplet Loss and make full use of the samples in each batch of training data. Here, I will describe the generalized version of it by [Hermans et al. (2017)][generalized_structured_loss_paper].
 
 Let $$\mathcal{B} = (x_1, \ldots, x_b)$$ be one batch of data, $$\mathcal{P}$$ be the set of all positive pairs in the batch ($$x_i, x_j \in \mathcal{P}$$ if their corresponding labels satisfies $$y_i = y_j$$) and $$\mathcal{N}$$ is the set of all negative pairs ($$x_i, x_j \in \mathcal{N}$$ if corresponding labels satisfies $$y_i \ne y_j$$). The Structured Loss is then defined as:
 
@@ -227,14 +227,14 @@ $$
 \end{eqnarray*}
 $$
 
-The **N-Pair Loss** [(Sohn, 2016)][n_pair_loss_paper] paper discusses in great detail one of the main limitations of the Triplet Loss, while proposing a similar idea to [Structured Loss](#structured-loss) of using positive and negative pairs:
+The **N-Pair Loss** [(Sohn, 2016)][n_pair_loss_paper] paper discusses in great detail one of the main limitations of the Triplet Loss while proposing a similar idea to [Structured Loss](#structured-loss) of using positive and negative pairs:
 
-> During one update, the triplet loss only compares an example with one negative example while ignoring negative examples from the rest of the classes.
-As consequence, the embedding vector for an example is only guaranteed to be far from the selected negative class but not necessarily the others. Thus we can end up only differentiating an example from a limited selection of negative classes yet still maintain a small distance from many other classes.
+> During one update, the triplet loss only compares a sample with one negative sample while ignoring negative samples from the rest of the classes.
+As consequence, the embedding vector for a sample is only guaranteed to be far from the selected negative class but not necessarily the others. Thus we can end up only differentiating an example from a limited selection of negative classes yet still maintain a small distance from many other classes.
 >
-> In practice, the hope is that, after looping over sufficiently many randomly sampled triplets, the final distance metric can be balanced correctly; but individual update can still be unstable and the convergence would be slow.  Specifically, towards the end of training, most randomly selected negative examples can no longer yield non-zero triplet loss error.
+> In practice, the hope is that, after looping over sufficiently many randomly sampled triplets, the final distance metric can be balanced correctly; but the individual update can still be unstable and the convergence would be slow.  Specifically, towards the end of the training, most randomly selected negative examples can no longer yield non-zero triplet loss error.
 
-Other attemts to design a better metric learning objective based on the core idea of the Triplet Loss objective includes **Magnet Loss** ([Rippel et al. 2015][magnet_loss_paper]) and **Clustering Loss** ([Song et al. 2017][clustering_loss_paper]). Both objectives are defined on the dataset distribution as a whole, not only on single elements. However, they didn't received much traction due to the scaling difficulties, and simply because of their complexity. There has been some attempt to compare these approaches, notably by [Horiguchi et al. (2017)][comparing_classification_and_metric], but they performed experiments on very small datasets and were unable to achieve meaningful results.
+Other attempts to design a better metric learning objective based on the core idea of the Triplet Loss objective include **Magnet Loss** ([Rippel et al. 2015][magnet_loss_paper]) and **Clustering Loss** ([Song et al. 2017][clustering_loss_paper]). Both objectives are defined on the dataset distribution as a whole, not only on single elements. However, they didn't receive much traction due to the scaling difficulties, and simply because of their complexity. There has been some attempt to compare these approaches, notably by [Horiguchi et al. (2017)][comparing_classification_and_metric], but they performed experiments on very small datasets and were unable to achieve meaningful results.
 
 The methods described in this section are part of a wider family of machine learning methods, called "Contrastive Representation Learning". I highly recommend [this blog post][lillog_contrastive] for more details.
 
@@ -266,17 +266,17 @@ The methods described in this section are part of a wider family of machine lear
 <a name="moving-away-from-direct-approaches"></a>
 ## Moving Away from Direct Approaches
 
-After countless of research papers attempting to solve the problems and limitations of [Triplet Loss](#triplet-loss), it became clear that learning to directly minimize/maximize euclidean ($$l_2$$) distance between samples with the same/different labels may not be the way to go. There are two main issues of such approaches:
+After countless research papers attempting to solve the problems and limitations of [Triplet Loss](#triplet-loss), it became clear that learning to directly minimize/maximize euclidean ($$l_2$$) distance between samples with the same/different labels may not be the way to go. There are two main issues of such approaches:
 
-- **Expansion Issue** &mdash; it is very hard to ensure that samples with similar label will be pulled together to a common region in space as noted by [Sohn (2016)][n_pair_loss_paper] (mentioned in the previous section). [Quadruplet Loss](#quadruplet-loss) only improves the variability, and [Structured Loss](#structured-loss) can only enforce the structure locally for the samples in the batch, not globally. Attempts to solve this problem directly with a global objective ([Magnet Loss, Rippel et al. 2015][magnet_loss_paper] and [Clustering Loss, Song et al. 2017][clustering_loss_paper]) were not successful in gaining much traction due to scalability issues.
+- **Expansion Issue** &mdash; it is very hard to ensure that samples with a similar label will be pulled together to a common region in space as noted by [Sohn (2016)][n_pair_loss_paper] (mentioned in the previous section). [Quadruplet Loss](#quadruplet-loss) only improves the variability, and [Structured Loss](#structured-loss) can only enforce the structure locally for the samples in the batch, not globally. Attempts to solve this problem directly with a global objective ([Magnet Loss, Rippel et al. 2015][magnet_loss_paper] and [Clustering Loss, Song et al. 2017][clustering_loss_paper]) were not successful in gaining much traction due to scalability issues.
 
-- **Sampling Issue** &mdash; all of the Deep Metric Learning approaches that tries to directly minimize/maximize $$l_2$$ distance between samples relies heavily on sophisticated sample mining techniques that chooses the "most useful" samples for learning for each training batch. This is inconvenient enough in the local setting (think about GPU utilization), and can become quite problematic in a distributed training setting (e.g. when you train on 10s of [cloud TPUs][cloud_tpu] and pull the samples from a remote GCS bucket).
+- **Sampling Issue** &mdash; all of the Deep Metric Learning approaches that try to directly minimize/maximize $$l_2$$ distance between samples rely heavily on sophisticated sample mining techniques that choose the "most useful" samples for learning for each training batch. This is inconvenient enough in the local setting (think about GPU utilization), and can become quite problematic in a distributed training setting (e.g. when you train on 10s of [cloud TPUs][cloud_tpu] and pull the samples from a remote GCS bucket).
 
 
 <a name="center-loss"></a>
 ### Center Loss
 
-**Center Loss** ([Wen et al. 2016][center_loss_paper]) is one of the first successful attemts to solve both of the above mentioned issues. Before getting into the details of it, let's talk about the Softmax Loss.
+**Center Loss** ([Wen et al. 2016][center_loss_paper]) is one of the first successful attempts to solve both of the above-mentioned issues. Before getting into the details of it, let's talk about Softmax Loss.
 
 Let $$z = f_\theta(x)$$ be the feature vector of the sample $$x$$ after propagating through the neural network $$f_\theta$$. In the classification setting of $$m$$ classes, on top of the backbone neural network $$f_\theta$$ we usually have a linear classification layer $$\hat{y} = W^\intercal z + b$$, where $$W \in \mathbb{R}^{n \times m}$$ and $$b \in \mathbb{R}^m$$. The Softmax Loss (that we're all familiar with and know by heart) for a batch of $$N$$ samples is then presented as follows:
 
@@ -303,7 +303,7 @@ Let's have a look at the training dynamics of the Softmax objective and how the 
 {% endcapture %}
 {% include gallery images=imblock_softmaxmnist cols=2 caption=imcaption_softmaxmnist %}
 
-As illustrated above, the Softmax objective is not discriminative enough, still there's still a significant intra-class variation even on such a simple dataset as MNIST. So, the idea of Center Loss is to add a new regularization term to the Softmax Loss to pull the features to corresponding class centers:
+As illustrated above, the Softmax objective is not discriminative enough, there's still a significant intra-class variation even on such a simple dataset as MNIST. So, the idea of Center Loss is to add a new regularization term to the Softmax Loss to pull the features to corresponding class centers:
 
 $$
 \begin{equation*}
@@ -312,7 +312,7 @@ $$
 \end{equation*}
 $$
 
-where $$c_j$$ is also updated using gradient descent with $$\mathcal{L}_\text{center}$$ and can be thought of as moving mean vector of the set of feature vectors of class $$j$$. If we now visualize the training dynamics and resulting distribution of feature vectors of Center Loss on MNIST, we will see that it is much more discriminative comparing to Softmax Loss.
+where $$c_j$$ is also updated using gradient descent with $$\mathcal{L}_\text{center}$$ and can be thought of as moving mean vector of the set of feature vectors of class $$j$$. If we now visualize the training dynamics and the resulting distribution of feature vectors of Center Loss on MNIST, we will see that it is much more discriminative comparing to Softmax Loss.
 
 {% capture imblock_centermnist %}
   {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/center_train.gif
@@ -339,12 +339,12 @@ Another idea to improve the discriminativeness of the Softmax Objective is to co
 <a name="sphereface"></a>
 ### SphereFace
 
-The obvious problem of the formulation of [Center Loss](#center-loss) is, ironically, the choice of centers. First, there's still no guarantee that you will have a large inter-class variability, since the clusters closer to zero will benefit less from the regularization term. To make it "fair" for each class, why don't we just enforce the class centers to be on the same distance from the center? Let's map it to a hypersphere!
+The obvious problem of the formulation of [Center Loss](#center-loss) is, ironically, the choice of centers. First, there's still no guarantee that you will have a large inter-class variability since the clusters closer to zero will benefit less from the regularization term. To make it "fair" for each class, why don't we just enforce the class centers to be at the same distance from the center? Let's map it to a hypersphere!
 
-That's basically the main idea behind **SphereFace** ([Liu et al. 2017][sphereface_paper]). The setting of SphereFace is very simple. We start from the Softmax loss with following modifications:
+That's the main idea behind **SphereFace** ([Liu et al. 2017][sphereface_paper]). The setting of SphereFace is very simple. We start from the Softmax loss with the following modifications:
 
 - Fix the bias vector $$b = 0$$ to make the future analysis easier (the whole heavy-lifting is performed by our neural network anyways).
-- Normalize the weights so that $$\smash{\| W_j \| = 1}$$. This way, when we rewrite the product $$\smash{W_j^\intercal z}$$ as $$\smash{\| W_j \| \| z \| \cos\theta_j}$$, where $$\smash{\theta_j}$$ is the angle between feature vector $$z$$ and the row vector $$\smash{W_j}$$, it becomes just $$\smash{\| z \| \cos\theta_j}$$. So, the final classification output for class $$j$$ can be though about as **projecting** the feature fector $$z$$ onto vector $$\smash{W_j}$$, which in this case, geometrically, is the **class center**.
+- Normalize the weights so that $$\smash{\| W_j \| = 1}$$. This way, when we rewrite the product $$\smash{W_j^\intercal z}$$ as $$\smash{\| W_j \| \| z \| \cos\theta_j}$$, where $$\smash{\theta_j}$$ is the angle between feature vector $$z$$ and the row vector $$\smash{W_j}$$, it becomes just $$\smash{\| z \| \cos\theta_j}$$. So, the final classification output for class $$j$$ can be thought about as **projecting** the feature vector $$z$$ onto vector $$\smash{W_j}$$, which in this case, geometrically, is the **class center**.
 
 Let's denote $$\smash{\theta_{j,i}}$$ ($$\smash{0 \le \theta_{j,i} \le \pi}$$) as the angle between the feature vector $$z_i$$ and class center vector $$\smash{W_j}$$. The **Modified Softmax** objective is thus:
 
@@ -381,7 +381,7 @@ Geometrically, it means that we assign the sample to class $$j$$ if the projecti
 
 It is important to always keep in mind the **decision boundary**. At which point you will consider a sample as belonging to a certain class?
 
-For Modified Softmax, the dicision boundary between classes $$i$$ and $$j$$ is actually the bisector between two class center vectors $$\smash{W_i}$$ and $$\smash{W_j}$$. Having such a thin decision boundary will not make our features discriminative enough &mdash; the inter-class variation is too small. Hence the second part of SphereFace &mdash; introducing the **margins**.
+For Modified Softmax, the decision boundary between classes $$i$$ and $$j$$ is actually the bisector between two class center vectors $$\smash{W_i}$$ and $$\smash{W_j}$$. Having such a thin decision boundary will not make our features discriminative enough &mdash; the inter-class variation is too small. Hence the second part of SphereFace &mdash; introducing the **margins**.
 
 The idea is, instead of requiring $$\smash{\cos(\theta_i) > \cos(\theta_j)}$$ for all $$\smash{j = 1, \ldots, m\, (j \ne i)}$$ to classify a sample as belonging to $$i$$-th class as in Modified Softmax, we additionally enforce a margin $$\mu$$, so that a sample will only be classified as belonging to $$i$$-th class if $$\smash{\cos(\mu \theta_i) > \cos(\theta_j)}$$ for all $$\smash{j = 1, \ldots, m\, (j \ne i)}$$, with the requirement that $$\smash{\theta_i \in [0, \frac{\pi}{\mu}]}$$. The SphereFace objective can be then expressed as:
 
@@ -423,7 +423,7 @@ The differences between Softmax, Modified Softmax, and SphereFace is schematical
     {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/sphereface_1.svg
 {% endcapture %}
 {% capture imcaption_sphereface_1 %}
-  Fig 5: Difference between Softmax, Modified Softmax, and SphereFace. A 2D features model was trained on CASIA data to produce this visualizations. One can see that features learned by the original softmax loss can not be
+  Fig 5: Difference between Softmax, Modified Softmax, and SphereFace. A 2D features model was trained on CASIA data to produce this visualization. One can see that features learned by the original softmax loss can not be
 classified simply via angles, while modified softmax loss can. The SphereFace loss further increases the angular margin of learned features. (Image source: [Liu et al. 2017](https://arxiv.org/abs/1704.08063))
 {% endcapture %}
 {% include gallery images=imblock_sphereface_1 cols=1 caption=imcaption_sphereface_1 %}
@@ -454,7 +454,7 @@ The success of [SphereFace](#sphereface) resulted in an avalanche of new methods
 <a name="cosface"></a>
 ### CosFace
 
-[Wang et al. (2018)][cosface_paper] discussed in great details about the limitations of [SphereFace](#sphereface):
+[Wang et al. (2018)][cosface_paper] discussed in great details the limitations of [SphereFace](#sphereface):
 
 > The decision boundary of the [SphereFace](#sphereface) is defined over the angular space by $$\,\smash{\cos(\mu \theta_1) = \cos(\theta_2)}$$, which has a difficulty in optimization due to the nonmonotonicity of the cosine function. To overcome such a difficulty, one has to employ an extra trick with an ad-hoc piecewise function for [SphereFace](#sphereface). More importantly, the decision margin of [SphereFace](#sphereface) depends on $$\,\smash{\theta}$$, which leads to different margins for different classes. As a result, in the decision space, some inter-class features have a larger margin while others have a smaller margin, which reduces the discriminating power.
 
@@ -481,7 +481,7 @@ where $$s$$ is referred to as the **scaling** parameter, and $$m$$ is referred t
     {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/cosface_1.svg
 {% endcapture %}
 {% capture imcaption_cosface_1 %}
-  Fig 6: Geometrical interpretation of CosFace from feature perspective. Different colors represents feature space from different classes. CosFace has a relatively compact feature region compared with Modified Softmax (Image source: [Wang et al. 2018](https://arxiv.org/abs/1801.09414))
+  Fig 6: Geometrical interpretation of CosFace from a feature perspective. Different colors represent feature space from different classes. CosFace has a relatively compact feature region compared with Modified Softmax (Image source: [Wang et al. 2018](https://arxiv.org/abs/1801.09414))
 {% endcapture %}
 {% include gallery images=imblock_cosface_1 cols=1 caption=imcaption_cosface_1 %}
 
@@ -550,7 +550,7 @@ $$
 \end{equation*}
 $$
 
-where $$s$$ is the scaling parameter and $$m$$ is referred to as the margin parameter. While the differences with [CosFace](#cosface) is very minor, the results on various benchmarks shows that ArcFace is still slightly better than CosFace in most of the cases. Below is the illlustration of the decision boundaries of different loss functions we've reviewed so far:
+where $$s$$ is the scaling parameter and $$m$$ is referred to as the margin parameter. While the differences with [CosFace](#cosface) is very minor, the results on various benchmarks show that ArcFace is still slightly better than CosFace in most cases. Below is the illustration of the decision boundaries of different loss functions we've reviewed so far:
 
 <a name="fig-arcface"></a>
 {% capture imblock_arcface %}
@@ -566,7 +566,7 @@ where $$s$$ is the scaling parameter and $$m$$ is referred to as the margin para
 ### AdaCos &mdash; how to choose $$s$$ and $$m$$?
 
 
-For both [CosFace](#cosface) and [ArcFace](#arcface), the choice of scaling parameter $$s$$ and margin $$m$$ is crucial. Both papers did very litle analysis on the effect of these parameters. To answer the question on how to choose the optimal values of $$s$$ and $$m$$, [Zhang et al. (2019)][adacos_paper] performed an awesome analysis on the hyperparameters of cosine-based losses.
+For both [CosFace](#cosface) and [ArcFace](#arcface), the choice of scaling parameter $$s$$ and margin $$m$$ is crucial. Both papers did very little analysis on the effect of these parameters. To answer the question on how to choose the optimal values of $$s$$ and $$m$$, [Zhang et al. (2019)][adacos_paper] performed an awesome analysis on the hyperparameters of cosine-based losses.
 
 We denote the pre-softmax activation vector of our network as $$f$$, and the number of classes as $$C$$. Let's consider the classification probability $$P_{i,j}$$ of $$i$$-th sample for $$j$$-th class, which is defined as:
 
@@ -611,7 +611,7 @@ Let's take a look at the $$P_{i, y_i}$$ curves of different values of the margin
 {% endcapture %}
 {% include gallery images=imblock_adacos_m_anal cols=1 caption=imcaption_adacos_m_anal %}
 
-Increasing the margin parameter shifts probability curve of $$P_{i,y_i}$$ to the left. Larger margin leads to lower probabilities $$P_{i,y_i}$$ and thus larger loss even with small angles $$\theta_{i,y_i}$$. This also explains why margin-based losses provides stronger supervisions for the same $$\theta_{i,y_i}$$ than cosine-based losses with no margin.
+Increasing the margin parameter shifts the probability curve of $$P_{i,y_i}$$ to the left. A larger margin leads to lower probabilities $$P_{i,y_i}$$, and thus larger loss even with small angles $$\theta_{i,y_i}$$. This also explains why margin-based losses provide stronger supervisions for the same $$\theta_{i,y_i}$$ than cosine-based losses with no margin.
 
 You might have noticed the dashed "Fixed AdaCos" curve. In the [AdaCos paper (Zhang et al. 2019)][adacos_paper], the following fixed value of the scaling parameter $$s$$ is proposed:
 
@@ -621,7 +621,7 @@ $$
 \end{equation*}
 $$
 
-where $$C$$ is the number of classes. The reasoning behind this choice of scaling parameter is outside the scope of this blog post, and can be found at paragraph 4.1 of the [AdaCos paper][adacos_paper]. As for the other method proposed in that paper, Adaptive AdaCos &mdash; I've never seen it being successfully deployed in real-world problems.
+where $$C$$ is the number of classes. The reasoning behind this choice of scaling parameter is outside the scope of this blog post and can be found in paragraph 4.1 of the [AdaCos paper][adacos_paper]. As for the other method proposed in that paper, Adaptive AdaCos &mdash; I've never seen it being successfully deployed in real-world problems.
 
 
 <a name="subcenter-arcface"></a>
@@ -659,7 +659,7 @@ $$
 <a name="afdynmargin"></a>
 ### ArcFace with Dynamic Margin
 
-**ArcFace with Dynamic Margin** [(Ha et al. 2020)][glc2020_3rd_place_paper] is a simple modification of [ArcFace](#arcface) proposed by the 3rd place winners of [Google Landmarks Challenge 2020][kaggle_glr2020]. The main motivation for having different margin values for different classes is the extreme imbalance of the dataset &mdash; some classes can have tens of thousands samples, while other classes may have only 10 samples.
+**ArcFace with Dynamic Margin** [(Ha et al. 2020)][glc2020_3rd_place_paper] is a simple modification of [ArcFace](#arcface) proposed by the 3rd place winners of [Google Landmarks Challenge 2020][kaggle_glr2020]. The main motivation for having different margin values for different classes is the extreme imbalance of the dataset &mdash; some classes can have tens of thousands of samples, while other classes may have only 10 samples.
 
 For models to converge better in the presence of heavy imbalance, smaller classes need to have bigger margins as they are harder to learn. The proposed formula for margin value $$m_i$$ of $$i$$-th class is simple:
 
@@ -669,7 +669,7 @@ m_i = a \cdot n_i ^ {-\lambda} + b
 \end{equation*}
 $$
 
-where $$n_i$$ is number of samples in training data for $$i$$-th class, $$a$$, $$b$$ are parameters that controls the upper and lower bound of the margin, and $$\lambda > 0$$ determines the shape of the margin function. Together with [Sub-Center ArcFace](#subcenter-arcface), this method turns out to be much more effective than [ArcFace](#arcface).
+where $$n_i$$ is the number of samples in training data for $$i$$-th class, $$a$$, $$b$$ are parameters that control the upper and lower bound of the margin, and $$\lambda > 0$$ determines the shape of the margin function. Together with [Sub-Center ArcFace](#subcenter-arcface), this method turns out to be much more effective than [ArcFace](#arcface).
 
 
 [cosface_paper]: https://arxiv.org/abs/1801.09414
@@ -705,7 +705,7 @@ The main goal of the [Kaggle Humpback Whale Challenge][humpback_whale_challenge]
 {% endcapture %}
 {% include gallery images=imblock_humpback_intro cols=1 caption=imcaption_humpback_intro %}
 
-The puzzling aspect of this competition was a huge class imbalance. For more than 2000 of classes there was only one training sample. What’s more, the important part of the competition is to classify whether the given whale is new or not.
+The puzzling aspect of this competition was a huge class imbalance. For more than 2000 classes there was only one training sample. What’s more, the important part of the competition is to classify whether the given whale is new or not.
 
 While a lot of methods tricks were used by top performers in this competition, I will focus only on Deep Metric Learning methods. A short survey of the methods used by top teams (i.e. Gold medalists):
 - [ArcFace](#arcface) is used by [2nd place][humpback_2nd_place], [3rd place][humpback_3rd_place], 6th place, and [9th place][humpback_9th_place] medalists.
@@ -713,7 +713,7 @@ While a lot of methods tricks were used by top performers in this competition, I
 - [Triplet Loss](#triplet-loss) is used by [2nd place][humpback_2nd_place] (in combination with [ArcFace](#arcface) and Focal losses) and [9th place][humpback_9th_place] solutions (in combination with local keypoints matching).
 - The [2nd place][humpback_2nd_place] also used Focal Loss to combat class imbalances.
 - [4th place][humpback_4th_place] used a good old Siamese network which, given two images, will tell if they are from the same whale or not. They also used keypoint matching with SIFT and ROOTSIFT.
-- Interestingly, the [1st place][humpback_1st_place] team used only classification models, and used some grandmaster's wizardy to come up on top.
+- Interestingly, the [1st place][humpback_1st_place] team used only classification model together with some grandmaster's wizardry to come up on top.
 
 At the time of this competition, [ArcFace](#arcface) and [CosFace](#cosface) were still pretty new and untested techniques, so they were not widely adopted by top teams. We will see that in the next case studies, [ArcFace](#arcface) and [CosFace](#cosface) will be the most popular methods used by top performers.
 
@@ -729,7 +729,7 @@ At the time of this competition, [ArcFace](#arcface) and [CosFace](#cosface) wer
 <a name="google-landmarks-challenge"></a>
 ### Kaggle: Google Landmarks Challenge (2020)
 
-The [Google Landmarks Challenge][kaggle_glc2020] is a large scale competition, with more than 5'000'000 images of more than 200'000 human-made or natural landmarks. The competition is divided into 2 tracks:
+The [Google Landmarks Challenge][kaggle_glc2020] is a large-scale competition, with more than 5'000'000 images of more than 200'000 human-made or natural landmarks. The competition is divided into 2 tracks:
 - **Retrieval Track** &mdash; matching a specific object in an input image to all other instances of that object in a catalog of reference images. Think of it as the Reverse Image Search feature of Google.
 - **Recognition Track** &mdash; recognizing specific instances of objects, e.g. distinguishing Niagara Falls from just any waterfall.
 
@@ -742,20 +742,20 @@ The [Google Landmarks Challenge][kaggle_glc2020] is a large scale competition, w
 {% endcapture %}
 {% include gallery images=imblock_google_landmarks_intro cols=1 caption=imcaption_google_landmarks_intro %}
 
-Aside from the gigantic size of this dataset, there are a lot of challenges that makes it an ideal testbed for Deep Metric Learning techniques:
+Aside from the gigantic size of this dataset, there are a lot of challenges that make it an ideal testbed for Deep Metric Learning techniques:
 - **Class Imbalance.** For popular landmarks such as the Eiffel Tower, there can be thousands of images, while a less-known boathouse in Seattle will have less than 10 images per class.
 - **Real-World Conditions.** To mimic a realistic setting, only 1% of the test images are within the target domain of landmarks, while 99% are out-of-domain images.
-- **Noisy Data.** The data is collected in a croudsourced setting, so incorrect labels and low-quality out-of-domain samples is expected to be present in the training set.
+- **Noisy Data.** The data is collected in a crowdsourced setting, so incorrect labels and low-quality out-of-domain samples are expected to be present in the training set.
 - **Intra-Class Variability.** Since images of the same class can include indoor and outdoor views, as well as images of indirect relevance to a class, such as paintings in a museum.
 
 It is hard to evaluate the importance of this challenge. The methods developed in this competition are being used in all following metric learning competitions. Large companies with image search services were closely monitoring this competition as well.
 
-As usual, winning solutions contains a lot of tricks and wizardy. However, in this blog post, I will only provide a short recap on the Metric Learning methods used by top performing teams:
-- [ArcFace](#arcface), [CosFace](#cosface), or some variants of these methods were used by ALL competitors in top 100. It's a huge contrast to previous Google Landmarks competitions, where [Triplet Loss](#triplet-loss) and variants of it were the most popular ones.
+As usual, winning solutions contain a lot of tricks and wizardry. However, in this blog post, I will only provide a short recap on the Metric Learning methods used by top-performing teams:
+- [ArcFace](#arcface), [CosFace](#cosface), or some variants of these methods were used by ALL competitors in the top 100. It's a huge contrast to previous Google Landmarks competitions, where [Triplet Loss](#triplet-loss) and variants of it were the most popular ones.
 - [1st place winners (recognition)][glrec2020_1st_place], in contrast to all other teams, were able to solve the out-of-domain test images problem. They designed an inference process that takes into account the all-pair similarity between test images, landmark images, and non-landmark images.
-- [3rd place winners (recognition)][glrec2020_3rd_place] used [Sub-Center ArcFace](#subcenter-arcface) with [Dynamic Margin](#afdynmargin). It is quite amazing that were able to achieve such results (with a huge margin with 4th place team) with only raw Metric Learning, without relying on sophisticated post-processing or local features matching as other top-performing teams.
+- [3rd place winners (recognition)][glrec2020_3rd_place] used [Sub-Center ArcFace](#subcenter-arcface) with [Dynamic Margin](#afdynmargin). It is quite amazing that they were able to achieve such results (with a huge margin with 4th place team) with only raw Metric Learning, without relying on sophisticated post-processing or local features matching as other top-performing teams.
 - The combinations of the methods developed by [1st place (recognition)][glrec2020_1st_place] and [3rd place (recognition)][glrec2020_3rd_place] teams can be combined into a powerful image recognition and retrieval algorithm.
-- [GeM][gem_pooling] (with $$p=3$$) and [GAP][gap_pooling] pooling methods, followed by a linear layer, is used by all competitors in top 100. There's no visible difference between those pooling methods. Some teams tried to train $$p$$ in [GeM][gem_pooling] as well, but the performance gain was minimal.
+- [GeM][gem_pooling] (with $$p=3$$) and [GAP][gap_pooling] pooling methods, followed by a linear layer, are used by all competitors in the top 100. There's no visible difference between those pooling methods. Some teams tried to train $$p$$ in [GeM][gem_pooling] as well, but the performance gain was minimal.
 - The general network architecture looks pretty similar to the following schema:
 
 <a name="fig-net-gem-af"></a>
@@ -763,12 +763,12 @@ As usual, winning solutions contains a lot of tricks and wizardy. However, in th
     {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/arcface_network_arch.png
 {% endcapture %}
 {% capture imcaption_net_gem_af %}
-  Fig 13: The variants of this architecture were used by all teams in top 100.
+  Fig 13: The variants of this architecture were used by all teams in the top 100.
 {% endcapture %}
 {% include gallery images=imblock_net_gem_af cols=1 caption=imcaption_net_gem_af%}
 
 - Class imbalance was resolved by [1st place (retrieval)][glret2020_1st_place] using a weighted cross-entropy on top of ArcFace. [5th place (retrieval)][glret2020_5th_place] proposed another approach, using Focal Loss with Label Smoothing on top of ArcFace.
-- It seems like, without sophisticated post-processing, vanilla [ArcFace](#arcface) alone was not enough to achieve high leaderboard standing. Top teams in Recognition track (i.e. [2nd place][glrec2020_2nd_place] and [7th place][glrec2020_7th_place]) additionally relied local feature matching with [SuperPoint][superpoint] + [SuperGlue][superglue], which is a State-of-the-Art combo in feature matching.
+- It seems like, without sophisticated post-processing, vanilla [ArcFace](#arcface) alone was not enough to achieve high leaderboard standing. Top teams in the Recognition track (i.e. [2nd place][glrec2020_2nd_place] and [7th place][glrec2020_7th_place]) additionally relied on local feature matching with [SuperPoint][superpoint] + [SuperGlue][superglue], which is a State-of-the-Art combo in feature matching.
 - Funny, but everyone tried Dynamic AdaCos [(Zhang et al. 2019)][adacos_paper] because the results in the published paper were extremely promising. But nobody managed to make that work.
 
 It seems to me that after this competition, the list of methods above became a standard for Metric Learning competitions on Kaggle platform.
@@ -790,7 +790,7 @@ It seems to me that after this competition, the list of methods above became a s
 <a name="shopee-price-match"></a>
 ### Kaggle: Shopee Price Match Guarantee (2021)
 
-This competition is quite different comparing to the two above. It involves Metric Learning for text data. Given an image of some product and its description, the task is to find similar products in the test set (not seen during training) by their images and text descriptions.
+This competition is quite different compared to the two above. It involves Metric Learning for text data. Given an image of some product and its description, the task is to find similar products in the test set (not seen during training) by their images and text descriptions.
 
 <a name="fig-shopee-intro"></a>
 {% capture imblock_shopee_intro %}
@@ -800,11 +800,11 @@ This competition is quite different comparing to the two above. It involves Metr
 
 This competition is quite challenging because the train set is very small (34k images), but the test set is quite large and much more diverse than the training set (70k images). Moreover, a lot of product categories in the test set are not presented in the training set.
 
-These 2 challenges means that top competitors are forced to design very sophisticated post-processing pipelines, query expansion, and rely heavily on local features and information from text. However, it is still useful to take a look at how Deep Metric Learning is used in this competition:
+These 2 challenges mean that top competitors are forced to design very sophisticated post-processing pipelines, query expansion, and rely heavily on local features and information from text. However, it is still useful to take a look at how Deep Metric Learning is used in this competition:
 
 - [ArcFace](#arcface) and [CosFace](#cosface) is being used by a lot of top teams, including [1st place][shopee_1st_place], [4th place][shopee_4th_place], and [8th place][shopee_8th_place] winning solutions. Interestingly, it is being used to learn **both image and text embeddings!** That's soo cool &mdash; you're not limited only to image data!
 - [2nd place][shopee_2nd_place] team used a variant of ArcFace called [Curriculum Face (Huang et al. 2020)][curricular_face]. According to them, this loss function is much better than ArcFace and its variants.
-- Witnessing the return of [Triplet Loss](#triplet-loss) used by the [3rd place team][shopee_3rd_place] was quite interesting. They tried ArcFace also, but strangely it did not worked out for their team.
+- Witnessing the return of [Triplet Loss](#triplet-loss) used by the [3rd place team][shopee_3rd_place] was quite interesting. They tried ArcFace also, but strangely it did not work out for their team.
 - Another interesting thing that top teams have noticed is that the optimal scaling and margin parameters for ArcFace is different for image and text models. So they had to tune them individually.
 
 [shopee_1st_place]: https://www.kaggle.com/c/shopee-product-matching/discussion/238136
@@ -824,7 +824,7 @@ These 2 challenges means that top competitors are forced to design very sophisti
 
 It really depends on your specific task and your data. As of now, I would recommend the following:
 - If you don't have much data, [Triplet Loss](#triplet-loss) might still be a solid option. The 3rd place on [Shopee Price Match Guarantee Challenge](#shopee-price-match) clearly demonstrated that.
-- Otherwise, [ArcFace](#arcface) and its variants is definitely the way to go, as demonstrated by top performers of recent competitions on Kaggle. If you data has a large intra-class variability and a long tail of rare classes, [Sub-Center ArcFace](#subcenter-arcface) + [Dynamic Margin](#afdynmargin) is definitely the method you need to consider. Don't forget to use [GeM][gem_pooling] and follow the architecture as shown in [Fig. 13](#fig-net-gem-af).
+- Otherwise, [ArcFace](#arcface) and its variants are definitely the way to go, as demonstrated by top performers of recent competitions on Kaggle. If your data has a large intra-class variability and a long tail of rare classes, [Sub-Center ArcFace](#subcenter-arcface) + [Dynamic Margin](#afdynmargin) is probably the method you need to consider. Don't forget to use [GeM][gem_pooling] and follow the architecture as shown in [Fig. 13](#fig-net-gem-af).
 - Depending on the task, Metric Learning alone would often not be enough. Usually, it is used with [Query Expansion][wiki_qe], [Feature Matching][wiki_pfm], and other post-processing methods.
 
 I will try to keep this blog post updated with the latest State-of-the-Art methods.
