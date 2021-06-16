@@ -27,12 +27,12 @@
 <!-- Twitter Cards -->
 {% if page.image.feature %}
   {% capture feature %}{{ page.image.feature }}{% endcapture %}
-  {% capture feature %}{{ site.url }}/{{ feature }}{% endcapture %}
+  {% capture feature %}{{ site.url }}{{ feature }}{% endcapture %}
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="{{ feature }}">
 {% else %}
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:image" content="{{ site.url }}/{{ site.logo }}">
+  <meta name="twitter:image" content="{{ site.url }}{{ site.logo }}">
 {% endif %}
   <meta name="twitter:title" content="{% if page.title %}{{ page.title }}{% else %}{{ site.title }}{% endif %}">
   <meta name="twitter:description" content="{% if page.excerpt %}{{ page.excerpt | markdownify | strip_html | strip_newlines | escape_once }}{% else %}{{ site.description }}{% endif %}">
@@ -49,10 +49,10 @@
 <!--<meta property="og:site_name" content="{{ site.title }}">-->
 {% if page.image.feature %}
   {% capture feature %}{{ page.image.feature }}{% endcapture %}
-  {% capture feature %}{{ site.url }}/{{ feature }}{% endcapture %}
+  {% capture feature %}{{ site.url }}{{ feature }}{% endcapture %}
   <meta property="og:image" content="{{ feature }}">
 {% else %}
-  <meta property="og:image" content="{{ site.url }}/{{ site.logo }}">
+  <meta property="og:image" content="{{ site.url }}{{ site.logo }}">
 {% endif %}
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
