@@ -1,10 +1,10 @@
 
-I'm currently a software engineer at [Microsoft][msft] in Redmond, United States. Working on customer-centric products of such scales is sooooo exciting!
+I'm a software engineer at [Microsoft][msft] in Seattle Area, currently working on relevance ranking models at Bing Image Search. It feels quite overwhelming to work with pipelines and data of such enormous scale.
 
-Previously, I worked as a computer vision engineer at [Samsung Research][srk] in Ukraine,
-specializing in Computer Vision and optimizing Neural Networks for resource-constrained Mobile Devices.
+Previously, I was a computer vision engineer at [Samsung Research][srk] in Ukraine. I worked
+on projects related to monocular 3D reconstruction and optimizing Neural Networks for resource-constrained Mobile Devices.
 
-On a side for fun, I [travel][travelog] to new places, [blog][blog] about stuffs I find exciting, paint, read (a lot of) Manga, and [play Go][ogs] (feel free to challenge me). Oh, I also started to compete on [Kaggle][kaggle] lately out of boredom.
+On a side for fun, I [travel][travelog] to new places, [blog][blog] about stuffs, paint, read (a lot of) Manga, and [play Go][ogs] (feel free to challenge me), and a bit of [Kaggling][kaggle].
 
 [msft]: https://www.microsoft.com
 [srk]: https://research.samsung.com/srk
