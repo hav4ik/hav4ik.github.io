@@ -10,6 +10,7 @@
     color: grey;
     font-size: 14px;
     font-weight: 400;
+    margin-top: 0.8rem;
   
     a.post-tag {
       border-radius: 5px;
@@ -55,8 +56,12 @@
     }
     
     .post-preview-excerpt {
-      padding-bottom: 0.8rem;
-      font-size: 14pxk
+      font-size: 14pxk;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 3;
     }
   }
 }
