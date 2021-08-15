@@ -9,10 +9,11 @@ image:
 commits: https://github.com/hav4ik/hav4ik.github.io/commits/master/articles/_posts/2021-06-14-deep-metric-learning-survey.md
 tags: [deep-learning, survey]
 excerpt: "In this post, I'll briefly go over the common approaches for Deep Metric Learning, as well as the new methods proposed in recent years."
+show_excerpt: true
 comments: true
 hidden: false
 updates:
-  - date: 2021/08/14
+  - date: 2021-08-15 00:00:00 0000
     description: Fixed the mistake in the overall description of the effectiveness of Contrastive appoaches. Added some ablation studies as suggested by Eugene Dobrovolskyi.
 ---
 
@@ -98,7 +99,7 @@ $$
 \end{equation*}
 $$
 
-For the ease of notation, let's denote $$\mathcal{D}_{f_\theta}(x_1, x_2)$$ as a shortcut for $$\mathcal{D} \left( f_\theta(x_1), f_\theta(x_2) \right)$$, where $$x_1, x_2 \in \mathcal{X}$$ are samples from the dataset (more formally, $$D_{f_\theta}$$ is a [pullback][pullback] of $$D$$).
+For the ease of notation, let's denote $$\mathcal{D}_{f_\theta}(x_1, x_2)$$ as a shortcut for $$\mathcal{D} \left( f_\theta(x_1), f_\theta(x_2) \right)$$, where $$x_1, x_2 \in \mathcal{X}$$ are samples from the dataset (more formally, $$\mathcal{D}_{f_\theta}$$ is a [pullback][pullback] of $$\mathcal{D}$$).
 
 I will just glance through the most common approaches in this section very quickly without getting too much into details for two reasons:
 

@@ -70,12 +70,12 @@ h3.title a {
 blockquote {
 	// font-family:$alt-font;
 	font-style:italic;
-	border-left:8px solid $color_tundora;
-	padding-left:20px;
+	border-left:6px solid $color_tundora;
+	padding: 0px 15px 0px 20px;
+	background: #f0f0f0;
 	margin: 0;
-}
-@media only screen and (min-width: 48em) {
-	blockquote {
+	overflow: auto;
+	@media only screen and (min-width: 48em) {
 		margin-left:-28px
 	}
 }
