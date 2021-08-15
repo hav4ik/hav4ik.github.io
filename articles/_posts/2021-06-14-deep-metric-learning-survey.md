@@ -11,8 +11,10 @@ tags: [deep-learning, survey]
 excerpt: "In this post, I'll briefly go over the common approaches for Deep Metric Learning, as well as the new methods proposed in recent years."
 comments: true
 hidden: false
+updates:
+  - date: 2021/08/14
+    description: Fixed the mistake in the overall description of the effectiveness of Contrastive appoaches. Added some ablation studies as suggested by Eugene Dobrovolskyi.
 ---
-
 
 One of the most amazing aspects of the human visual system is the ability to recognize similar objects and scenes. We don't need hundreds of photos of the same face to be able to differentiate it among thousands of other faces that we've seen. We don't need thousands of images of the Eiffel Tower to recognize that unique architectureal landmark when we visit Paris. Is it possible to design a Deep Neural Network with a similar ability to tell which objects are visually similar and which ones are not? That's essentially what **Deep Metric Learning** attempts to solve.
 
@@ -20,9 +22,9 @@ One of the most amazing aspects of the human visual system is the ability to rec
 Advanced readers may immediately recognize by the description that this topic is intimately related to One-Shot Learning. The techniques of Metric Learning are commonly embraced in the field of One-Shot Learning, and sometimes these terms are even used interchangeably (e.g. by [Andrew Ng][andrewng_meme] in his [Deep Learning course][andrewng_one_shot_learning]). However, they are completely different fields &mdash; One-Shot Learning uses more than just Metric Learning techniques, and Metric Learning can be applied in other problems as well.
 -->
 
-Although this blog post is mainly about **Supervised Deep Metric Learning** and is self-sufficient on its own, it would be beneficial for you to consider getting familiar with traditional Metric Learning methods (i.e. without Neural Networks) to develop a broader understanding of this topic. I highly recommend the [introductory guides on Metric Learning][sklearn_metric_learning_guide] as a starter. If you want to get into the formal mathematical side of things, I recommend the tutorial by [Diaz et al. (2020)][diaz_tutorial_metric_math]. More advanced Metric Learning methods include the popular [t-SNE (van der Maaten & Hinton, 2008)][tsne_paper] and the new shiny [UMAP (McInnes et al., 2018)][umap_paper] that everybody uses nowadays for data clustering and visualization.
+Although this blog post is mainly about **Supervised Deep Metric Learning** and is self-sufficient on its own, it would be beneficial for you to consider getting familiar with traditional Metric Learning methods (i.e. without Neural Networks) to develop a broader understanding of this topic. I highly recommend the [introductory guides on Metric Learning][sklearn_metric_learning_guide] as a starter. If you want to get into the formal mathematical side of things, I recommend the tutorial by [Diaz et al. (2020)][diaz_tutorial_metric_math]. Popular Metric Learning methods include the popular [t-SNE (van der Maaten & Hinton, 2008)][tsne_paper] and the new shiny [UMAP (McInnes et al., 2018)][umap_paper] that everybody uses nowadays for data clustering and visualization.
 
-This article is organized as follows. In the **"Direct Approaches"** section, I will quickly glance through the methods that were commonly used for Deep Metric Learning, before the rise of angular margin methods in 2017. Then, in **Moving Away from Direct Approaches**, I will describe the transitioning to current angular margin SOTA models and the reasons why we ditch the direct approaches. Then, in the **"State-of-the-Art Approaches"** section, I will describe in more detail the advances in Metric Learning in recent years.
+This article is organized as follows. In the **"Contrastive Approaches"** section, I will quickly glance through the methods that were commonly used for Deep Metric Learning, before the rise of angular margin methods in 2017. Then, in **Moving Away from Contrastive Approaches**, I will describe the transitioning to current angular margin SOTA models and the reasons why we ditch the direct approaches. Then, in the **"State-of-the-Art Approaches"** section, I will describe in more detail the advances in Metric Learning in recent years.
 
 The most useful section for both beginners and more experienced readers will be the **"Getting Practical"** section, in which I will do a case study of how Deep Metric Learning is used to achieve State-of-the-Art results in various practical problems (mostly from Kaggle and large-scale benchmarks), as well as the tricks that were used to make things work.
 
@@ -39,12 +41,12 @@ The most useful section for both beginners and more experienced readers will be 
 
 
 - [Problem Setting of Supervised Metric Learning](#problem-setting)
-- [Direct Approaches](#direct-approaches)
+- [Contrastive Approaches](#contrastive-approaches)
   - [Contrastive Loss](#contrastive-loss)
   - [Triplet Loss](#triplet-loss)
   - [Improving the Triplet Loss](#improving-triplet-loss)
 
-- [Moving Away from Direct Approaches](#moving-away-from-direct-approaches)
+- [Moving Away from Contrastive Approaches](#moving-away-from-contrastive-approaches)
   - [Center Loss](#center-loss)
 <!--  - [Large-Margin Softmax Loss](#large-margin-softmax-loss)-->
   - [SphereFace](#sphereface)
@@ -85,15 +87,10 @@ Thus, the Deep Metric Learning problem boils down to just choosing the architect
 ---------------------------------------------------------------------------------
 
 
-<a name="direct-approaches"></a>
-## Direct Approaches
+<a name="contrastive-approaches"></a>
+## Contrastive Approaches
 
-I will glance through the most common approaches in this section very quickly without getting too much into details for two reasons:
-
-- The methods described here are already covered in other tutorials, videos, and blog posts online in great detail. I highly recommend the great survey by [Kaya & Bilge (2019)][deep_metric_learning_survey].
-- The methods that I will describe in the next section outperforms these approaches in most cases, so I have no motivation to delve too deep into the details in this section.
-
-The distance function for these approaches is usually fixed as $$l_2$$ metric:
+The main idea of Contrastive Approaches is to design a loss function that directly pulls together the embeddings of samples with same label (i.e. "similar" samples) and pushes away the embeddings of dissimilar samples, hence the name "Contrastive". These methods are sometimes regarded as "Direct" in other surveys because they directly applies the definition of metric learning. The distance function in the embedding space for these approaches is usually fixed as $$l_2$$ metric:
 
 $$
 \begin{equation*}
@@ -101,13 +98,20 @@ $$
 \end{equation*}
 $$
 
-For the ease of notation, let's denote $$\mathcal{D}_{f_\theta}(x_1, x_2)$$ as a shortcut for $$\mathcal{D} \left( f_\theta(x_1), f_\theta(x_2) \right)$$, where $$x_1, x_2 \in \mathcal{X}$$ are samples from the dataset. Also, for some condition $$A$$, let's denote $$\unicode{x1D7D9}_A$$ as the identity function that is equal to $$1$$ if $$A$$ is true, and $$0$$ otherwise.
+For the ease of notation, let's denote $$\mathcal{D}_{f_\theta}(x_1, x_2)$$ as a shortcut for $$\mathcal{D} \left( f_\theta(x_1), f_\theta(x_2) \right)$$, where $$x_1, x_2 \in \mathcal{X}$$ are samples from the dataset (more formally, $$D_{f_\theta}$$ is a [pullback][pullback] of $$D$$).
+
+I will just glance through the most common approaches in this section very quickly without getting too much into details for two reasons:
+
+- The methods described here are already covered in the context of deep metric learning in other tutorials and blog posts. I highly recommend the great survey by [Kaya & Bilge (2019)][deep_metric_learning_survey].
+- The methods that I will describe in the section ["State-of-the-Art Approaches"](#state-of-the-art-approaches) outperforms these approaches in most cases of **supervised** deep metric learning anyways.
+
+To learn more about Contrastive Learning approaches in more general setting (i.e. not only in Metric Learning), I highly recommend the overview blog post by [Lilian Weng (2021)][lillog_contrastive]. This branch of research is still in active development, usually for Representation Learning or Manifold Learning purposes.
 
 
 <a name="contrastive-loss"></a>
 ### Contrastive Loss
 
-This is a classic loss function for metric learning. **Contrastive Loss** ([Chopra et al. 2005][contrastive_loss_paper]) is one of the simplest and most intuitive training objectives. Let $$x_1, x_2$$ be some samples in the dataset, and $$y_1, y_2$$ are their corresponding labels. The loss function is then defined as follows:
+This is a classic loss function for metric learning. **Contrastive Loss** ([Chopra et al. 2005][contrastive_loss_paper]) is one of the simplest and most intuitive training objectives. Let $$x_1, x_2$$ be some samples in the dataset, and $$y_1, y_2$$ are their corresponding labels. Also, for some condition $$A$$, let's denote $$\unicode{x1D7D9}_A$$ as the identity function that is equal to $$1$$ if $$A$$ is true, and $$0$$ otherwise. The loss function is then defined as follows:
 
 $$
 \begin{equation*}
@@ -131,7 +135,7 @@ where $$\alpha$$ is the margin. The reason we need a margin value is that otherw
     {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/triplet_loss.png
 {% endcapture %}
 {% capture imcaption_tripletloss %}
-  Fig 1: The core idea of Triplet Loss (Image source: [Schroff et al. 2015](https://arxiv.org/abs/1503.03832))
+  The core idea of Triplet Loss (Image source: [Schroff et al. 2015](https://arxiv.org/abs/1503.03832))
 {% endcapture %}
 {% include gallery images=imblock_tripletloss cols=1 caption=imcaption_tripletloss %}
 
@@ -165,7 +169,7 @@ Despite its popularity, Triplet Loss has a lot of limitations. Over the past yea
     {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/metric_losses.png
 {% endcapture %}
 {% capture imcaption_metriclosses %}
-  Fig 2: A visual overview of different deep metric learning approaches that are based on the same idea as the Triplet Loss objective (Image source: [Kaya & Bilge, 2019](https://www.mdpi.com/2073-8994/11/9/1066/htm))
+  A visual overview of different deep metric learning approaches that are based on the same idea as the Triplet Loss objective (Image source: [Kaya & Bilge, 2019](https://www.mdpi.com/2073-8994/11/9/1066/htm))
 {% endcapture %}
 {% include gallery images=imblock_metriclosses cols=1 caption=imcaption_metriclosses %}
 
@@ -263,10 +267,10 @@ The methods described in this section are part of a wider family of machine lear
 ---------------------------------------------------------------------------------
 
 
-<a name="moving-away-from-direct-approaches"></a>
-## Moving Away from Direct Approaches
+<a name="moving-away-from-contrastive-approaches"></a>
+## Moving Away from Contrastive Approaches
 
-After countless research papers attempting to solve the problems and limitations of [Triplet Loss](#triplet-loss), it became clear that learning to directly minimize/maximize euclidean ($$l_2$$) distance between samples with the same/different labels may not be the way to go. There are two main issues of such approaches:
+After countless research papers attempting to solve the problems and limitations of [Triplet Loss](#triplet-loss) in the context of Supervised Deep Metric Learning, it became clear that learning to directly minimize/maximize euclidean distance between samples with the same/different labels may not be the way to go. There are two main issues of such approaches:
 
 - **Expansion Issue** &mdash; it is very hard to ensure that samples with a similar label will be pulled together to a common region in space as noted by [Sohn (2016)][n_pair_loss_paper] (mentioned in the previous section). [Quadruplet Loss](#quadruplet-loss) only improves the variability, and [Structured Loss](#structured-loss) can only enforce the structure locally for the samples in the batch, not globally. Attempts to solve this problem directly with a global objective ([Magnet Loss, Rippel et al. 2015][magnet_loss_paper] and [Clustering Loss, Song et al. 2017][clustering_loss_paper]) were not successful in gaining much traction due to scalability issues.
 
@@ -299,7 +303,7 @@ Let's have a look at the training dynamics of the Softmax objective and how the 
   {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/softmax_test.gif
 {% endcapture %}
 {% capture imcaption_softmaxmnist %}
-  Fig 3: The training dynamics of Softmax Loss on MNIST. The feature maps were projected onto 2D space to produce this visualization. On the left is the dynamics on train set, and on the right is the dynamics on test set. (Image source: [KaiYang Zhou](https://github.com/KaiyangZhou/pytorch-center-loss))
+  The training dynamics of Softmax Loss on MNIST. The feature maps were projected onto 2D space to produce this visualization. On the left is the dynamics on train set, and on the right is the dynamics on test set. (Image source: [KaiYang Zhou](https://github.com/KaiyangZhou/pytorch-center-loss))
 {% endcapture %}
 {% include gallery images=imblock_softmaxmnist cols=2 caption=imcaption_softmaxmnist %}
 
@@ -319,7 +323,7 @@ where $$c_j$$ is also updated using gradient descent with $$\mathcal{L}_\text{ce
   {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/center_test.gif
 {% endcapture %}
 {% capture imcaption_centermnist %}
-  Fig 4: The training dynamics of Center Loss on MNIST. The feature maps were projected onto 2D space to produce this visualization. On the left is the dynamics on train set, and on the right is the dynamics on test set. (Image source: [KaiYang Zhou](https://github.com/KaiyangZhou/pytorch-center-loss))
+  The training dynamics of Center Loss on MNIST. The feature maps were projected onto 2D space to produce this visualization. On the left is the dynamics on train set, and on the right is the dynamics on test set. (Image source: [KaiYang Zhou](https://github.com/KaiyangZhou/pytorch-center-loss))
 {% endcapture %}
 {% include gallery images=imblock_centermnist cols=2 caption=imcaption_centermnist %}
 
@@ -423,7 +427,7 @@ The differences between Softmax, Modified Softmax, and SphereFace is schematical
     {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/sphereface_1.svg
 {% endcapture %}
 {% capture imcaption_sphereface_1 %}
-  Fig 5: Difference between Softmax, Modified Softmax, and SphereFace. A 2D features model was trained on CASIA data to produce this visualization. One can see that features learned by the original softmax loss can not be
+  Difference between Softmax, Modified Softmax, and SphereFace. A 2D features model was trained on CASIA data to produce this visualization. One can see that features learned by the original softmax loss can not be
 classified simply via angles, while modified softmax loss can. The SphereFace loss further increases the angular margin of learned features. (Image source: [Liu et al. 2017](https://arxiv.org/abs/1704.08063))
 {% endcapture %}
 {% include gallery images=imblock_sphereface_1 cols=1 caption=imcaption_sphereface_1 %}
@@ -438,6 +442,7 @@ classified simply via angles, while modified softmax loss can. The SphereFace lo
 [center_loss_paper]: https://link.springer.com/chapter/10.1007/978-3-319-46478-7_31
 [large_margin_paper]: https://arxiv.org/abs/1612.02295
 [sphereface_paper]: https://arxiv.org/abs/1704.08063
+[pullback]: https://en.wikipedia.org/wiki/Pullback_(differential_geometry)
 
 
 
@@ -448,7 +453,9 @@ classified simply via angles, while modified softmax loss can. The SphereFace lo
 ## State-of-the-Art Approaches
 
 
-The success of [SphereFace](#sphereface) resulted in an avalanche of new methods that are based on the idea of employing angular distance with angular margin.
+The success of [SphereFace](#sphereface) resulted in an avalanche of new methods that are based on the idea of employing angular distance with angular margin. 
+
+Please note that these methods are only applicable to Supervised Deep Metric Learning setting. In an Unsupervised setting, or in case when we have a lot of out-of-distribution samples during test time, Contrastive Learning approaches are still amongst the most decent choices.
 
 
 <a name="cosface"></a>
@@ -481,7 +488,7 @@ where $$s$$ is referred to as the **scaling** parameter, and $$m$$ is referred t
     {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/cosface_1.svg
 {% endcapture %}
 {% capture imcaption_cosface_1 %}
-  Fig 6: Geometrical interpretation of CosFace from a feature perspective. Different colors represent feature space from different classes. CosFace has a relatively compact feature region compared with Modified Softmax (Image source: [Wang et al. 2018](https://arxiv.org/abs/1801.09414))
+  Geometrical interpretation of CosFace from a feature perspective. Different colors represent feature space from different classes. CosFace has a relatively compact feature region compared with Modified Softmax (Image source: [Wang et al. 2018](https://arxiv.org/abs/1801.09414))
 {% endcapture %}
 {% include gallery images=imblock_cosface_1 cols=1 caption=imcaption_cosface_1 %}
 
@@ -523,7 +530,7 @@ as the number of classes increases, the upper bound of the cosine margin between
     {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/cosface_2.svg
 {% endcapture %}
 {% capture imcaption_cosface_2 %}
-  Fig 7: Decision boundaries of different loss functions in cosine space (Image source: [Wang et al. 2018](https://arxiv.org/abs/1801.09414))
+  Decision boundaries of different loss functions in cosine space (Image source: [Wang et al. 2018](https://arxiv.org/abs/1801.09414))
 {% endcapture %}
 {% include gallery images=imblock_cosface_2 cols=1 caption=imcaption_cosface_2 %}
 
@@ -557,9 +564,21 @@ where $$s$$ is the scaling parameter and $$m$$ is referred to as the margin para
     {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/arcface.svg
 {% endcapture %}
 {% capture imcaption_arcface %}
-  Fig 8: Decision boundaries of different loss functions in the angle space. ArcFace has a constant linear angular margin throughout the whole interval. (Image source: [Deng et al. 2019](https://openaccess.thecvf.com/content_CVPR_2019/papers/Deng_ArcFace_Additive_Angular_Margin_Loss_for_Deep_Face_Recognition_CVPR_2019_paper.pdf))
+  Decision boundaries of different loss functions in the angle space. ArcFace has a constant linear angular margin throughout the whole interval. (Image source: [Deng et al. 2019](https://openaccess.thecvf.com/content_CVPR_2019/papers/Deng_ArcFace_Additive_Angular_Margin_Loss_for_Deep_Face_Recognition_CVPR_2019_paper.pdf))
 {% endcapture %}
 {% include gallery images=imblock_arcface cols=1 caption=imcaption_arcface %}
+
+Face recognition datasets are used as standard benchmark for [CosFace](#cosface), [ArcFace](#arcface), and other angular margin methods, because it is the most popular application of deep metric learning. Here are some ablation study and comparison of loss functions:
+
+<a name="fig-arcface-ablation"></a>
+{% capture imblock_arcface_ablation %}
+  {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/arcface_ablation_1.svg
+  {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/arcface_ablation_2.svg
+{% endcapture %}
+{% capture imcaption_arcface_ablation %}
+  Ablation study of loss functions on different benchmarks. In the first table, verification results (in %) of different loss functions are reported for LFW, CFP-FP, and AgeDB-30 benchmarks. On the second table, verification on Megaface is reported, where "Id" refers to the rank-1 face identification accuracy with 1M distractors, and "Ver" refers to the face verification TAR at $$10^{-6}$$ FAR. "R" refers to data refinement on both probe set and 1M distractors. (Image source: [Deng et al. 2019](https://openaccess.thecvf.com/content_CVPR_2019/papers/Deng_ArcFace_Additive_Angular_Margin_Loss_for_Deep_Face_Recognition_CVPR_2019_paper.pdf))
+{% endcapture %}
+{% include gallery images=imblock_arcface_ablation cols=2 caption=imcaption_arcface_ablation %}
 
 
 <a name="adacos"></a>
@@ -594,7 +613,7 @@ Now, let's plot the value of $$P_{i,j}$$ against the angle $$\theta_{i,y_i}$$ be
     {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/adacos_s_analysis.svg
 {% endcapture %}
 {% capture imcaption_adacos_s_anal %}
-  Fig 9: curves of $$P_{i,j}$$ by choosing different ArcFace scale parameters (Image source: [Zhang et al. 2019](https://openaccess.thecvf.com/content_CVPR_2019/papers/Zhang_AdaCos_Adaptively_Scaling_Cosine_Logits_for_Effectively_Learning_Deep_Face_CVPR_2019_paper.pdf))
+  curves of $$P_{i,j}$$ by choosing different ArcFace scale parameters (Image source: [Zhang et al. 2019](https://openaccess.thecvf.com/content_CVPR_2019/papers/Zhang_AdaCos_Adaptively_Scaling_Cosine_Logits_for_Effectively_Learning_Deep_Face_CVPR_2019_paper.pdf))
 {% endcapture %}
 {% include gallery images=imblock_adacos_s_anal cols=1 caption=imcaption_adacos_s_anal %}
 
@@ -607,7 +626,7 @@ Let's take a look at the $$P_{i, y_i}$$ curves of different values of the margin
     {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/adacos_m_analysis.svg
 {% endcapture %}
 {% capture imcaption_adacos_m_anal %}
-  Fig 10: curves of $$P_{i,j}$$ by choosing different ArcFace margin parameters (Image source: [Zhang et al. 2019](https://openaccess.thecvf.com/content_CVPR_2019/papers/Zhang_AdaCos_Adaptively_Scaling_Cosine_Logits_for_Effectively_Learning_Deep_Face_CVPR_2019_paper.pdf))
+  curves of $$P_{i,j}$$ by choosing different ArcFace margin parameters (Image source: [Zhang et al. 2019](https://openaccess.thecvf.com/content_CVPR_2019/papers/Zhang_AdaCos_Adaptively_Scaling_Cosine_Logits_for_Effectively_Learning_Deep_Face_CVPR_2019_paper.pdf))
 {% endcapture %}
 {% include gallery images=imblock_adacos_m_anal cols=1 caption=imcaption_adacos_m_anal %}
 
@@ -701,7 +720,7 @@ The main goal of the [Kaggle Humpback Whale Challenge][humpback_whale_challenge]
     {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/humpback_whale_intro.png
 {% endcapture %}
 {% capture imcaption_humpback_intro %}
-  Fig 11: Example of 9 photos of the same whale from the training data
+  Example of 9 photos of the same whale from the training data
 {% endcapture %}
 {% include gallery images=imblock_humpback_intro cols=1 caption=imcaption_humpback_intro %}
 
@@ -738,7 +757,7 @@ The [Google Landmarks Challenge][kaggle_glc2020] is a large-scale competition, w
     {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/google_landmarks_intro.png
 {% endcapture %}
 {% capture imcaption_google_landmarks_intro %}
-  Fig 12: Some beautiful samples from Google Landmarks Dataset V2
+  Some beautiful samples from Google Landmarks Dataset V2
 {% endcapture %}
 {% include gallery images=imblock_google_landmarks_intro cols=1 caption=imcaption_google_landmarks_intro %}
 
@@ -763,7 +782,7 @@ As usual, winning solutions contain a lot of tricks and wizardry. However, in th
     {{ site.url }}/articles/images/2021-06-14-deep-metric-learning-survey/arcface_network_arch.png
 {% endcapture %}
 {% capture imcaption_net_gem_af %}
-  Fig 13: The variants of this architecture were used by all teams in the top 100.
+  The variants of this architecture were used by all teams in the top 100.
 {% endcapture %}
 {% include gallery images=imblock_net_gem_af cols=1 caption=imcaption_net_gem_af%}
 
@@ -823,9 +842,9 @@ These 2 challenges mean that top competitors are forced to design very sophistic
 ## So, which method is State-of-the-Art?
 
 It really depends on your specific task and your data. As of now, I would recommend the following:
-- If you don't have much data, [Triplet Loss](#triplet-loss) might still be a solid option. The 3rd place on [Shopee Price Match Guarantee Challenge](#shopee-price-match) clearly demonstrated that.
-- Otherwise, [ArcFace](#arcface) and its variants are definitely the way to go, as demonstrated by top performers of recent competitions on Kaggle. If your data has a large intra-class variability and a long tail of rare classes, [Sub-Center ArcFace](#subcenter-arcface) + [Dynamic Margin](#afdynmargin) is probably the method you need to consider. Don't forget to use [GeM][gem_pooling] and follow the architecture as shown in [Fig. 13](#fig-net-gem-af).
-- Depending on the task, Metric Learning alone would often not be enough. Usually, it is used with [Query Expansion][wiki_qe], [Feature Matching][wiki_pfm], and other post-processing methods.
+- If you don't have much data, or in an unsupervised setting, [Triplet Loss](#triplet-loss) might still be a solid option. The 3rd place on [Shopee Price Match Guarantee Challenge (2020)](#shopee-price-match) clearly demonstrated that.
+- Otherwise, in a strictly supervised setting, where you don't expect wildly out-of-distribution samples in test set, [ArcFace](#arcface) and its variants are definitely the way to go, as demonstrated by top performers of recent competitions on Kaggle. If your data has a large intra-class variability and a long tail of rare classes, [Sub-Center ArcFace](#subcenter-arcface) + [Dynamic Margin](#afdynmargin) is probably the method you need to consider. Don't forget to use [GeM][gem_pooling] and follow the architecture as shown in [Fig. 14](#fig-net-gem-af).
+- Depending on the task, Metric Learning alone would often not be enough. In image retrieval tasks, it is often paired with [Query Expansion][wiki_qe], [Feature Matching][wiki_pfm], and other post-processing and verification methods.
 
 I will try to keep this blog post updated with the latest State-of-the-Art methods.
 
@@ -839,12 +858,12 @@ I will try to keep this blog post updated with the latest State-of-the-Art metho
 
 Cite as:
 
-```
+```plaintext
 @online{hav4ik2021deepmetriclearning,
-  author = {Kha Vu, Chan},
-  title = {Deep Metric Learning: A (Long) Survey},
-  year = 2021,
-  url = {https://hav4ik.github.io/articles/deep-metric-learning-survey},
+  author = "Kha Vu, Chan",
+  title = "Deep Metric Learning: A (Long) Survey",
+  year = "2021",
+  url = "https://hav4ik.github.io/articles/deep-metric-learning-survey",
 }
 ```
 
