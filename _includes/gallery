@@ -25,6 +25,7 @@
     {% endif %}
     {% endfor %}
     {% if caption %}
-    <figcaption>{{ caption | markdownify | remove: '<p>' | remove: '</p>' }}</figcaption>
+    {% assign fig_count = fig_count|plus:1 %}
+    <figcaption>Fig {{ fig_count }}: {{ caption | markdownify | remove: '<p>' | remove: '</p>' }}</figcaption>
     {% endif %}
 </figure>

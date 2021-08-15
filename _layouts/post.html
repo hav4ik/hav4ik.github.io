@@ -37,6 +37,12 @@
           </h4>
           {% endif %}
         </div>
+        {% for update_notice in page.updates %}
+          <blockquote>
+            <span style="color: #fc0303;">Updated on {{ update_notice.date }}:</span>
+            <span style="color:#286ee0;">{{ update_notice.description }}</span>
+          </blockquote>
+        {% endfor %}
         {{ content }}
         {% if page.comments == true and site.disqus_shortname %}
           <div class="comments">
