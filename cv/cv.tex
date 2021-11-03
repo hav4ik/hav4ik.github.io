@@ -1,0 +1,209 @@
+
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+% \usepackage[pdftex]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[colorlinks=true,linkcolor=darkblue]{hyperref}
+\usepackage{fontawesome}
+\usepackage[margin=0.4in]{geometry}
+
+
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-4pt}\scshape\raggedright\large
+}{}{0em}{}[\color{black}\titlerule \vspace{-5pt}]
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item[--]\small{
+    {#1 \vspace{-2pt}}
+  }
+}
+\newcommand{\resumeItemWithHeader}[2]{
+  \item[--]\small{
+    \textbf{#1}{ #2 \vspace{-2pt}}
+  }
+}
+
+\newcommand{\awardsCustomItem}[2]{
+  \item[--]
+  \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+    {\small#1} & \textit{\small#2} \\
+  \end{tabular*}\vspace{-7.5pt}
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-1pt}\item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-5pt}
+}
+
+\newcommand{\resumeSubheadingSection}[2]{
+  \vspace{-1pt}
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textit{\small#1} & \textit{\small #2} \\
+    \end{tabular*}\vspace{-5pt}
+}
+
+\newcommand{\resumeSubheadingWithDesc}[5]{
+  \vspace{-1pt}\item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}
+    \vspace{-1pt}
+    {\small #5}
+    \vspace{-5pt}
+}
+
+\newcommand{\resumeSubItemNoHeader}[1]{\resumeItem{#1}\vspace{-4pt}}
+\newcommand{\resumeSubItem}[2]{\resumeItemWithHeader{#1}{#2}\vspace{-4pt}}
+
+\renewcommand{\labelitemii}{$\circ$}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=*]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}}
+\newcommand{\resumeItemListStart}{\begin{itemize}[leftmargin=*]}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-5pt}}
+
+% Ensure that generate pdf is machine readable/ATS parsable
+\pdfgentounicode=1
+
+
+%-------------------------------------------
+%%%%%%  CV STARTS HERE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{document}
+
+%----------HEADING-----------------
+
+
+\centerline{\textbf{{\LARGE Kha Vu Chan}}}\medskip
+\centerline{
+\faEnvelope \, \href{mailto:chankhavu@gmail.com}{chankhavu@gmail.com} \quad
+\faLink \, \href{https://hav4ik.github.io/}{hav4ik.github.io} \quad
+\faLinkedinSquare \, \href{https://www.linkedin.com/in/ha-vu-tran/}{ha-vu-tran} \quad
+% \faStackOverflow \, \href{https://stackoverflow.com/users/4789373/}{FalconUA} \quad
+\faGithub \, \href{https://github.com/hav4ik}{hav4ik}
+}
+
+
+%-----------EXPERIENCE-----------------
+\section{Experience}
+  \resumeSubHeadingListStart
+
+    \resumeSubheading
+      {Microsoft}{Seattle Area, WA}
+      {Software Engineer, Core Relevance Team, Bing Image Search}{2019 --- Present}
+      \resumeItemListStart
+        \resumeItem{{\bf Accelerated} the training pipeline of the Bing Image {\bf Search Relevance Ranking} model by a {\bf 2x factor} and scaled it up, allowing more frequent shipment of relevance ranking models and enabling shorter experimentation iterations.}
+        \resumeItem{From 2019 to 2020, worked in Excel. Created features to help users make more accessible docs. Worked on both back-end and client side for all supported platforms. Created a VSCode extension that makes the usage of internal tools easier.}
+      \resumeItemListEnd
+
+    \resumeSubheading
+      {Samsung Research}{Kyiv, Ukraine}
+      {Machine Learning Engineer at Context Recognition Lab}{Feb 2017 --- Oct 2019}
+      \resumeItemListStart
+        \resumeItem
+          {Optimized neural networks for mobile devices using pruning, quantization, representation sharing, distillation, weights sharing, and more. Achieved near-SOTA results with {\bf 50x improvement} in speed and memory usage.}
+        \resumeItem
+          {For 2 months, temporarily {\bf led a team} of 3 engineers for a Multi-Task Learning On-Device AI project. Drove the R\&D process, technical decisions, and overall direction of the project. Was responsible for the project's progress.}
+        \resumeItem
+          {Developed State-of-the-Art Deep Learning models for real-time Monocular 3D Scene Reconstruction, Tracking, and Semantic Understanding for indoor scenes. Improved the stability of trained models by utilizing tracking data.}
+      \resumeItemListEnd
+  \resumeSubHeadingListEnd
+
+
+
+%-----------EDUCATION-----------------
+\section{Education}
+  \resumeSubHeadingListStart
+    \resumeSubheading
+      {Taras Shevchenko National University of Kyiv}{Kyiv, Ukraine}
+      {Master of Science in Applied Mathematics, specialized in Computational Mathematics.}
+      {Sep 2017 -- Jun 2019}
+      \resumeItemListStart
+        \resumeItemWithHeader{MS thesis:}{Adaptive representation sharing in Multi-Task Networks. Developed a new greedy NAS method to find the optimal multi-task branching. Implemented other SOTA multi-objective gradient aggregation and NAS methods.}
+      \resumeItemListEnd
+    \resumeSubheadingSection
+      {Bachelor of Science in Applied Mathematics, specialized in Computational Mathematics.}
+      {Sep 2013 -- Jun 2017}
+      \resumeItemListStart
+        \resumeItemWithHeader{BS thesis:}{Breast Cancer Screening by analyzing the Interphase Nuclei of the Buccal Epithelium using Computer Vision techniques. Calibrated data to mitigate medical instrument biases. Developed an instance segmentation model.}
+      \resumeItemListEnd
+  \resumeSubHeadingListEnd
+
+
+%-----------PROJECTS-----------------
+\section{Projects}
+  \resumeSubHeadingListStart
+    \resumeSubItem{Hydra -- a Deep Multi-Task Learning framework.}
+      {Implemented SOTA Multi-Objective Optimization methods (e.g. GradNorm, MGDA-UB) and developed a new NAS method for Multi-Task Neural Nets.  (\href{https://github.com/hav4ik/Hydra}{github.com/hav4ik/Hydra})}
+    \resumeSubItem{Eyesight -- a framework for Real-Time Computer Vision.}
+      {A framework similar to MediaPipe for running real-time Computer Vision pipelines at the Edge. Supports Coral Edge TPU, RPi Camera, and more. (\href{https://github.com/hav4ik/eyesight}{github.com/hav4ik/eyesight})}
+    \resumeSubItem{Google Landmarks Challenge 2020.}{In just 3 weeks (out of 2 months), created a large-scale deep metric learning, image retrieval, and re-ranking system. Created a novel training routine for ArcFace. Finished 22nd from 736 teams (top 3\%).}
+    \resumeSubItem{Non-invasive \& radiation-free Breast Cancer screening using ML}
+      {at Department of Computational Mathematics, collaborating with the Institute of Experimental Pathology, Oncology and Radiology of Kyiv. (2016 --- 2018)}
+  \resumeSubHeadingListEnd
+
+
+%--------AWARDS AND HONORS-------------
+\section{Awards and Honors}
+  \resumeSubHeadingListStart
+    \awardsCustomItem
+      {All-Ukrainian Computer Science Competition by Minor Academy of Sciences ({\bf 3rd} place and {\bf 3rd place})}{2012 and 2013}
+    \awardsCustomItem
+      {All-Ukrainian {\it Intel ISEF} Competition ({\bf 3rd} place and {\bf 3rd} place)}{2012 and 2013}
+  \resumeSubHeadingListEnd
+
+
+%--------TALKS, LECTURES, BLOG POSTS--------
+\section{Talks, Lectures, Blogs, and Volunteering}
+  \resumeSubHeadingListStart
+    \resumeSubItem{Deep Metric Learning lecture.}
+      {Gave a lecture to Kyiv Data Science community. Live-stream: \href{https://www.youtube.com/watch?v=aU9yEwgrJ54}{y2u.be/aU9yEwgrJ54}.}
+    \resumeSubItem{\href{https://hav4ik.github.io/articles/}{hav4ik.github.io}}
+      {--- my personal blog where I write in-depth surveys and articles related to math and machine learning.}
+    \resumeSubItem{Competitive programming trainer.}
+      {Prepared talented high-school students for the CS olympiads. (2013 --- 2014)}
+    
+  \resumeSubHeadingListEnd
+
+%-------------SKILLS-------------------
+\section{Skills}
+ \resumeSubHeadingListStart
+   \resumeSubItem{\bf Programming Languages:}
+     {C/C++, Python, C\#, S\#, TypeScript, SQL, KustoQL, Bash, Java, JavaScript, MatLab.}
+   \resumeSubItem{\bf Technologies:}
+     {PyTorch, TensorFlow, Keras, TF-Lite, OpenCV, scikit-learn, LightGBM, .NET, Django, Unreal Engine, QT, Android Programming, Caffe, AzureML, Apache Spark, Docker, Kubernetes, GCP, AWS.}
+   \resumeSubItem{\bf Languages:}
+     {English (TOEFL iBT 102), Vietnamese (native), Russian (native), Ukrainian (native).}
+ \resumeSubHeadingListEnd
+
+
+%-------------------------------------------
+\end{document}
