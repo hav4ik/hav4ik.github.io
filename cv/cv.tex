@@ -1,4 +1,3 @@
-
 \documentclass[letterpaper,11pt]{article}
 
 \usepackage{latexsym}
@@ -20,7 +19,7 @@
 \fancyfoot{}
 \renewcommand{\headrulewidth}{0pt}
 \renewcommand{\footrulewidth}{0pt}
-
+\setlength{\footskip}{4.08003pt} % to supress package fancyhdr warning
 
 \urlstyle{same}
 
@@ -118,22 +117,23 @@
 
     \resumeSubheading
       {Microsoft}{Seattle Area, WA}
-      {Software Engineer, Core Relevance Team, Bing Image Search}{2019 --- Present}
+      {Software Engineer --- Bing Image Search --- Core Relevance Team}{2019 --- Present}
       \resumeItemListStart
         \resumeItem{{\bf Accelerated} the training pipeline of the Bing Image {\bf Search Relevance Ranking} model by a {\bf 2x factor} and scaled it up, allowing more frequent shipment of relevance ranking models and enabling shorter experimentation iterations.}
-        \resumeItem{From 2019 to 2020, worked in Excel. Created features to help users make more accessible docs. Worked on both back-end and client side for all supported platforms. Created a VSCode extension that makes the usage of internal tools easier.}
+        \resumeItem{Migrated the training pipeline of my team's Image Search Relevance Ranking model to AzureML platform. Improved the model development and experimentation process. Suggested design improvements to Azure \href{https://componentsdk.z22.web.core.windows.net/}{Component SDK} and \href{https://github.com/Azure/shrike}{Shrike}.}
+        \resumeItem{From 2019 to 2021, worked in Excel. Created features to help users make more accessible docs. Worked on both back-end and client side for all supported platforms. Created a VSCode extension that makes the usage of internal tools easier.}
       \resumeItemListEnd
 
     \resumeSubheading
       {Samsung Research}{Kyiv, Ukraine}
-      {Machine Learning Engineer at Context Recognition Lab}{Feb 2017 --- Oct 2019}
+      {Machine Learning Engineer --- Context Recognition Lab}{Feb 2017 --- Oct 2019}
       \resumeItemListStart
         \resumeItem
           {Optimized neural networks for mobile devices using pruning, quantization, representation sharing, distillation, weights sharing, and more. Achieved near-SOTA results with {\bf 50x improvement} in speed and memory usage.}
         \resumeItem
-          {For 2 months, temporarily {\bf led a team} of 3 engineers for a Multi-Task Learning On-Device AI project. Drove the R\&D process, technical decisions, and overall direction of the project. Was responsible for the project's progress.}
+          {For 2 months, temporarily {\bf led a team} of 3 engineers for a Multi-Task Learning On-Device AI project. Drove the R\&D process, technical decisions, and overall direction of the project. Was responsible for the project's progress and results.}
         \resumeItem
-          {Developed State-of-the-Art Deep Learning models for real-time Monocular 3D Scene Reconstruction, Tracking, and Semantic Understanding for indoor scenes. Improved the stability of trained models by utilizing tracking data.}
+          {Developed State-of-the-Art Deep Neural Networks for real-time Monocular 3D Scene Reconstruction of indoor scenes. Improved the stability of trained models by utilizing Tracking, SLAM, Object and Occlusion Detection techniques.}
       \resumeItemListEnd
   \resumeSubHeadingListEnd
 
@@ -164,10 +164,8 @@
     \resumeSubItem{Hydra -- a Deep Multi-Task Learning framework.}
       {Implemented SOTA Multi-Objective Optimization methods (e.g. GradNorm, MGDA-UB) and developed a new NAS method for Multi-Task Neural Nets.  (\href{https://github.com/hav4ik/Hydra}{github.com/hav4ik/Hydra})}
     \resumeSubItem{Eyesight -- a framework for Real-Time Computer Vision.}
-      {A framework similar to MediaPipe for running real-time Computer Vision pipelines at the Edge. Supports Coral Edge TPU, RPi Camera, and more. (\href{https://github.com/hav4ik/eyesight}{github.com/hav4ik/eyesight})}
-    \resumeSubItem{Google Landmarks Challenge 2020.}{In just 3 weeks (out of 2 months), created a large-scale deep metric learning, image retrieval, and re-ranking system. Created a novel training routine for ArcFace. Finished 22nd from 736 teams (top 3\%).}
-    \resumeSubItem{Non-invasive \& radiation-free Breast Cancer screening using ML}
-      {at Department of Computational Mathematics, collaborating with the Institute of Experimental Pathology, Oncology and Radiology of Kyiv. (2016 --- 2018)}
+      {A framework similar to \href{https://google.github.io/mediapipe/}{MediaPipe} for running real-time Computer Vision pipelines at the Edge. Supports Coral Edge TPU, RPi Camera, and more. (\href{https://github.com/hav4ik/eyesight}{github.com/hav4ik/eyesight})}
+    \resumeSubItem{Google Landmarks Challenge 2020.}{In just 3 weeks (out of 2 months), created a large-scale deep metric learning, image retrieval, and re-ranking system. Created a novel training routine for ArcFace. Finished 22nd out of 736 teams ({\bf top 3\%}).}
   \resumeSubHeadingListEnd
 
 
@@ -175,34 +173,34 @@
 \section{Awards and Honors}
   \resumeSubHeadingListStart
     \awardsCustomItem
-      {All-Ukrainian Computer Science Competition by Minor Academy of Sciences ({\bf 3rd} place and {\bf 3rd place})}{2012 and 2013}
+      {All-Ukrainian Computer Science Competition by Minor Academy of Sciences ({\bf 3rd place} in 2012 and {\bf 3rd place} in 2013).}{}
     \awardsCustomItem
-      {All-Ukrainian {\it Intel ISEF} Competition ({\bf 3rd} place and {\bf 3rd} place)}{2012 and 2013}
+      {All-Ukrainian Intel ISEF Competition for high school students ({\bf 3rd place} in 2012 and {\bf 3rd place} in 2013).}{}
   \resumeSubHeadingListEnd
 
 
 %--------TALKS, LECTURES, BLOG POSTS--------
-\section{Talks, Lectures, Blogs, and Volunteering}
+\section{Miscellaneous}
   \resumeSubHeadingListStart
-    \resumeSubItem{Deep Metric Learning lecture.}
-      {Gave a lecture to Kyiv Data Science community. Live-stream: \href{https://www.youtube.com/watch?v=aU9yEwgrJ54}{y2u.be/aU9yEwgrJ54}.}
-    \resumeSubItem{\href{https://hav4ik.github.io/articles/}{hav4ik.github.io}}
-      {--- my personal blog where I write in-depth surveys and articles related to math and machine learning.}
-    \resumeSubItem{Competitive programming trainer.}
-      {Prepared talented high-school students for the CS olympiads. (2013 --- 2014)}
+    \resumeSubItem{Deep Metric Learning lecturer}
+      {(2021). Gave a lecture to Kyiv DS community. Live-stream: \href{https://youtu.be/aU9yEwgrJ54}{youtu.be/aU9yEwgrJ54}.}
+    \resumeSubItem{\href{https://hav4ik.github.io/articles}{hav4ik.github.io/articles}}
+      {--- personal blog where I write in-depth surveys \& posts related to math and deep learning.}
+    \resumeSubItem{Competitive programming coach}
+      {(2013 --- 2014). Prepared talented high-school students for National CS Olympiad.}
     
   \resumeSubHeadingListEnd
 
 %-------------SKILLS-------------------
 \section{Skills}
- \resumeSubHeadingListStart
-   \resumeSubItem{\bf Programming Languages:}
-     {C/C++, Python, C\#, S\#, TypeScript, SQL, KustoQL, Bash, Java, JavaScript, MatLab.}
-   \resumeSubItem{\bf Technologies:}
-     {PyTorch, TensorFlow, Keras, TF-Lite, OpenCV, scikit-learn, LightGBM, .NET, Django, Unreal Engine, QT, Android Programming, Caffe, AzureML, Apache Spark, Docker, Kubernetes, GCP, AWS.}
-   \resumeSubItem{\bf Languages:}
-     {English (TOEFL iBT 102), Vietnamese (native), Russian (native), Ukrainian (native).}
- \resumeSubHeadingListEnd
+  \resumeSubHeadingListStart
+    \resumeSubItem{\bf Programming Languages:}
+      {C/C++, Python, C\#, S\#, TypeScript, SQL, KustoQL, Bash, Java, JavaScript, MatLab.}
+    \resumeSubItem{\bf Technologies \& Frameworks:}
+      {PyTorch, TensorFlow, Keras, TF-Lite, OpenCV, scikit-learn, LightGBM, .NET, Django, Unreal Engine, QT, Android Programming, Caffe, AzureML, Apache Spark, Docker, Kubernetes, GCP, AWS.}
+    \resumeSubItem{\bf Languages:}
+      {English (TOEFL iBT 102), Vietnamese (native), Russian (native), Ukrainian (native).}
+  \resumeSubHeadingListEnd
 
 
 %-------------------------------------------

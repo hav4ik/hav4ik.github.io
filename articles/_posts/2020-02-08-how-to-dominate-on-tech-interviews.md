@@ -12,7 +12,7 @@ excerpt: "Do you want to dominate your interviewer? Wanna bring him to his knees
 comments: true
 ---
 
-> **NOTE**: this is a **Troll Post**, and I used strong / offensive language tone for satirical purposes. Interviewers are very good people, please treat them with respect and just show what you're capable for :)
+> **NOTE**: this is a **Troll Post**, and I used strong and offensive language tone for satirical purposes. Interviewers are very good and extremely smart people, usually with many years of experience of building amazing products. Please treat them with respect and just show what you're capable for :)
 
 ----------------------------------------------------------------------------------------------------------------------
 
@@ -45,6 +45,13 @@ Below are the most common interview questions, taken from [Geek4Geeks: top inter
 *  **Virgin:** <s><font color="#777">Well, let's take a random node and run DFS from it, then mark the nodes that we visited &mdash; they belong to the same component. Increase the counter by 1 and repeat the procedure for the un-marked nodes. At the end, the value of the counter is what we need.</font></s>
 
 *  **Chad:** It's simply $$\dim(\ker(L))$$, where $$L$$ is the [graph's (combinatorial) Laplacian][wiki-graph-laplacian]. Oh, you don't know what [kernel][nlab-kernel] is? It's just the [pullback][nlab-pullback] along $$L$$ of the unique morphism $$0 \to \text{im}(L)$$.
+
+
+#### Q: How to check if a graph is connected?
+
+* **Virgin:** <s><font color="#777">Take two bool arrays vis1 and vis2 of size N (number of nodes of a graph) and keep false in all indexes. Start at a random vertex v of the graph G, and run a DFS(G, v). Make all visited vertices v as vis1[v] = true. Now reverse the direction of all the edges. Start DFS at the same vertex v. Make all visited vertices v as vis2[v] = true. If any vertex v has vis1[v] = false and vis2[v] = false then the graph is not connected.</font></s>
+
+* **Chad:** Simply check if its first cohomology group vanishes, i.e. $$\textstyle H^0(G) = \{ 0 \}$$. [*(source)*][utube-cohomomoly-for-cs-02-51]
 
 
 #### Q: How to check if a directed graph is acyclic?
@@ -173,3 +180,5 @@ Special thanks to **@Quantum** and **Pochekay Nikolai** for suggesting some of t
 [sol-hamilton]: https://arxiv.org/pdf/1912.06603.pdf
 [sol-nqueens]: https://www.sciencedirect.com/science/article/pii/S0012365X07010394
 [sol-sudoku]: https://www.cambridge.org/core/books/a-first-course-in-computational-algebraic-geometry/sudoku/29C4710314733FB36D793D70F914B7A5
+
+[utube-cohomomoly-for-cs-02-51]: https://youtu.be/1wtq5A7VMsA?t=1761
