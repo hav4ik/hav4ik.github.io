@@ -50,7 +50,7 @@ Do you really expected me, a **Machine Learning engineer** and a **Mathematician
 *  I got the inspiration (the code) for post design from [here][post-design].
 *  The sleek portfolio design and buttons I got from [here][portfolio].
 *  From [here][liam-fedus] I stole the timeline! (that guy from MILA is really cool).
-*  Lilian Weng's [Lil'Log][lillog] is a huge inspiration on my blog. I took some of the styling elements from there.
+*  Lilian Weng's [Lil'Log][lillog] is a huge inspiration on my blog. I took some of the styling elements (i.e. CSS code) from there.
 
 I don't remember where I got the grid layout for [travelog][travelog] though. The awesome map I got from [mapael][mapael]. Well, basically, I just **copy-pasted** my way to this blog.
 

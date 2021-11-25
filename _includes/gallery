@@ -26,6 +26,8 @@
     {% endfor %}
     {% if caption %}
     {% assign fig_count = fig_count|plus:1 %}
-    <figcaption>Fig {{ fig_count }}: {{ caption | markdownify | remove: '<p>' | remove: '</p>' }}</figcaption>
+    <figcaption {% if width %}style="width: {{ width }}; max-width: calc(100vw - 30px); margin-right:auto;margin-left:auto;display:block; text-align: left;"{% endif %}>
+        Fig {{ fig_count }}: {{ caption | markdownify | remove: '<p>' | remove: '</p>' }}
+    </figcaption>
     {% endif %}
 </figure>
