@@ -7,10 +7,9 @@ image:
   feature: "/articles/images/2021-11-25-consistency/feature.jpg"
   display: false
 commits: "#"
-tags: [unsupervised learning, deep learning]
+tags: [unsupervised learning, deep learning, survey]
 excerpt: >-
-  The amount of data we can collect grows exponentially faster than our ability to label them.
-  One of the ways to train a model on unlabeled data is to exploit the invariances of the model's outputs.
+  One of the ways to train a model on unlabeled data is to use Consistency objectives to exploit the invariances of the model's outputs.
   This post is a curated list of examples of how Consistency Constraints are used in Unsupervised Learning.
   
 show_excerpt: true
@@ -18,7 +17,7 @@ comments: true
 hidden: true
 ---
 
-Despite the promising results of Deep Learning methods, most of the existing approaches are based on [supervised learning][supervised-learning] formulation and, as a result, require vast quantities of corresponding ground truth data for training. Evidence has shown again and again that [Richard Sutton's "Bitter Lesson"][bitter-lesson] is correct &mdash; usually, the best way to improve your AI system's performance is to feed more data to it. While it is relatively easy to collect a large amount of data, labeling that data is an enormously labor-expensive and time-consuming task. Being able to leverage a vast amount of unlabeled data and learn in an unsupervised fashion is extremely important for AI projects.
+Despite the promising results of Deep Learning methods, most of the existing approaches are based on [supervised learning][supervised-learning] formulation and, as a result, require vast quantities of corresponding ground truth data for training. According to [Richard Sutton's "Bitter Lesson"][bitter-lesson], the best performing AI system are the ones that can make use of more data. While it is relatively easy to collect a large amount of data, labeling that data is an enormously labor-expensive and time-consuming task. The amount of data we can collect grows exponentially faster than our ability to label them. Being able to leverage a vast amount of unlabeled data and learn in an unsupervised fashion is extremely important for AI projects.
 
 That is where **Consistency Constraints** come in. The idea behind this group of methods is quite elegant. Let's say you want to learn a mapping $$f \colon \mathcal{X} \to \mathcal{Y}$$ that minimizes some objective $$\mathcal{L}(f)$$ but you cannot optimize using this objective directly due to lack of labeled data. Instead, you enforce $$f$$ to be invariant under some manipulations of input data, thus reducing the space of possible mapping functions. The assumption here is that if $$f$$ satisfies your invariance constraints, it will also minimize $$\mathcal{L}(f)$$.
 
@@ -73,6 +72,9 @@ The depth estimation task was initially treated as a simple regression problem &
 <a name="left-right-consistency"></a>
 ### Unsupervised Monocular Depth Estimation with Left-Right Consistency
 
+> Paper: [arXiv:1609.03677][depth_godard2017]  
+> Consistency type(s): photometric consistency, disparity consistency.
+
 
 [Godard et al. (2017)][depth_godard2017] proposed an elegant way to learn depth estimation **without ground-truth** data while still achieving SOTA on the [Kitti][pwc-kitti] benchmark, outperforming earlier supervised methods by a large margin. This is, to my knowledge, the first time Consistency Constraints are used for depth estimation. The presentation of this paper on CVPR 2017 is [available on Youtube][depth_godard2017-video].
 
@@ -102,25 +104,24 @@ $$
 
 $$
 \begin{equation}
-\label{eqn:photometric}
+\label{eqn:photometric} \tag{PHM}
 \mathcal{L}^l_{\text{ph}} = \frac{1}{N} \sum_{i,j} \frac{\alpha}{2} \left(1 - \text{SSIM}\left({\bf x}_{ij}^l, {\bf \hat{x}}_{ij}^l\right)\right) + \left(1 - \alpha\right) \|{\bf x}_{ij}^l - {\bf \hat{x}}_{ij}^l\|
 \end{equation}
 $$
 
 - $$\mathcal{L}^l_{\text{ds}}$$ is disparity smoothness loss. It is used to encourage local smoothness of left disparity maps.
-- $$\mathcal{L}^l_{\text{lr}}$$ is **left-right disparity consistency** loss. This cost attempts to make the left-view disparity map $$\boldsymbol\delta_{ij}^l$$ be equal to the projected right-view disparity map $$\textstyle \boldsymbol\delta_{ij + \boldsymbol\delta_{jj}^l}^r$$:
-
-$$
-\begin{equation}
-\mathcal{L}_{\text{lr}}^l = \frac{1}{N} \sum_{i, j} \left| \boldsymbol\delta_{ij}^l - \boldsymbol\delta_{ij + \boldsymbol\delta_{jj}^l}^r \right|
-\end{equation}
-$$
+- $$\mathcal{L}^l_{\text{lr}}$$ is **left-right disparity consistency** loss. This cost enforces the left-view disparity map $$\boldsymbol\delta^l$$ be equal to the right-view disparity map $$\textstyle \boldsymbol\delta^r$$ when projected back, defined as: $$\textstyle
+\mathcal{L}_{\text{lr}}^l = \frac{1}{N} \sum_{i, j} \| \boldsymbol\delta_{ij}^l - \boldsymbol\delta_{ij + \boldsymbol\delta_{jj}^l}^r \|_1
+$$.
 
 - $$\mathcal{L}^r_{\text{rec}}\,$$, $$\mathcal{L}^r_{\text{ds}}\,$$, and $$\mathcal{L}^r_{\text{lr}}$$ are just the right-side counterparts of the below described objectives.
 
 
 <a name="feature-metric-loss"></a>
 ### Feature-metric Loss for Self-supervised Learning of Depth and Egomotion
+
+> Paper: [arXiv:2007.10603][depth_shu2020]  
+> Consistency type(s): photometric consistency, feature-metric consistency, disparity consistency
 
 [Shu et al. (2020)][depth_shu2020] elevated the use of Consistency Constraints to a whole new level. Following the previous success of unsupervised methods for depth estimation, they proposed a new approach that does not have the limitations of previous methods. More specifically:
 
@@ -178,7 +179,10 @@ where $$\mathcal{L}_{\text{ph}}$$ is just a photometric objective, defined the s
 <a name="complex-environments"></a>
 ### Unsupervised Monocular Depth Estimation in Highly Complex Environments
 
-[Zhao et al. (2021)][depth_zhao2021], to improve the performance of the model in highly complex environments, combined previously described unsupervised depth estimation methods using Consistency Constraints with CycleGAN (which by itself is also a consistency-based method).
+> Paper: [arxiv:2107.13137][depth_zhao2021]  
+> Consistency type(s): Representation consistency.
+
+[Zhao et al. (2021)][depth_zhao2021], to improve the performance of the model in highly complex environments, combined previously described unsupervised depth estimation methods using Consistency Constraints with CycleGAN (which by itself is also a consistency-based method and we will go through it later in this post).
 
 <a name="fig-depth-zhao2021"></a>
 {% capture imblock_depth_zhao2021 %}
@@ -189,9 +193,9 @@ where $$\mathcal{L}_{\text{ph}}$$ is just a photometric objective, defined the s
 {% endcapture %}
 {% include gallery images=imblock_depth_zhao2021 cols=1 caption=imcaption_depth_zhao2021 %}
 
-The daytime (easy environment) encoder $$E_d$$ and depth estimation decoder $$D_d$$ are trained using any of the unsupervised procedures described in previous sections. They additionally train the encoder $$E_x$$ on sequences of highly complex environments (nighttime, snowy, rainy, etc.) generated by **CycleGAN**.
+The daytime ("easy" environment) encoder $$E_d$$ and depth estimation decoder $$D_d$$ are trained using any of the unsupervised procedures described in previous sections. They additionally train the encoder $$E_x$$ on sequences of highly complex environments (night-time, snowy, rainy, etc.) generated by **CycleGAN**.
 
-In addition to the photometric reconstruction and temporal consistency objectives $$\mathcal{L}_{\text{rec}}\,$$, $$\mathcal{L}_{\text{ds}}\,$$, and $$\mathcal{L}_{\text{lr}}$$ described above, the method also enforces **consistency constraints** on the representation of the encoders $$E_d$$ and $$E_x$$ and the output depth maps of the daytime and generated night time photos.
+In addition to the photometric reconstruction and temporal consistency objectives described in previous subsections, the method also enforces **consistency constraints** on the representation outputted by encoders $$E_d$$ and $$E_x$$. Additionally, the output depth maps of the daytime and generated night-time photos are enforced to be consistent as well.
 
 
 
@@ -208,6 +212,62 @@ In addition to the photometric reconstruction and temporal consistency objective
 [ssim]: https://scikit-image.org/docs/dev/auto_examples/transform/plot_ssim.html
 [kitti-depth-unsup-benchmark]: https://paperswithcode.com/sota/monocular-depth-estimation-on-kitti-eigen-1
 [cam-matrix]: https://en.wikipedia.org/wiki/Camera_matrix
+
+
+
+-----------------------------------------------------------------------------
+
+
+
+<a name="gans"></a>
+## Generative Adversarial Nets (GANs)
+
+GANs are an exciting and active area of ML research, started by [Ian Goodfellow (2014)][goodfellow2014] and probably don't need any introduction. I'm sure that most people reading this blog know what it is and even are familiar with SOTA approaches in GANs. In this section, we present a few papers that utilize consistency constraints to train a GAN.
+
+
+<a name="cycle-gan"></a>
+### Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks
+
+> Paper: [arxiv:1703.10593][cyclegan]  
+> Consistency type(s): Cycle Consistency.
+
+This work by [Zhu et al. (2017)][cyclegan] is perhaps the most famous use of the idea of consistency constraints, and most of the readers of this post are probably already familiar with it. The paper describes a method for training a GAN that can translate images from one domain to another (e.g. from daytime photos to night-time, or portraits to anime drawings) in the absence of paired examples.
+
+<a name="fig-cyclegan"></a>
+{% capture imblock_cyclegan %}
+  {{ site.url }}/articles/images/2021-11-25-consistency/cyclegan.png
+{% endcapture %}
+{% capture imcaption_cyclegan %}
+  Training CycleGan in forward direction, learning to convert images from domain $$\mathcal A$$ to $$\mathcal B$$. The backward direction looks the same, with the arrows reversed (from $$\mathcal B$$ to $$\mathcal A$$), and discriminator $$D_{\mathcal B}$$ replaced with $$D_{\mathcal A}$$. The **cycle consistency** between source image and generated one is enforced.
+{% endcapture %}
+{% include gallery images=imblock_cyclegan cols=1 caption=imcaption_cyclegan %}
+
+The usage of consistency constraints in this work is incredibly elegant and simple. Let's say we want to convert images from domain $$\mathcal A$$ to $$\mathcal B$$ and vice-versa. The idea is to train two generators, $$G_{\mathcal AB}\, \colon \mathcal{A} \to \mathcal{B}$$ and $$G_{\mathcal BA}\, \colon \mathcal{B} \to \mathcal{A}$$, and associated discriminators $$D_{\mathcal A}$$ and $$D_{\mathcal B}$$. $$D_{\mathcal B}$$ encourages $$G_{\mathcal AB}$$ to translate $$\mathcal A$$ images to outputs indistinguishable from domain $$\mathcal B$$, and vice versa for $$D_{\mathcal A}$$ and $$G_{\mathcal BA}$$.
+
+To further regularize the mappings, two **cycle consistency** objectives were introduced. They capture the intuition that if we translate from one domain to the other and back again we should arrive at where we started. For each image $${\bf x} \in \mathcal{A}$$, the image translation cycle should be able to bring $${\bf x}$$ back to the original image, i.e. $${\bf x} \to G_{\mathcal AB}({\bf x}) \to G_{\mathcal BA}(G_{\mathcal AB}({\bf x})) \approx {\bf x}$$. This is called **forward cycle consistency**. Similarly, for each image $${\bf y} \in \mathcal B$$, the generators should also satisfy **backward cycle consistency**: $${\bf y} \to G_{\mathcal BA}({\bf y}) \to G_{\mathcal AB}(G_{\mathcal BA}({\bf y})) \approx {\bf y}$$. The final objective proposed by [Zhu et al. (2017)][cyclegan] is:
+
+$$
+\begin{equation*}
+\mathcal{L}_\text{total} = \mathcal{L}_{\text{GAN}} \left( G_{\mathcal AB}, D_{\mathcal B} \right) + \mathcal{L}_{\text{GAN}} \left( G_{\mathcal BA}, D_{\mathcal A} \right) + \mathcal{L}_{\text{cycle}} \left( G_{\mathcal AB}, G_{\mathcal BA} \right)
+\end{equation*}
+$$
+
+where $$\mathcal{L}_{\text{GAN}}$$ is the standard GAN loss ([Goodfellow et al. 2014][goodfellow2014]) and needs no further explanation, $$\mathcal{L}_{\text{cycle}}$$ is the **cycle consistency** objective that is defined as follows:
+
+$$
+\begin{align*}
+  \mathcal{L}_{\text{cyc}}\left(G_{\mathcal AB}, G_{\mathcal BA}\right)
+  = & 
+  \mathbb{E}_{ {\bf x} \sim p_\text{data}({\bf x})} \left[ \left\| G_{\mathcal BA}(G_{\mathcal AB}({\bf x})) - {\bf x} \right\|_1 \right]
+  \\ + &
+  \mathbb{E}_{ {\bf y} \sim p_\text{data}({\bf y})} \left[ \left\| G_{\mathcal AB}(G_{\mathcal BA}({\bf y})) - {\bf y} \right\|_1 \right]
+\end{align*}
+$$
+
+As in standard GANs, the generators are trained to minimize $$\mathcal{L}_\text{total}$$ while the discriminators are trained to maximize it. A classic example of consistency constraints in GANs.
+
+
+[goodfellow2014]: https://arxiv.org/abs/1406.2661
 
 
 -----------------------------------------------------------------------------
@@ -238,6 +298,9 @@ Cited as:
 
 5. Chang Shu, Kun Yu, Zhixiang Duan, Kuiyuan Yang. ["Feature-metric Loss for Self-supervised Learning of Depth and Egomotion."][depth_shu2020] In *ECCV*, 2020.
 
+6. Jun-Yan Zhu, Taesung Park, Phillip Isola, Alexei A. Efros. ["Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks."][cyclegan] In *ICCV* 2017.
+
+
 
 <!-- Links to cited papers -->
 [depth_eigen2015]: https://cs.nyu.edu/~deigen/dnl/dnl_iccv15.pdf
@@ -245,4 +308,5 @@ Cited as:
 [depth_godard2017]: http://visual.cs.ucl.ac.uk/pubs/monoDepth/
 [depth_zhao2021]: https://arxiv.org/abs/2107.13137
 [depth_shu2020]: https://arxiv.org/abs/2007.10603v1
+[cyclegan]: https://arxiv.org/abs/1703.10593
 [puzzle-can]: https://arxiv.org/abs/2101.11253
