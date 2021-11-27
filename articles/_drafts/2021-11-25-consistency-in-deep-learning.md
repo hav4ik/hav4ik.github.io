@@ -161,6 +161,18 @@ $$
 
 where $$\mathcal{L}_{\text{ph}}$$ is just a photometric objective, defined the same way as in equation ($$\ref{eqn:photometric}$$), and $$\mathcal{L}_{\text{fm}}$$ is the feature-metric consistency objective, defined as $$\mathcal{L}_{\text{fm}} = \| {\boldsymbol \phi_t}(p) - \boldsymbol{\hat{\phi}}_{s \to t}(p) \|_1$$.
 
+<a name="fig-depth-demo"></a>
+{% capture imblock_depth_demo %}
+  {{ site.url }}/articles/images/2021-11-25-consistency/depthdemo_1.gif
+  {{ site.url }}/articles/images/2021-11-25-consistency/depthdemo_2.gif
+  {{ site.url }}/articles/images/2021-11-25-consistency/depthdemo_3.gif
+  {{ site.url }}/articles/images/2021-11-25-consistency/depthdemo_4.gif
+{% endcapture %}
+{% capture imcaption_depth_demo %}
+  Can you believe this network was trained with no supervision at all?
+{% endcapture %}
+{% include gallery images=imblock_depth_demo cols=2 caption=imcaption_depth_demo %}
+
 
 
 <a name="complex-environments"></a>
