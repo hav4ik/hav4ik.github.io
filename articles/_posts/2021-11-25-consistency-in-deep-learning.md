@@ -92,18 +92,18 @@ During training, only the left image is fed into a neural network. The network t
 $$
 \begin{equation*}
 \mathcal{L} =
-\alpha_1 \left( \mathcal{L}_{\text{rec}}^l + \mathcal{L}_{\text{rec}}^r \right) +
+\alpha_1 \left( \mathcal{L}_{\text{ph}}^l + \mathcal{L}_{\text{ph}}^r \right) +
 \alpha_2 \left( \mathcal{L}_{\text{ds}}^l + \mathcal{L}_{\text{ds}}^r \right) +
 \alpha_2 \left( \mathcal{L}_{\text{lr}}^l + \mathcal{L}_{\text{lr}}^r \right) \to \min.
 \end{equation*}
 $$
 
-- $$\mathcal{L}^l_{\text{rec}}$$ is **photometric consistency** (or photometric image reconstruction) loss. In the paper, it is defined as a combination of per-pixel $$L_1$$ and single scale [SSIM (Structured Similarity Indexing)][ssim]. Given the left image $$\textstyle {\bf x}^l$$ and the reconstructed right image $$\textstyle {\bf \hat{x}}^l$$, the objective $$\mathcal{L}^l_{\text{rec}}$$ is defined as:
+- $$\mathcal{L}^l_{\text{ph}}$$ is **photometric consistency** (or photometric image reconstruction) loss. In the paper, it is defined as a combination of per-pixel $$L_1$$ and single scale [SSIM (Structured Similarity Indexing)][ssim]. Given the left image $$\textstyle {\bf x}^l$$ and the reconstructed right image $$\textstyle {\bf \hat{x}}^l$$, the objective $$\mathcal{L}^l_{\text{ph}}$$ is defined as:
 
 $$
 \begin{equation}
 \label{eqn:photometric}
-\mathcal{L}^l_{\text{rec}} = \frac{1}{N} \sum_{i,j} \frac{\alpha}{2} \left(1 - \text{SSIM}\left({\bf x}_{ij}^l, {\bf \hat{x}}_{ij}^l\right)\right) + \left(1 - \alpha\right) \|{\bf x}_{ij}^l - {\bf \hat{x}}_{ij}^l\|
+\mathcal{L}^l_{\text{ph}} = \frac{1}{N} \sum_{i,j} \frac{\alpha}{2} \left(1 - \text{SSIM}\left({\bf x}_{ij}^l, {\bf \hat{x}}_{ij}^l\right)\right) + \left(1 - \alpha\right) \|{\bf x}_{ij}^l - {\bf \hat{x}}_{ij}^l\|
 \end{equation}
 $$
 
