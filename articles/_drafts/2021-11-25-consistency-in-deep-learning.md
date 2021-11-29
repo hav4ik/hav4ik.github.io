@@ -14,7 +14,8 @@ excerpt: >-
   
 show_excerpt: true
 comments: true
-hidden: true
+hidden: false
+highlighted: true
 ---
 
 Despite the promising results of Deep Learning methods, most of the existing approaches are based on [supervised learning][supervised-learning] formulation and, as a result, require vast quantities of corresponding ground truth data for training. According to [Richard Sutton's "Bitter Lesson"][bitter-lesson], the best performing AI system are the ones that can make use of more data. While it is relatively easy to collect a large amount of data, labeling that data is an enormously labor-expensive and time-consuming task. The amount of data we can collect grows exponentially faster than our ability to label them. Being able to leverage a vast amount of unlabeled data and learn in an unsupervised fashion is extremely important for AI projects.
@@ -165,14 +166,13 @@ where $$\mathcal{L}_{\text{ph}}$$ is just a photometric objective, defined the s
 <a name="fig-depth-demo"></a>
 {% capture imblock_depth_demo %}
   {{ site.url }}/articles/images/2021-11-25-consistency/depthdemo_1.gif
-  {{ site.url }}/articles/images/2021-11-25-consistency/depthdemo_2.gif
   {{ site.url }}/articles/images/2021-11-25-consistency/depthdemo_3.gif
   {{ site.url }}/articles/images/2021-11-25-consistency/depthdemo_4.gif
 {% endcapture %}
 {% capture imcaption_depth_demo %}
   Can you believe this network was trained with no supervision at all?
 {% endcapture %}
-{% include gallery images=imblock_depth_demo cols=2 caption=imcaption_depth_demo %}
+{% include gallery images=imblock_depth_demo cols=3 caption=imcaption_depth_demo %}
 
 
 
@@ -299,6 +299,8 @@ Cited as:
 5. Chang Shu, Kun Yu, Zhixiang Duan, Kuiyuan Yang. ["Feature-metric Loss for Self-supervised Learning of Depth and Egomotion."][depth_shu2020] In *ECCV*, 2020.
 
 6. Jun-Yan Zhu, Taesung Park, Phillip Isola, Alexei A. Efros. ["Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks."][cyclegan] In *ICCV* 2017.
+
+7. Ian J. Goodfellow, Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David Warde-Farley, Sherjil Ozair, Aaron Courville, Yoshua Bengio. ["Generative Adversarial Networks."][goodfellow2014] In *ICLR*, 2014. 
 
 
 

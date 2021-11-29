@@ -10,6 +10,7 @@ commits: https://github.com/hav4ik/hav4ik.github.io/commits/master/articles/_pos
 tags: [math, overview]
 excerpt: "The connection between the proof of the existance of the Lorenz Attractor, its Geometric Flow Model, and the Knot Theory Model."
 comments: true
+highlighted: true
 ---
 
 > This is a small diary of my journey of understanding the solution and some non-trivial topological implications of one of the [Smale's Problems for the Next Century][smales-problems] &mdash; in particular, the **14th Problem**. Here, I will outline the gist of the solution that hides away most of the complicated computational rigors.

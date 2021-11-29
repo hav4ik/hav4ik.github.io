@@ -12,6 +12,7 @@ excerpt: "In this post, I'll briefly go over the common approaches for Deep Metr
 show_excerpt: true
 comments: true
 hidden: false
+highlighted: true
 updates:
   - date: 2021-08-15 00:00:00 0000
     description: Fixed the mistake in the overall description of the effectiveness of Contrastive appoaches. Added some ablation studies as suggested by Eugene Dobrovolskyi.

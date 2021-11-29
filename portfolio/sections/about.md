@@ -1,5 +1,5 @@
 
-I'm a software engineer at [Microsoft][msft] in Seattle Area, currently working on relevance ranking models at Bing Image Search. It feels quite overwhelming to work with pipelines and data of such enormous scale.
+I'm a software engineer at [Microsoft][msft] in Seattle Area, currently I'm working on improving relevance ranking models at Bing Image Search. It feels overwhelming to work with pipelines and data of such enormous scale.
 
 Previously, I was a computer vision engineer at [Samsung Research][srk] in Ukraine. I worked
 on projects related to monocular 3D reconstruction and optimizing Neural Networks for resource-constrained Mobile Devices.

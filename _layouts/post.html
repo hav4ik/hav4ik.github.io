@@ -25,7 +25,6 @@
 <body>
   {% include nav.html %}
 
-  <header class="header" role="banner">
     <div class="wrapper">
       <div class="content">
         <div class="post-title {% if page.image.display and page.image.feature %} feature {% endif %}">
@@ -62,14 +61,18 @@
         {% endif %}
 
         {{ content }}
+
+        <hr>
+        {% include highlighted_posts.html num_limit=3 description="<h3>Also on Vu's blog</h3>" %}
+
         {% if page.comments == true and site.disqus_shortname %}
           <div class="comments">
           <section id="disqus_thread"></section><!-- /#disqus_thread -->
           </div>
         {% endif %}
+    
       </div>
     </div>
-  </header><!-- header -->
 
   {% if page.comments == true and site.disqus_shortname %}
     {% include disqus.html %}

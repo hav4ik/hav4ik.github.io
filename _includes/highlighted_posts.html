@@ -1,0 +1,31 @@
+{% assign description = include.description %}
+{% assign num_limit = include.num_limit %}
+
+<div class="postcard-wrapper">
+  {{ description }}
+  <div class="postcard-container">
+    {% assign highlighted_posts_count = 0 %}
+    {% for post in site.categories.articles %}
+      {% if post.hidden %}
+      {% else %}
+        {%if post != page %}
+          {% if post.highlighted %}
+            {% assign highlighted_posts_count = highlighted_posts_count | plus:1 %}
+            {% if highlighted_posts_count <= num_limit %}
+            <a href="{{ post.url }}" class="card float-on-hover">
+              <div class="card-header">
+                <img src="{{ site.url }}/{{ post.image.feature }}" alt="" />
+              </div>
+              <div class="card-body">
+                <div class="card-title">{{ post.title }}</div>
+                <div class="card-desc">{{ post.excerpt}}</div>
+              </div>
+              <div class="card-date">{{ post.date | date: '%B %d, %Y' }}</div>
+            </a>
+            {% endif %}
+          {% endif %}
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>

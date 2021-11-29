@@ -6,6 +6,7 @@
 @import "fonts";
 @import "typography";
 @import "syntax";
+@import "postcards";
 
 .header {
   height: 100%;
@@ -128,7 +129,7 @@
 
 .comments {
   @include clearfix();
-  margin-top: 4em;
+  margin-top: 2em;
 }
 
 .feature {

@@ -10,6 +10,7 @@ commits: https://github.com/hav4ik/hav4ik.github.io/commits/master/articles/_pos
 tags: [math]
 excerpt: "Do you want to dominate your interviewer? Wanna bring him to his knees? Make him think that you're superior? I'll tell you how!"
 comments: true
+highlighted: true
 ---
 
 > **NOTE**: this is a **Troll Post**, and I used strong and offensive language tone for satirical purposes. Interviewers are very good and extremely smart people, usually with many years of experience of building amazing products. Please treat them with respect and just show what you're capable for :)

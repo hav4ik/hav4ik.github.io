@@ -9,6 +9,7 @@ image:
 tags: [survey, lecture notes, deep learning]
 excerpt: "An in-depth survey on stuffs that works like a charm as-is right from the box and are easy to implement &ndash; just like instant noodle!"
 comments: true
+highlighted: true
 ---
 
 
