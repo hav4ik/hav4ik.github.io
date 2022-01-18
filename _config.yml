@@ -21,3 +21,4 @@ disqus_shortname: tranhavu
 # Additional stuffs
 plugins:
   - jekyll-sitemap
+  - jekyll-feed

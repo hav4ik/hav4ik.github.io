@@ -97,7 +97,7 @@
     &.third {
       // @media only screen and (min-width: 62.5em) {
         img {
-          width: calc(33.3% - 6px);
+          width: calc(33.3% - 2px);
           float: left;
           margin-left: 1px;
           margin-right: 1px;
@@ -124,6 +124,37 @@
   }
   svg:not(:root) {
     overflow: hidden; 
+  }
+
+  @media #{$mobile_devices} {
+    text-align: left;
+	}
+
+  .references {
+  }
+
+  .notations-table {
+    border-top: 2px solid #828282;
+    border-bottom: 2px solid #828282;
+
+    
+    tr {
+      border-top: 0px;
+      border-bottom: 0px;
+      th {
+        text-align: left;
+        border-bottom: 2px solid #828282;
+        border-left: none;
+        border-right: none;
+      }
+
+      td {
+        text-align: left;
+        border-bottom: 1px solid #e8e8e8;
+        border-left: none;
+        border-right: none;
+      }
+    }
   }
 }
 

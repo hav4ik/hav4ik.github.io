@@ -7,7 +7,7 @@ image:
   feature: "/articles/images/2021-06-14-deep-metric-learning-survey/feature.png"
   display: false
 commits: https://github.com/hav4ik/hav4ik.github.io/commits/master/articles/_posts/2021-06-14-deep-metric-learning-survey.md
-tags: [deep-learning, survey]
+tags: [deep learning, survey]
 excerpt: "In this post, I'll briefly go over the common approaches for Deep Metric Learning, as well as the new methods proposed in recent years."
 show_excerpt: true
 comments: true

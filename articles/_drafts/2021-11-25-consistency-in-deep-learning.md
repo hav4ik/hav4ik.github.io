@@ -22,10 +22,15 @@ Despite the promising results of Deep Learning methods, most of the existing app
 
 That is where **Consistency Constraints** come in. The idea behind this group of methods is quite elegant. Let's say you want to learn a mapping $$f \colon \mathcal{X} \to \mathcal{Y}$$ that minimizes some objective $$\mathcal{L}(f)$$ but you cannot optimize using this objective directly due to lack of labeled data. Instead, you enforce $$f$$ to be invariant under some manipulations of input data, thus reducing the space of possible mapping functions. The assumption here is that if $$f$$ satisfies your invariance constraints, it will also minimize $$\mathcal{L}(f)$$.
 
-In this blog post, I will review how the concept of "Consistency" is used in unsupervised learning methods. Below is the list of examples of the usage of consistency constraints grouped by tasks:
+In this blog post, I will review how the concept of "Consistency" is used in unsupervised learning. The list of examples in this post is curated and is not exhaustive. I hope this post will help you to develop a better intuition on Consistency Constraints and encourage you to try out similar ideas in your own research endeavors.
+
+> **Note:** This post will only cover papers where Consistency Constraints is used as the main objective. For a broader overview of Consistency Regularization in Semi-Supervised Learning, please refer to [Lilian Weng, 2021][lillog-semisup-part1].
 
 
-* [Monocular Depth Estimation](#monodepth)
+--------------------------------------------------------------------------------
+
+
+* [Unsupervised Monocular Depth Estimation](#monodepth)
   - [Unsupervised Monocular Depth Estimation with Left-Right Consistency](#left-right-consistency)
   - [Feature-metric Loss for Self-supervised Learning of Depth and Egomotion](#feature-metric-loss)
   - [Unsupervised Monocular Depth Estimation in Highly Complex Environments](#complex-environments)
@@ -33,20 +38,22 @@ In this blog post, I will review how the concept of "Consistency" is used in uns
 * [Generative Adversarial Nets (GANs)](#gans)
   - [Image-to-Image Translation using Cycle-Consistent Adversarial Nets](#cycle-gan)
 
-* [Object Localization](#object-localization)
+* [Weakly-supervised Object Localization](#object-localization)
   - [Puzzle-Cam: Improved Localization via matching Partial and Full features](#puzzle-cam)
+    - [How it was used on Kaggle?](#)
 
 [supervised-learning]: https://en.wikipedia.org/wiki/Supervised_learning
 [bitter-lesson]: http://incompleteideas.net/IncIdeas/BitterLesson.html
+[lillog-semisup-part1]: https://lilianweng.github.io/lil-log/2021/12/05/semi-supervised-learning.html#consistency-regularization
 
 
 
-----------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 
 
 <a name="monodepth"></a>
-## Monocular Depth Estimation
+## Unsupervised Monocular Depth Estimation
 
 Let's start with [**Monocular Depth Estimation**][pwc-depth-estimation] because this is one of the most successful examples of consistency-based approaches (they outperform even the [LIDAR][wiki-lidar] ground truth). And also because my first project at my first job at [Samsung Research][srk] was related closely to this topic!
 
@@ -273,6 +280,39 @@ As in standard GANs, the generators are trained to minimize $$\mathcal{L}_\text{
 -----------------------------------------------------------------------------
 
 
+<a name="object-localization"></a>
+## Weakly-supervised Object Localization
+
+The setting of Weakly-supervised Object Localization (WSOL) is simple. Given only a set of images with classification labels, we want to learn a model that can predict the segmentation mask or location of objects in the images. This task is closely related to Weakly-supervised Image Segmentation (WSSL). Usually, WSOL and WSSL approaches are based on the idea of [GradCAM][gradcam].
+
+
+<a name="puzzle-cam"></a>
+### Puzzle-CAM: Improved localization via matching partial and full features
+
+> Paper: [arXiv:2101.11253][puzzle-cam]  
+> Consistency type(s): Puzzle consistency.
+
+The problem of [GradCAM][gradcam] is that it emphasizes too much on the most distinctive features of the image. Most of the time, if you have multiple objects on the image, the activation map will only focus on one object, or even a small distinctive part of that object. We want to get rid of this behavior.
+
+<a name="fig-puzzlecam"></a>
+{% capture imblock_puzzlecam %}
+  {{ site.url }}/articles/images/2021-11-25-consistency/puzzlecam.png
+{% endcapture %}
+{% capture imcaption_puzzlecam %}
+  The architecture of PuzzleCAM ([Sanghyun & In-Jae, 2021](https://arxiv.org/abs/2101.11253)). An image is split into smaller pieces, and the outputs of the network on these individual pieces are forced to match the output on original image.
+{% endcapture %}
+{% include gallery images=imblock_puzzlecam cols=1 caption=imcaption_puzzlecam %}
+
+
+
+[gradcam]: https://arxiv.org/abs/1610.02391
+
+
+
+-----------------------------------------------------------------------------
+
+
+{% comment %}
 Cited as:
 
 ```plaintext
@@ -283,10 +323,12 @@ Cited as:
   url = "https://hav4ik.github.io/articles/consistency-in-deep-learning",
 }
 ```
+{% endcomment %}
 
 
 <a name="references"></a>
 ## References
+
 
 1. David Eigen, Rob Fedgus. ["Predicting Depth, Surface Normals and Semantic Labels with a Common Multi-Scale Convolutional Architecture."][depth_eigen2015] In *ICCV*, 2015.
 
@@ -300,8 +342,9 @@ Cited as:
 
 6. Jun-Yan Zhu, Taesung Park, Phillip Isola, Alexei A. Efros. ["Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks."][cyclegan] In *ICCV* 2017.
 
-7. Ian J. Goodfellow, Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David Warde-Farley, Sherjil Ozair, Aaron Courville, Yoshua Bengio. ["Generative Adversarial Networks."][goodfellow2014] In *ICLR*, 2014. 
+7. Ian J. Goodfellow, Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David Warde-Farley, Sherjil Ozair, Aaron Courville, Yoshua Bengio. ["Generative Adversarial Networks."][goodfellow2014] In *ICLR*, 2014.
 
+8. Sanghyun Jo and In-Jae Yu. ["Puzzle-CAM: Improved localization via matching partial and full features."][puzzle-cam] In *IEEE ICIP*, 2021.
 
 
 <!-- Links to cited papers -->
@@ -311,4 +354,4 @@ Cited as:
 [depth_zhao2021]: https://arxiv.org/abs/2107.13137
 [depth_shu2020]: https://arxiv.org/abs/2007.10603v1
 [cyclegan]: https://arxiv.org/abs/1703.10593
-[puzzle-can]: https://arxiv.org/abs/2101.11253
+[puzzle-cam]: https://arxiv.org/abs/2101.11253
