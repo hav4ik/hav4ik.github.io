@@ -127,15 +127,12 @@ Before talking about ranking search results, we first need to understand how to 
 <a name="ltr-intro"></a>
 ## Learning to Rank (LTR)
 
-
+Given a query $$\mathcal{Q}$$ and a set of $$n$$ retrieved documents $$\mathcal{D} = \{ d_1, d_2, \ldots, d_n \}$$, we'd like to learn a function $$f(\mathcal{Q}, \mathcal{D})$$ that will return a correct ordering of the documents, such that the first documents would be the most relevant to the user. Usually, $$f$$ predicts a score for each document, and then the ranking order is determined by the scores.
 
 <a name="ltr-metrics"></a>
 ### Relevance Ranking Metrics
 
-Information retrieval researchers use ranking quality metrics such as [Mean Average Precision (**MAP**)][map-explained] which I'm sure many of you are familiar with, [Mean Reciprocal Rank (**MRR**)][wiki-mrr], Expected Reciprocal Rank (**ERR**), and Normalized Discounted Cumulative Gain (**NDCG**) to evaluate the quality of search results. The former two (MAP and MRR) are widely used for documents retrieval but not for search results ranking. Let's take a closer look at the latter two.
-
-> TODO: ADD REASON
-
+Information retrieval researchers use ranking quality metrics such as [Mean Average Precision (**MAP**)][map-explained] which I'm sure many of you are familiar with, [Mean Reciprocal Rank (**MRR**)][wiki-mrr], Expected Reciprocal Rank (**ERR**), and Normalized Discounted Cumulative Gain (**NDCG**) to evaluate the quality of search results ranking. The former two (MAP and MRR) are widely used for documents retrieval but not for search results ranking because they don't take into account the relevance score for each document.
 
 <a name="metrics-ndcg"></a>
 To define **NDCG (Normalized Discounted Cumulative Gain)**, first we need to define the DCG (Discounted Cumulative Gain) metric. For a given query, the DCG of a list of search results is defined as:
@@ -342,11 +339,12 @@ which takes $$O(n^2)$$ time to compute for all pair of documents. From first gla
 [gbdt]: https://towardsdatascience.com/gradient-boosted-decision-trees-explained-9259bd8205af
 
 
----------------------------------------------------------------------------------
-
 
 <a name="train-lambdamart-using-lgbm"></a>
-## Train LambdaMART using LightGBM
+### Train LambdaMART using LightGBM
+
+<a href="#"><img src="https://img.shields.io/badge/open_in_colab-F9AB00?style=for-the-badge&logo=googlecolab&logoColor=white" alt="Open in Colab"></a>
+<a href="#"><img src="https://img.shields.io/badge/github-000000?style=for-the-badge&logo=github&logoColor=white" alt="Github"></a>
 
 There a various implementations of LambdaMART, the most popular ones are [RankLib][ranklib]'s implementation and [LightGBM][lgbm] developed by Microsoft Research. Various benchmarks (i.e. [Qin et al. 2021][neural-rankers-vs-gbdt]) have shown that the [LightGBM][lgbm] implementation provides better performance.
 
@@ -354,8 +352,8 @@ We will use [MSLR-WEB30K][mslr-web30k] dataset, published in 2010 as an example.
 
 ```bash
 # Download the dataset
-wget https://api.onedrive.com/v1.0/shares/s!AtsMfWUz5l8nbXGPBlwD1rnFdBY/root/content \
- -O MSLR-WEB30K.zip
+URL="https://api.onedrive.com/v1.0/shares/s!AtsMfWUz5l8nbXGPBlwD1rnFdBY/root/content"
+wget $URL -O MSLR-WEB30K.zip
 
 # Unzip only the 1st fold into "data/" folder
 mkdir data; unzip -j "MSLR-WEB30K.zip" "Fold1/*" -d "data/"
@@ -417,6 +415,7 @@ At each interval, the script will output the NDCG scores at different ranks. As 
 It's always interesting to peek inside the model and see what features contributes the most to its performance. For this, we can use the [`lightgbm.plot_importance`][lgbm-plot-importance] API:
 
 ```python
+from matplotlib import pyplot as plt
 fig, ax = plt.subplots(1, 2, figsize=(14, 8))
 lightgbm.plot_importance(bst, importance_type='split', ax=ax[0], max_num_features=20)
 lightgbm.plot_importance(bst, importance_type='gain', ax=ax[1], max_num_features=20)
@@ -434,7 +433,7 @@ lightgbm.plot_importance(bst, importance_type='gain', ax=ax[1], max_num_features
 From the plots, we can see that for `feature_importance='split'`, which sorts the features by numbers of times the feature is used in a model:
 
 * The most important features  are **#131** (Site-level [PageRank][pagerank]) and **#130** ([PageRank][pagerank]). clearly, in the early days of [Bing][bing] prior to the development of deep learning features, PageRank was a strong indicator of the quality of the site (note that this dataset was published in 2010, and Bing was launched in 2009).
-* Surprisingly, **#127** (Length of URL) was a strong indicator back then. Likely because high-quality sites tend to have shorter URLs.
+* Surprisingly, **#127** (Length of URL) and **#126** (Number of slashes in URL) were strong indicator back then. Likely because high-quality sites tend to have shorter URLs with fewer slashes.
 * Then follows **#133** (QualityScore2) and **#132** (QualityScore), which are the quality score of a web page outputted by a web page quality classifier.
 
 If we instead sort the features by their gains (i.e. `feature_importance='gain'`), then interestingly **#134** (Query-url click count) came up on top. Clearly, the click count of a query-url pair at a search engine in a period, which is a strong indicator that the query-url pair is relevant to the user.
