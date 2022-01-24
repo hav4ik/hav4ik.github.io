@@ -36,7 +36,9 @@ There is a lot for me to learn about and there is a lot of things that I don't k
 
 - [How do search engines work?](#how-search-engines-work)
 - [Search Relevance](#search-relevance)
-- [Relevance Ranking Metrics](#metrics)
+- [Learning to Rank (LTR)](#ltr-intro)
+  - [Flavors of LTR methods](#ltr-flavors)
+  - [Relevance Ranking Metrics](#ltr-metrics)
 - [Classical LTR methods](#classical-ltr)
   - [RankNet](#ranknet)
   - [LambdaRank and LambdaMART](#lambdarank-and-lambdamart)
@@ -122,9 +124,13 @@ Before talking about ranking search results, we first need to understand how to 
 ---------------------------------------------------------------------------------
 
 
-<a name="metrics"></a>
-## Relevance Ranking Metrics
+<a name="ltr-intro"></a>
+## Learning to Rank (LTR)
 
+
+
+<a name="ltr-metrics"></a>
+### Relevance Ranking Metrics
 
 Information retrieval researchers use ranking quality metrics such as [Mean Average Precision (**MAP**)][map-explained] which I'm sure many of you are familiar with, [Mean Reciprocal Rank (**MRR**)][wiki-mrr], Expected Reciprocal Rank (**ERR**), and Normalized Discounted Cumulative Gain (**NDCG**) to evaluate the quality of search results. The former two (MAP and MRR) are widely used for documents retrieval but not for search results ranking. Let's take a closer look at the latter two.
 
@@ -163,6 +169,12 @@ R_i = \frac{2^{l_i} - 1}{2^{l_m}}
 $$
 
 where $$R_{i}$$ models the probability that the user finds the document at $$i$$-th position relevant and $$l_m$$ is the maximum possible label value.
+
+
+
+<a name="ltr-flavors"></a>
+### Flavors of LTR methods
+
 
 
 
@@ -224,7 +236,7 @@ $$
 where the choice of the parameter $$\sigma$$ determines the shape of the sigmoid. Let $$\widetilde{P}_{ij}$$ be the known probability that $${\bf U}_{i} \rhd {\bf U}_{j}$$ (it could be estimated by asking several judges to compare the pair and average out their answers). The **RankNet**'s cost function for a given query-document pair is defined as the [Cross Entropy][crossentropy]:
 
 $$
-\begin{equation}\tag{RankNet}
+\begin{equation}\label{eq:ranknet}
 \mathcal{C}(s_i, s_j) = - \widetilde{P}_{ij} \log P_{ij} - (1 - \widetilde{P}_{ij}) \log (1 - P_{ij})
 \end{equation}
 $$
@@ -238,13 +250,11 @@ RankNet opened a new direction in LTR research, and is the precursor to LambdaRa
 ### LambdaRank and LambdaMART
 
 The objective of [RankNet](#ranknet) is optimizing for (a smooth, convex approximation to) the number
-of pairwise errors, which is fine if that is the desired cost. However, it does not produce desired gradients for minimizing position-sensitive objectives like [NDCG](#metrics-ndcg) or [ERR](#metrics-ERR) (as shown in figure below).
+of pairwise errors, which is fine if that is the desired cost. However, it does not produce desired gradients for minimizing position-sensitive objectives like [NDCG](#metrics-ndcg) or [ERR](#metrics-ERR), as we will illustrate in figure below.
 
-> NOTE: add figure illustrating gradients
+Ideally, we would want to be able to optimize the position-sensitive objectives in a more direct way (just a reminder &mdash; both [NDCG](#metrics-ndcg) and [ERR](#metrics-ERR) are not differentiable objectives). The **LambdaRank** framework, developed by [Burges et al. (2006)][burges-lambdarank], allows us to do exactly that.
 
-Ideally, we would want to be able to optimize the position-sensitive objectives in a more direct way (just a reminder &mdash; both [NDCG](#metrics-ndcg) and [ERR](#metrics-ERR) are not differentiable objectives). That is exactly what the **LambdaRank** framework, developed by [Burges et al. (2006)][burges-lambdarank], allows us to do.
-
-Let's start from the RankNet's cost $$\mathcal{C}$$. It is easy to see that $$\partial \mathcal{C} / \partial s_i = - \partial \mathcal{C} / \partial s_j$$ due to the symmetry of the RankNet's cost function. More specifically:
+Let's start from the RankNet's cost $$\mathcal{C}$$ defined in $$(\ref{eq:ranknet})$$. It is easy to see that $$\partial \mathcal{C} / \partial s_i = - \partial \mathcal{C} / \partial s_j$$ due to the symmetry of the RankNet's cost function. More specifically:
 
 $$
 \begin{equation*}
@@ -263,7 +273,7 @@ $$
   \frac{\partial \mathcal{C}}{\partial s_j} \frac{\partial s_j}{\partial \theta}
   &
   \textcolor{gray}{
-    \text{Apply the chain rule}
+    
   }
 
   \\ &=
@@ -300,41 +310,147 @@ $$
 
 where we introduced one $${\boldsymbol \lambda}_{k}$$ for each document. You can think of the $${\boldsymbol \lambda}$$'s as little arrows (or forces), one attached to each (sorted) document, the direction of which indicates the direction we'd like the document to move (to increase relevance), the length of which indicates by how much, and where the $${\boldsymbol \lambda}$$ for a given document is computed from all the pairs in which that document is a member.
 
-So far, each individual $${\boldsymbol \lambda}_{ij}$$ contributes equally to the magnitude of $${\boldsymbol \lambda}_{i}$$. That means re-ranking the documents below, let's say, 30th position is given equal improtance to re-ranking the top documents. This is not what we want: we should prioritize having relevant documents at the top much more than having correct ranking below 30th position.
+> **NOTE:** add figure illustrating per-document forces
 
+So far, each individual $${\boldsymbol \lambda}_{ij}$$ contributes equally to the magnitude of $${\boldsymbol \lambda}_{i}$$. That means the rankings of documents below, let's say, 100th position is given equal improtance to the rankings of the top documents. This is not what we want if the chosen metric is position-sensitive (like [NDCG](#metrics-ndcg) or [ERR](#metric-err)): we should prioritize having relevant documents at the very top much more than having correct ranking below 100th position. 
 
+[Burges et al. (2006)][burges-lambdarank] proposed an elegant framework to this problem, called **LambdaRank**. Let's multiply each individual $${\boldsymbol \lambda}_{ij}$$ by the amount of change in our chosen metric if we swap the positions of $$i$$-th and $$j$$-th documents. For example, if the chosen metric is [NDCG](#metrics-ndcg), then we adjust $${\boldsymbol \lambda}_{ij}$$ as follows:
+
+$$
+\begin{equation}
+  {\boldsymbol \lambda}_{ij} \equiv \frac{\partial \mathcal{C}}{\partial s_i} \cdot \left| \Delta NDCG_{ij} \right|
+\end{equation}
+$$
+
+where $$\Delta NDCG_{ij}$$ is the change in NDCG when the position of $$i$$-th and $$j$$-th documents are swapped and is calculated as follows:
+
+$$
+\begin{equation*}
+  \Delta NDCG_{ij} = \frac{1}{\max DCG@T} \left( \frac{2^{l_j} - 2^{l_i}}{\log(1 + i)} + \frac{2^{l_i} - 2^{l_j}}{\log(1 + j)} \right)
+\end{equation*}
+$$
+
+which takes $$O(n^2)$$ time to compute for all pair of documents. From first glance, $$\Delta ERR_{ij}$$ is harder to compute: the naive implementation would require $$O(n^3)$$ time to compute for all pair of documents. However, we can use the trick described by [Burges (2010)][burges-ranknet-to-lambdamart] to bring the cost down to $$O(n^2)$$.
+
+**LambdaMART** is basically the same, but uses [Gradient Boosted Decision Trees](#gbdt) instead of Neural Networks (MART stands for Multiple Additive Regression Trees). Basically we perform gradient ascent in the models (function) space instead of the model's weights space.
 
 
 [burges-website]: https://chrisburges.net/
 [microsoft-research]: https://www.microsoft.com/en-us/research/
 [crossentropy]: https://en.wikipedia.org/wiki/Cross_entropy
 [ranknet-retrospect]: https://www.microsoft.com/en-us/research/blog/ranknet-a-ranking-retrospective/
+[gbdt]: https://towardsdatascience.com/gradient-boosted-decision-trees-explained-9259bd8205af
 
 
 ---------------------------------------------------------------------------------
 
 
 <a name="train-lambdamart-using-lgbm"></a>
-## Hands-on Tutorial
+## Train LambdaMART using LightGBM
 
+There a various implementations of LambdaMART, the most popular ones are [RankLib][ranklib]'s implementation and [LightGBM][lgbm] developed by Microsoft Research. Various benchmarks (i.e. [Qin et al. 2021][neural-rankers-vs-gbdt]) have shown that the [LightGBM][lgbm] implementation provides better performance.
 
+We will use [MSLR-WEB30K][mslr-web30k] dataset, published in 2010 as an example. It is a retired commercial labeling set of [Microsoft Bing][bing], which contains more than 3'700'000 documents grouped into 30'000 queries. Each document is represented by a 136-dimensional feature vector and labeled with a relevance score ranging from 0 (irrelevant) to 4 (perfectly relevant). The dataset's format is similar to [LibSVM][libsvm] format. Let's download the dataset and make it consumable by LightGBM:
+
+```bash
+# Download the dataset
+wget https://api.onedrive.com/v1.0/shares/s!AtsMfWUz5l8nbXGPBlwD1rnFdBY/root/content \
+ -O MSLR-WEB30K.zip
+
+# Unzip only the 1st fold into "data/" folder
+mkdir data; unzip -j "MSLR-WEB30K.zip" "Fold1/*" -d "data/"
+
+# Process the dataset into proper LibSVM-like format
+git clone https://github.com/guolinke/boosting_tree_benchmarks
+cd data; python ../boosting_tree_benchmarks/data/msltr2libsvm.py
+```
+
+Loading the dataset into LightGBM is incredibly simple. Since our dataset is relatively small (only 3GB), we can load it entirely to the memory. For larger datasets, one of the options is to use the [HDF5][h5py] format. For more information about supported data formats, please refer to the [documentation][lgbm-docs].
 
 ```python
-model = lightgbm.LGBMRanker(
-  objective="lambdarank",
-  metric="ndcg",
+import lightgbm
 
-  # Almost the same parameters as described in the benchmark:
-  # https://lightgbm.readthedocs.io/en/latest/Experiments.html
-  learning_rate=0.1,
-  num_leaves=255,
-  n_estimators=200,
-  num_threads=multiprocessing.cpu_count(),
-  min_data_in_leaf=0,
-  min_sum_hessian_in_leaf=100,
-  bagging_fraction=0.7,
-)
+# Load the dataset
+train_data = lightgbm.Dataset('data/msltr.train')
+valid_data = lightgbm.Dataset('data/msltr.test')
+
+# LightGBM needs to know the sizes of query groups, which is already
+# provided by `msltr2libsvm.py`.
+train_group_size = [int(l.strip("\n")) for l in open('data/msltr.train.query')]
+valid_group_size = [int(l.strip("\n")) for l in open('data/msltr.test.query')]
+train_data.set_group(train_group_size)
+valid_data.set_group(valid_group_size)
 ```
+
+Now, we can easily train the model using the [`lightgbm.train`][lgbm-train] API:
+
+```python
+# LightGBM parameters. We use the same parameters as in
+# https://lightgbm.readthedocs.io/en/latest/Experiments.html
+param = {
+  "task": "train",
+  "num_leaves": 255,
+  "min_data_in_leaf": 1,
+  "min_sum_hessian_in_leaf": 100,
+  "learning_rate": 0.1,
+  "objective": "lambdarank",       # LambdaRank
+  "metric": "ndcg",                # You can define your own metric, e.g. ERR
+  "ndcg_eval_at": [1, 3, 5, 10],   # NDCG at ranks 1, 3, 5, 10
+  "num_threads": mp.cpu_count(),   # Use all available CPUs
+}
+
+res = {}
+bst = lightgbm.train(param, train_data, valid_sets=[valid_data],
+                     num_boost_round=250, evals_result=res, verbose_eval=50)
+```
+
+At each interval, the script will output the NDCG scores at different ranks. As we can see, after 250 boosting rounds, the NDCG scores of our model already outperforms the [benchmark][lgbm-benchmark] by LightGBM.
+
+```
+[50]    ndcg@1: 0.497597   ndcg@3: 0.479561   ndcg@5: 0.483374   ndcg@10: 0.502566
+[100]   ndcg@1: 0.513941   ndcg@3: 0.493917   ndcg@5: 0.498266   ndcg@10: 0.515446
+[150]   ndcg@1: 0.516273   ndcg@3: 0.498433   ndcg@5: 0.502623   ndcg@10: 0.520829
+[200]   ndcg@1: 0.51923    ndcg@3: 0.500929   ndcg@5: 0.506352   ndcg@10: 0.523464
+[250]   ndcg@1: 0.522536   ndcg@3: 0.503643   ndcg@5: 0.508457   ndcg@10: 0.525354
+```
+
+It's always interesting to peek inside the model and see what features contributes the most to its performance. For this, we can use the [`lightgbm.plot_importance`][lgbm-plot-importance] API:
+
+```python
+fig, ax = plt.subplots(1, 2, figsize=(14, 8))
+lightgbm.plot_importance(bst, importance_type='split', ax=ax[0], max_num_features=20)
+lightgbm.plot_importance(bst, importance_type='gain', ax=ax[1], max_num_features=20)
+```
+
+<a name="fig-lambdamart-fi"></a>
+{% capture imblock_lambdamart_fi %}
+  {{ site.url }}/articles/images/2021-08-15-learning-to-rank/feat_importance.svg
+{% endcapture %}
+{% capture imcaption_lambdamart_fin %}
+  Top 20 most important features by split (left plot) and by gain (right plot) for the LambdaMART model trained on the MSLR-WEB30K dataset.
+{% endcapture %}
+{% include gallery images=imblock_lambdamart_fi cols=1 caption=imcaption_lambdamart_fin %}
+
+From the plots, we can see that for `feature_importance='split'`, which sorts the features by numbers of times the feature is used in a model:
+
+* The most important features  are **#131** (Site-level [PageRank][pagerank]) and **#130** ([PageRank][pagerank]). clearly, in the early days of [Bing][bing] prior to the development of deep learning features, PageRank was a strong indicator of the quality of the site (note that this dataset was published in 2010, and Bing was launched in 2009).
+* Surprisingly, **#127** (Length of URL) was a strong indicator back then. Likely because high-quality sites tend to have shorter URLs.
+* Then follows **#133** (QualityScore2) and **#132** (QualityScore), which are the quality score of a web page outputted by a web page quality classifier.
+
+If we instead sort the features by their gains (i.e. `feature_importance='gain'`), then interestingly **#134** (Query-url click count) came up on top. Clearly, the click count of a query-url pair at a search engine in a period, which is a strong indicator that the query-url pair is relevant to the user.
+
+
+[lgbm]: https://lightgbm.readthedocs.io/en/latest/
+[lgbm-docs]: https://lightgbm.readthedocs.io/en/latest/
+[lgbm-train]: https://lightgbm.readthedocs.io/en/latest/pythonapi/lightgbm.train.html
+[lgbm-benchmark]: https://lightgbm.readthedocs.io/en/latest/Experiments.html
+[ranklib]: https://sourceforge.net/p/lemur/wiki/RankLib/
+[mslr-web30k]: https://www.microsoft.com/en-us/research/project/mslr/
+[bing]: https://www.bing.com/
+[libsvm]: https://www.csie.ntu.edu.tw/~cjlin/libsvm/faq.html#/Q3:_Data_preparation
+[h5py]: https://docs.h5py.org/en/stable/
+[lgbm-plot-importance]: https://lightgbm.readthedocs.io/en/latest/pythonapi/lightgbm.plot_importance.html
+[pagerank]: https://en.wikipedia.org/wiki/PageRank
 
 
 ---------------------------------------------------------------------------------
@@ -351,8 +467,14 @@ model = lightgbm.LGBMRanker(
 
 4. Christopher J.C. Burges. ["From RankNet to LambdaRank to LambdaMART: An Overview."][burges-ranknet-to-lambdamart] *Microsoft Research Technical Report MSR-TR-2010-82*, 2010.
 
+5. Qin Z., Yan L., Zhuang H., Tay Y., Pasumarthi K. R., Wang X., Bendersky M., Najork M. ["Are Neural Rankers still Outperformed by Gradient Boosted Decision Trees?"][neural-rankers-vs-gbdt] In *ICLR*, 2021.
+
+6. Tao Qin, Tie-Yan Liu. ["Introducing LETOR 4.0 Datasets."][letor4] In *Arxiv:1306.2597*, 2013.
+
 
 [burges-ranknet]: https://www.microsoft.com/en-us/research/publication/learning-to-rank-using-gradient-descent/
 [burges-lambdarank]: https://papers.nips.cc/paper/2006/hash/af44c4c56f385c43f2529f9b1b018f6a-Abstract.html
 [burges-ranknet-to-lambdamart]: https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/MSR-TR-2010-82.pdf
 [fb-search-engine]: https://arxiv.org/abs/2006.11632
+[neural-rankers-vs-gbdt]: https://openreview.net/pdf?id=Ut1vF_q_vC
+[letor4]: https://arxiv.org/abs/1306.2597
