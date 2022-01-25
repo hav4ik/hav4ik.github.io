@@ -28,6 +28,7 @@ There is a lot for me to learn about and there is a lot of things that I don't k
 {% endcomment %}
 
 
+
 [tech_is_magic]: https://en.wikipedia.org/wiki/Clarke%27s_three_laws
 [bing]: https://www.bing.com/
 [nda]: https://en.wikipedia.org/wiki/Non-disclosure_agreement
@@ -35,15 +36,15 @@ There is a lot for me to learn about and there is a lot of things that I don't k
 
 
 - [How do search engines work?](#how-search-engines-work)
-- [Search Relevance](#search-relevance)
 - [Learning to Rank (LTR)](#ltr-intro)
+  - [Search Relevance](#search-relevance)
   - [Flavors of LTR methods](#ltr-flavors)
-  - [Relevance Ranking Metrics](#ltr-metrics)
-- [Classical LTR methods](#classical-ltr)
+- [Relevance Ranking Metrics](#ltr-metrics)
+- [Supervised LTR methods](#supervised-ltr)
   - [RankNet](#ranknet)
   - [LambdaRank and LambdaMART](#lambdarank-and-lambdamart)
-  - [Theoretical justification of LambdaMART](#)
-  - [Train LambdaMART using LightGBM](#train-lambdamart-using-lgbm)
+  - [Train $$\lambda$$MART using LightGBM](#train-lambdamart-using-lgbm)
+  - [Theoretical justification of $$\lambda$$Rank](#theoretical-justification-of-lambrank)
 - [Click signal biases](#)
 - [References](#)
 
@@ -102,11 +103,27 @@ There was a time when [PageRank][pagerank] was a sole ranking factor for Google,
 [ann_methods]: https://towardsdatascience.com/comprehensive-guide-to-approximate-nearest-neighbors-algorithms-8b94f057d6b6
 
 
+
 ---------------------------------------------------------------------------------
 
 
+
+<a name="ltr-intro"></a>
+## Learning to Rank (LTR)
+
+Given a query $$\mathcal{Q}$$ and a set of $$n$$ retrieved documents $$\mathcal{D} = \{ d_1, d_2, \ldots, d_n \}$$, we'd like to learn a function $$f(\mathcal{Q}, \mathcal{D})$$ that will return a correct ordering of the documents, such that the first documents would be the most relevant to the user. Usually, $$f$$ predicts a score for each document, and then the ranking order is determined by the scores.
+
+{% capture imblock_ltrtask %}
+    {{ site.url }}/articles/images/2021-08-15-learning-to-rank/ltr_task.png
+{% endcapture %}
+{% capture imcaption_ltrtask %}
+  Given a query and a list of documents, the Learning-to-Rank task is to predict the relevance ranking of the documents, i.e. which document is the most relevant to the query.
+{% endcapture %}
+{% include gallery images=imblock_ltrtask cols=1 caption=imcaption_ltrtask %}
+
+
 <a name="search-relevance"></a>
-## Search Relevance
+### Search Relevance
 
 Before talking about ranking search results, we first need to understand how to decide which result is relevant to the given query and which one is not, so that we can measure the ranking quality. There are many ways to estimate the relevance of search results, in both online and offline settings. In most cases, the relevance is defined as a combination of the following 3 factors:
 
@@ -121,16 +138,26 @@ Before talking about ranking search results, we first need to understand how to 
 [bing]: https://www.bing.com/
 
 
+
+<a name="ltr-flavors"></a>
+### Flavors of LTR methods
+
+Learning to Rank methods are divided into **Offline** and **Online** methods. In offline LTR, a model is trained in an offline setting with a fixed dataset. Online methods learns from the interactions with the user in real-time, and the model is updated after each interaction.
+
+Offline methods can be further divided into **Supervised** methods, where for each document in the dataset its relevance to a query is judged by a human labeler, and **Counterfactual** methods, where the model is trained on historical data of user interactions (i.e. click-through rate) and/or document's conversion rate.
+
+Supervised methods, depending on how the optimization objective is constructed, can be divided into **Pointwise** (look at a single document at a time in the loss function), **Pairwise** (look at a pair of documents at a time in the loss function), and **Listwise** (directly look at the entire list of documents) methods.
+
+Online and Counterfactual LTR are extremely important classes of LTR methods and are currently active areas of research. They are much trickier to train than supervised approaches since both Online and Counterfactual methods learns from biased signals. Approaches to counter this bias are commonly called **Unbiased Learning-to-Rank**.
+
+
+
 ---------------------------------------------------------------------------------
 
 
-<a name="ltr-intro"></a>
-## Learning to Rank (LTR)
-
-Given a query $$\mathcal{Q}$$ and a set of $$n$$ retrieved documents $$\mathcal{D} = \{ d_1, d_2, \ldots, d_n \}$$, we'd like to learn a function $$f(\mathcal{Q}, \mathcal{D})$$ that will return a correct ordering of the documents, such that the first documents would be the most relevant to the user. Usually, $$f$$ predicts a score for each document, and then the ranking order is determined by the scores.
 
 <a name="ltr-metrics"></a>
-### Relevance Ranking Metrics
+## Relevance Ranking Metrics
 
 Information retrieval researchers use ranking quality metrics such as [Mean Average Precision (**MAP**)][map-explained] which I'm sure many of you are familiar with, [Mean Reciprocal Rank (**MRR**)][wiki-mrr], Expected Reciprocal Rank (**ERR**), and Normalized Discounted Cumulative Gain (**NDCG**) to evaluate the quality of search results ranking. The former two (MAP and MRR) are widely used for documents retrieval but not for search results ranking because they don't take into account the relevance score for each document.
 
@@ -168,22 +195,17 @@ $$
 where $$R_{i}$$ models the probability that the user finds the document at $$i$$-th position relevant and $$l_m$$ is the maximum possible label value.
 
 
-
-<a name="ltr-flavors"></a>
-### Flavors of LTR methods
-
-
-
-
 [map-explained]: https://towardsdatascience.com/breaking-down-mean-average-precision-map-ae462f623a52
 [wiki-mrr]: https://en.wikipedia.org/wiki/Mean_reciprocal_rank
+
 
 
 ---------------------------------------------------------------------------------
 
 
-<a name="classical-ltr"></a>
-## Classical LTR methods
+
+<a name="supervised-ltr"></a>
+## Supervised LTR methods
 
 From 2005 to 2006, a series of incredibly important papers in Learning to Rank research were published by [Christopher Burges][burges-website], a researcher at [Microsoft][microsoft-research]. With **RankNet** [(Burges et al. 2005)][burges-ranknet], the LTR problem is re-defined as an optimization problem that can be solved using gradient descent. In **LambdaRank** and **LambdaMART** [(Burges et al. 2006)][burges-lambdarank], a method for directly optimizing NDCG was proposed. At the time of writing this blog post, LamdaMART is still being used as a strong baseline model, and can even out-perform newer methods on various benchmarks. If you want to know more about the story behind these methods, I highly recomment [this blog post by Microsoft][ranknet-retrospect].
 
@@ -281,7 +303,7 @@ $$
   &
   \textcolor{gray}{
     \text{Use}\enspace
-    {\boldsymbol \lambda}_{ij} = \frac{\partial \mathcal{C}}{\partial s_i} = -\frac{\partial \mathcal{C}}{\partial s_j}
+    {\boldsymbol \lambda}_{ij} \triangleq \frac{\partial \mathcal{C}}{\partial s_i} = -\frac{\partial \mathcal{C}}{\partial s_j}
   }
 
   \\ &=
@@ -298,7 +320,7 @@ $$
   \sum_{k} {\boldsymbol \lambda}_{k} \frac{\partial s_k}{\partial \theta}
   &
   \textcolor{gray}{
-    {\boldsymbol \lambda}_{k} =
+    {\boldsymbol \lambda}_{k} \triangleq  
     \sum_{\{k, j\} \in \boldsymbol{\mathcal I}} {\boldsymbol \lambda}_{kj} -
     \sum_{\{i, k\} \in \boldsymbol{\mathcal I}} {\boldsymbol \lambda}_{ik}
   }
@@ -341,7 +363,7 @@ which takes $$O(n^2)$$ time to compute for all pair of documents. From first gla
 
 
 <a name="train-lambdamart-using-lgbm"></a>
-### Train LambdaMART using LightGBM
+### Train $$\lambda$$MART using LightGBM
 
 <a href="#"><img src="https://img.shields.io/badge/open_in_colab-F9AB00?style=for-the-badge&logo=googlecolab&logoColor=white" alt="Open in Colab"></a>
 <a href="#"><img src="https://img.shields.io/badge/github-000000?style=for-the-badge&logo=github&logoColor=white" alt="Github"></a>
@@ -435,6 +457,7 @@ From the plots, we can see that for `feature_importance='split'`, which sorts th
 * The most important features  are **#131** (Site-level [PageRank][pagerank]) and **#130** ([PageRank][pagerank]). clearly, in the early days of [Bing][bing] prior to the development of deep learning features, PageRank was a strong indicator of the quality of the site (note that this dataset was published in 2010, and Bing was launched in 2009).
 * Surprisingly, **#127** (Length of URL) and **#126** (Number of slashes in URL) were strong indicator back then. Likely because high-quality sites tend to have shorter URLs with fewer slashes.
 * Then follows **#133** (QualityScore2) and **#132** (QualityScore), which are the quality score of a web page outputted by a web page quality classifier.
+* **#108** (Title [BM25][bm25]) and **#110** (Whole document [BM25][bm25]) features are quite important as well. BM25 is a bag-of-words retrieval function that ranks a set of documents based on the query terms appearing in each document, regardless of their proximity within the document.
 
 If we instead sort the features by their gains (i.e. `feature_importance='gain'`), then interestingly **#134** (Query-url click count) came up on top. Clearly, the click count of a query-url pair at a search engine in a period, which is a strong indicator that the query-url pair is relevant to the user.
 
@@ -450,6 +473,12 @@ If we instead sort the features by their gains (i.e. `feature_importance='gain'`
 [h5py]: https://docs.h5py.org/en/stable/
 [lgbm-plot-importance]: https://lightgbm.readthedocs.io/en/latest/pythonapi/lightgbm.plot_importance.html
 [pagerank]: https://en.wikipedia.org/wiki/PageRank
+[bm25]: https://en.wikipedia.org/wiki/Okapi_BM25#:~:text=In%20information%20retrieval%2C%20Okapi%20BM25%20%28%20BM%20is,Stephen%20E.%20Robertson%2C%20Karen%20Sp%C3%A4rck%20Jones%2C%20and%20others.
+
+
+
+<a name="theoretical-justification-of-lambrank"></a>
+### Theoretical justification of $$\lambda$$Rank
 
 
 ---------------------------------------------------------------------------------
