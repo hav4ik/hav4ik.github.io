@@ -27,9 +27,11 @@
 
 <body>
   {% include nav.html %}
-
     <div class="wrapper">
+
       <div class="content">
+        {% include donations.html %}
+  
         <div class="post-title {% if page.image.display and page.image.feature %} feature {% endif %}">
           <h1>{{ page.title }}</h1>
           {% if page.type == 'article' %}
@@ -64,6 +66,9 @@
         {% endif %}
 
         {{ content }}
+
+        <hr>
+        {% include donations.html %}
 
         <hr>
         {% include highlighted_posts.html num_limit=3 description="<h3>Also on Vu's blog</h3>" %}

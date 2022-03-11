@@ -23,3 +23,38 @@ body {
   background-color: $background_color;
   font-style: normal;
 }
+
+.donation-banner {
+  padding: 1rem;
+  background-color: rgb(227, 243, 255);
+  font-size: large;
+  border: 1px solid gray;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+
+  .donation-options {
+    display: flex;
+    flex-direction: row;
+    margin-top: 1rem;
+
+    .donation-helping-option {
+      background-color: azure;
+      border: 1px solid gray;
+      padding: 1rem;
+      margin: 0.8rem;
+      width: 100%;
+      text-align: center;
+
+      .donation-img {
+        height: 150px;
+      }
+      .donation-text {
+        margin-top: 0.5rem;
+      }
+    }
+
+    :hover {
+      background-color: rgb(253, 233, 208);
+    }
+  }
+}

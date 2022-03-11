@@ -13,6 +13,9 @@ permalink: /articles
 
     <div class="page-content">
       <div class="content-wrap">
+        {% include donations.html %}
+        <hr>
+        
         {% assign article_count = 0 %}
         {% for post in site.categories.articles %}
           {% if post.hidden %}
