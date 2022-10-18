@@ -23,9 +23,9 @@ Back then, even in my wildest dreams, I couldn't have imagined that 25 years old
 
 There is a lot for me to learn about and there is a lot of things that I don't know, so in this blog post, I'll take you together with me on my study journey about [Learning to Rank (LTR)][ltr] algorithms. I'm by no means an expert in this field so this post is likely to be filled with a lot of inaccuracies. If you spotted any mistakes in this post or if I'm completely wrong in some sections, please let me know.
 
-> **Disclaimer:** all information in this blog post is taken from published research papers or publically available online articles. No [NDA][nda]s were violated. You won't find any details specific to the inner working of [Bing][bing] or other search engines here :)
-
 {% endcomment %}
+
+> **Disclaimer:** all information in this blog post is taken from published research papers or publically available online articles. No [NDA][nda]s were violated. Only general knowledge is presented. You won't find any details specific to the inner working of [Bing][bing] or other search engines here :)
 
 
 
@@ -43,8 +43,8 @@ There is a lot for me to learn about and there is a lot of things that I don't k
 - [Supervised LTR methods](#supervised-ltr)
   - [RankNet](#ranknet)
   - [LambdaRank and LambdaMART](#lambdarank-and-lambdamart)
-    - [Train $$\lambda$$MART using LightGBM](#train-lambdamart-using-lgbm)
-    - [Theoretical justification of $$\lambda$$Rank](#theoretical-justification-of-lambrank)
+    - [Train $\lambda$MART using LightGBM](#train-lambdamart-using-lgbm)
+    - [Theoretical justification of $\lambda$Rank](#theoretical-justification-of-lambrank)
   - [LambdaLoss Framework](#lambdaloss)
 - [Click signal biases](#)
 - [References](#)
@@ -64,7 +64,7 @@ In information retrieval, the items that are being searched for (e.g. videos, bo
     {{ site.url }}/articles/images/2021-08-15-learning-to-rank/search_engine.png
 {% endcapture %}
 {% capture imcaption_search_engine %}
-  Over-simplified general schema of search engines. Features extracted from all documents using the indexer are stored in the index database. For a search given query, top k documents are retrieved from the index database and then sorted by their relevance to the given query.
+  Over-simplified general schema of search engines. Features extracted from all documents using the indexer are stored in the index database. For a search given query, top k documents are retrieved from the index database and then sorted by their relevance to the given query. *(Source: I drew it 😜)*
 {% endcapture %}
 {% include gallery images=imblock_search_engine cols=1 caption=imcaption_search_engine %}
 
@@ -74,7 +74,7 @@ In information retrieval, the items that are being searched for (e.g. videos, bo
 
 [Huang et al. (2020)][fbsearch_embedding] described in detail how Facebook Search is using Embedding-based Retrieval in their search engine. [Bing Search][bing], according to their [2018 blog post][bing_img_search_2018], calculates image embeddings in addition to text embeddings for their retrieval stage. Google's blog post ["Building a real-time embeddings similarity matching system"][google_building_retrieval] gives us a glimpse of how Embedding-based Retrieval is likely to be performed inside Google, although their inner system is for sure much more sophisticated than that, and is probably combined Rule-based Retrieval as well.
 
-Algorithmic nerds out there might find it interesting that metric trees (like [k-d tree][kdtree]) is not used in large-scale search engines due to their slow $$O(\log n)$$ complexity and large memory consumption. Instead, [Approximate Nearest Neighbors (ANN)][ann_methods] search (like [LHS][lhs_hashing] or [PCA hashing][pca_hashing]) is used to achieve close to $$O(1)$$ retrieval complexity. If you want to learn more about these algorithms, I highly recommend [this Medium post][ann_methods] about ANN search.
+Algorithmic nerds out there might find it interesting that metric trees (like [k-d tree][kdtree]) is not used in large-scale search engines due to their slow $O(\log n)$ complexity and large memory consumption. Instead, [Approximate Nearest Neighbors (ANN)][ann_methods] search (like [LHS][lhs_hashing] or [PCA hashing][pca_hashing]) is used to achieve close to $O(1)$ retrieval complexity. If you want to learn more about these algorithms, I highly recommend [this Medium post][ann_methods] about ANN search.
 
 **Ranking** is the step that actually makes search engines work. Retrieved documents from the previous step are then ranked by their relevance to the given query and (optionally) the user's preferences. While hand-crafted heuristics and rule-based methods for relevance ranking are often more than enough for small and even mid-sized search engines, all big names in the industry right now are using Machine-Learning (i.e. [Learning-to-Rank][ltr]) techniques for search results ranking.
 
@@ -112,7 +112,7 @@ There was a time when [PageRank][pagerank] was a sole ranking factor for Google,
 <a name="ltr-intro"></a>
 ## 2. Learning to Rank (LTR)
 
-Given a query $$\mathcal{Q}$$ and a set of $$n$$ retrieved documents $$\mathcal{D} = \{ d_1, d_2, \ldots, d_n \}$$, we'd like to learn a function $$f(\mathcal{Q}, \mathcal{D})$$ that will return a correct ordering of the documents, such that the first documents would be the most relevant to the user. Usually, $$f$$ predicts a score for each document, and then the ranking order is determined by the scores.
+Given a query $\mathcal{Q}$ and a set of $n$ retrieved documents $\mathcal{D} = \{ d_1, d_2, \ldots, d_n \}$, we'd like to learn a function $f(\mathcal{Q}, \mathcal{D})$ that will return a correct ordering of the documents, such that the first documents would be the most relevant to the user. Usually, $f$ predicts a score for each document, and then the ranking order is determined by the scores.
 
 {% capture imblock_ltrtask %}
     {{ site.url }}/articles/images/2021-08-15-learning-to-rank/ltr_task.png
@@ -171,7 +171,7 @@ DCG@T = \sum_{i=1}^T \frac{2^{l_i} - 1}{\log (1 + i)}
 \end{equation*}
 $$
 
-where $$T$$ is the truncation level (for example, if we only care about the first page of results, we might take $$T=10$$), and $$l_i$$ is the relevance score label of the $$i$$-th result (for example, if $$5$$ levels of relevance is used, then $$l_i \in {1, 2, \ldots, 5}$$). The **NDCG** is just normalized version of DCG:
+where $T$ is the truncation level (for example, if we only care about the first page of results, we might take $T=10$), and $l_i$ is the relevance score label of the $i$-th result (for example, if $5$ levels of relevance is used, then $l_i \in {1, 2, \ldots, 5}$). The **NDCG** is just normalized version of DCG:
 
 $$
 \begin{equation}\label{eq:ndcg}\tag{NDCG}
@@ -179,7 +179,9 @@ NDCG@T = \frac{DCG@T}{\max DCG@T}
 \end{equation}
 $$
 
-where the denominator $$\max DCG@T$$ is the maximum possible DCG for the given query and list of results, so that $$NDCG@T \in [0, 1]$$. This is the most commonly used metric.
+where the denominator $\max DCG@T$ is the maximum possible DCG for the given query and list of results, so that $NDCG@T \in [0, 1]$. This is the most commonly used metric.
+
+> TODO: add NDCG visualization
 
 
 <a name="metrics-err"></a>
@@ -193,7 +195,7 @@ R_i = \frac{2^{l_i} - 1}{2^{l_m}}
 \end{equation}
 $$
 
-where $$R_{i}$$ models the probability that the user finds the document at $$i$$-th position relevant and $$l_m$$ is the maximum possible label value.
+where $R_{i}$ models the probability that the user finds the document at $i$-th position relevant and $l_m$ is the maximum possible label value.
 
 
 [map-explained]: https://towardsdatascience.com/breaking-down-mean-average-precision-map-ae462f623a52
@@ -210,7 +212,7 @@ where $$R_{i}$$ models the probability that the user finds the document at $$i$$
 
 From 2005 to 2006, a series of incredibly important papers in Learning to Rank research were published by [Christopher Burges][burges-website], a researcher at [Microsoft][microsoft-research]. With **RankNet** [(Burges et al. 2005)][burges-ranknet], the LTR problem is re-defined as an optimization problem that can be solved using gradient descent. In **LambdaRank** and **LambdaMART** [(Burges et al. 2006)][burges-lambdarank], a method for directly optimizing NDCG was proposed. At the time of writing this blog post, LamdaMART is still being used as a strong baseline model, and can even out-perform newer methods on various benchmarks. If you want to know more about the story behind these methods, I highly recomment [this blog post by Microsoft][ranknet-retrospect].
 
-In this section, I will closely follow the survey by [Burges (2010)][burges-ranknet-to-lambdamart] and describe these methods in the context of web search (but it is generic enough to be generalized to other domains, e.g. e-commerce). Given fixed query $$\mathcal{Q}$$, we define the following notations for the documents that matches the given query:
+In this section, I will closely follow the survey by [Burges (2010)][burges-ranknet-to-lambdamart] and describe these methods in the context of web search (but it is generic enough to be generalized to other domains, e.g. e-commerce). Given fixed query $\mathcal{Q}$, we define the following notations for the documents that matches the given query:
 
 <table class="notations-table">
 <tr><th>Notation</th><th class="notations-desc">Description</th></tr>
@@ -245,7 +247,7 @@ In this section, I will closely follow the survey by [Burges (2010)][burges-rank
 <a name="ranknet"></a>
 ### 4.1. RankNet
 
-[Burges et al. (2005)][burges-ranknet] proposed an optimization objective for the Learning-to-Rank problem so that a model can be trained using gradient descent. Let's model the learned probability $$P_{ij}$$ that $$i$$-th document should rank higher than $$j$$-th document as a sigmoid function:
+[Burges et al. (2005)][burges-ranknet] proposed an optimization objective for the Learning-to-Rank problem so that a model can be trained using gradient descent. Let's model the learned probability $P_{ij}$ that $i$-th document should rank higher than $j$-th document as a sigmoid function:
 
 $$
 \begin{equation*}
@@ -253,7 +255,7 @@ P_{ij} = P\left({\bf U}_{i} \rhd {\bf U}_{j}\right) = \frac{1}{1 + e^{-\sigma (s
 \end{equation*}
 $$
 
-where the choice of the parameter $$\sigma$$ determines the shape of the sigmoid. Let $$\widetilde{P}_{ij}$$ be the known probability that $${\bf U}_{i} \rhd {\bf U}_{j}$$ (it could be estimated by asking several judges to compare the pair and average out their answers). The **RankNet**'s cost function for a given query-document pair is defined as the [Cross Entropy][crossentropy]:
+where the choice of the parameter $\sigma$ determines the shape of the sigmoid. Let $$\widetilde{P}_ {ij}$$ be the known probability that $${\bf U}_ {i} \rhd {\bf U}_ {j}$$ (it could be estimated by asking several judges to compare the pair and average out their answers). The **RankNet**'s cost function for a given query-document pair is defined as the [Cross Entropy][crossentropy]:
 
 $$
 \begin{equation}\label{eq:ranknet}
@@ -261,7 +263,7 @@ $$
 \end{equation}
 $$
 
-Obviously, this cost function is symmetric: swapping $$i$$ and $$j$$ and flipping the probabilities $$P_{ij}$$ and $$\widetilde{P}_{ij}$$ should not change the cost. At each minibatch descent step, the RankNet's cost is summarized from all document pairs in $$\boldsymbol{\mathcal I}$$.
+Obviously, this cost function is symmetric: swapping $i$ and $j$ and flipping the probabilities $P_{ij}$ and $\widetilde{P}_{ij}$ should not change the cost. At each minibatch descent step, the RankNet's cost is summarized from all document pairs in $\boldsymbol{\mathcal I}$.
 
 RankNet opened a new direction in LTR research, and is the precursor to LambdaRank and LambdaMART. In 2015, the RankNet paper won the ICML Test of Time Best Paper Award, which honors “a paper from ICML ten years ago that has had substantial impact on the field of machine learning, including both research and practice.”
 
@@ -275,7 +277,7 @@ of pairwise errors, which is fine if that is the desired cost. However, it does 
 Ideally, we would want to be able to optimize the position-sensitive objectives in a more direct way. However, ranking metrics such as [NDCG](#metrics-ndcg) and [ERR](#metrics-ERR) are not differentiable objectives since sorting is needed
 to obtain ranks based scores. This makes the ranking metrics either discontinuous or flat everywhere and can not be directly used as learning objectives. The **LambdaRank** framework, developed by [Burges et al. (2006)][burges-lambdarank], solves this problem by modifying the gradients during training.
 
-Let's start from the RankNet's cost $$\mathcal{C}$$ defined in $$(\ref{eq:ranknet})$$. It is easy to see that $$\partial \mathcal{C} / \partial s_i = - \partial \mathcal{C} / \partial s_j$$ due to the symmetry of the RankNet's cost function. More specifically:
+Let's start from the RankNet's cost $\mathcal{C}$ defined in $(\ref{eq:ranknet})$. It is easy to see that $\partial \mathcal{C} / \partial s_i = - \partial \mathcal{C} / \partial s_j$ due to the symmetry of the RankNet's cost function. More specifically:
 
 $$
 \begin{equation*}
@@ -283,7 +285,7 @@ $$
 \end{equation*}
 $$
 
-Let's denote $${\boldsymbol \lambda}_{ij} = \partial \mathcal{C} / \partial s_i$$. The gradients $$\partial \mathcal{C} / \partial \theta$$ of our model's weights averaged over the set $$\boldsymbol{\mathcal I}$$ of document pairs can be written as:
+Let's denote ${\boldsymbol \lambda}_{ij} = \partial \mathcal{C} / \partial s_i$. The gradients $\partial \mathcal{C} / \partial \theta$ of our model's weights averaged over the set $\boldsymbol{\mathcal I}$ of document pairs can be written as:
 
 $$
 \begin{align*}
@@ -329,13 +331,13 @@ $$
 \end{align*}
 $$
 
-where we introduced one $${\boldsymbol \lambda}_{k}$$ for each document. You can think of the $${\boldsymbol \lambda}$$'s as little arrows (or forces), one attached to each (sorted) document, the direction of which indicates the direction we'd like the document to move (to increase relevance), the length of which indicates by how much, and where the $${\boldsymbol \lambda}$$ for a given document is computed from all the pairs in which that document is a member.
+where we introduced one $\boldsymbol{\lambda}_ {k}$ for each document. You can think of the $\boldsymbol{\lambda}$'s as little arrows (or forces), one attached to each (sorted) document, the direction of which indicates the direction we'd like the document to move (to increase relevance), the length of which indicates by how much, and where the $\boldsymbol{\lambda}$ for a given document is computed from all the pairs in which that document is a member.
 
 > **NOTE:** add figure illustrating per-document forces
 
-So far, each individual $${\boldsymbol \lambda}_{ij}$$ contributes equally to the magnitude of $${\boldsymbol \lambda}_{i}$$. That means the rankings of documents below, let's say, 100th position is given equal improtance to the rankings of the top documents. This is not what we want if the chosen metric is position-sensitive (like [NDCG](#metrics-ndcg) or [ERR](#metric-err)): we should prioritize having relevant documents at the very top much more than having correct ranking below 100th position. 
+So far, each individual $\boldsymbol{\lambda}_ {ij}$ contributes equally to the magnitude of $\boldsymbol{\lambda}_ {i}$. That means the rankings of documents below, let's say, 100th position is given equal improtance to the rankings of the top documents. This is not what we want if the chosen metric is position-sensitive (like [NDCG](#metrics-ndcg) or [ERR](#metric-err)): we should prioritize having relevant documents at the very top much more than having correct ranking below 100th position. 
 
-[Burges et al. (2006)][burges-lambdarank] proposed an elegant framework to this problem, called **LambdaRank**. Let's multiply each individual $${\boldsymbol \lambda}_{ij}$$ by the amount of change in our chosen metric if we swap the positions of $$i$$-th and $$j$$-th documents. For example, if the chosen metric is [NDCG](#metrics-ndcg), then we adjust $${\boldsymbol \lambda}_{ij}$$ as follows:
+[Burges et al. (2006)][burges-lambdarank] proposed an elegant framework to this problem, called **LambdaRank**. Let's multiply each individual $ \boldsymbol{\lambda}_ {ij} $ by the amount of change in our chosen metric if we swap the positions of $i$-th and $j$-th documents. For example, if the chosen metric is [NDCG](#metrics-ndcg), then we adjust $\boldsymbol{\lambda}_ {ij}$ as follows:
 
 $$
 \begin{equation}
@@ -343,7 +345,7 @@ $$
 \end{equation}
 $$
 
-where $$\Delta NDCG_{ij}$$ is the change in NDCG when the position of $$i$$-th and $$j$$-th documents are swapped and can be calculated as follows:
+where $\Delta NDCG_{ij}$ is the change in NDCG when the position of $i$-th and $j$-th documents are swapped and can be calculated as follows:
 
 $$
 \begin{equation*}
@@ -352,7 +354,7 @@ $$
 \end{equation*}
 $$
 
-which takes $$O(n^2)$$ time to compute for all pair of documents. From first glance, $$\Delta ERR_{ij}$$ is harder to compute: the naive implementation would require $$O(n^3)$$ time to compute for all pair of documents. However, we can use the trick described by [Burges (2010)][burges-ranknet-to-lambdamart] to bring the cost down to $$O(n^2)$$.
+which takes $O(n^2)$ time to compute for all pair of documents. From first glance, $\Delta ERR_{ij}$ is harder to compute: the naive implementation would require $O(n^3)$ time to compute for all pair of documents. However, we can use the trick described by [Burges (2010)][burges-ranknet-to-lambdamart] to bring the cost down to $O(n^2)$.
 
 **LambdaMART** is basically the same, but uses [Gradient Boosted Decision Trees](#gbdt) instead of Neural Networks (MART stands for Multiple Additive Regression Trees). Basically we perform gradient ascent in the models (function) space instead of the model's weights space.
 
@@ -366,7 +368,7 @@ which takes $$O(n^2)$$ time to compute for all pair of documents. From first gla
 
 
 <a name="train-lambdamart-using-lgbm"></a>
-#### 4.2.1. Train $$\lambda$$MART using LightGBM
+#### 4.2.1. Train $\lambda$MART using LightGBM
 
 <a href="#"><img src="https://img.shields.io/badge/open_in_colab-F9AB00?style=for-the-badge&logo=googlecolab&logoColor=white" alt="Open in Colab"></a>
 <a href="#"><img src="https://img.shields.io/badge/github-000000?style=for-the-badge&logo=github&logoColor=white" alt="Github"></a>
@@ -481,16 +483,16 @@ If we instead sort the features by their gains (i.e. `feature_importance='gain'`
 
 
 <a name="theoretical-justification-of-lambrank"></a>
-#### 4.2.2. Theoretical justification of $$\lambda$$Rank
+#### 4.2.2. Theoretical justification of $\lambda$Rank
 
-Despite experimental success and promising results of $$\lambda$$Rank and $$\lambda$$MART in optimizing the ranking metrics like NDCG and ERR, there are few questions that has bothered researcher for a long time:
+Despite experimental success and promising results of $\lambda$Rank and $\lambda$MART in optimizing the ranking metrics like NDCG and ERR, there are few questions that has bothered researcher for a long time:
 
-* From the theoretical perspective, does the iterative procedure employed by $$\lambda$$Rank converge?
-* Is there an underlying global loss function for $$\lambda$$Rank. If so, what is it? How it relates to the metric?
+* From the theoretical perspective, does the iterative procedure employed by $\lambda$Rank converge?
+* Is there an underlying global loss function for $\lambda$Rank. If so, what is it? How it relates to the metric?
 
-[Donmez et al. (2009)][donmez-lambdatheory] empirically showed the local optimality of $$\lambda$$Rank by applying an one-sided Monte-Carlo test. They sample $$n$$ random directions uniformly from a unit sphere, then move the model's weights $$\theta$$ along each direction by a small $$\eta > 0$$ and check that the chosen metric $$M$$ always decreases. Their experimental results indicates that the iterative procedure employed by $$\lambda$$Rank converges to a local minimum with a high statistical significance.
+[Donmez et al. (2009)][donmez-lambdatheory] empirically showed the local optimality of $\lambda$Rank by applying an one-sided Monte-Carlo test. They sample $n$ random directions uniformly from a unit sphere, then move the model's weights $\theta$ along each direction by a small $\eta > 0$ and check that the chosen metric $M$ always decreases. Their experimental results indicates that the iterative procedure employed by $\lambda$Rank converges to a local minimum with a high statistical significance.
 
-[Burges et al. (2006)][burges-lambdarank] attempted to show that there is an underlying global loss function for $$\lambda$$Rank by using [Poincaré lemma][poincare-lemma] in differential geometry. For a set of functions $$f_1, \ldots, f_n \colon \mathbb{R}^n \to \mathbb{R}$$, the existence of a function $$F \colon \mathbb{R}^n \to \mathbb{R}$$ such that $$\partial F / \partial x_i = f_i$$ is equivalent to $$\textstyle \sum_{i} f_i dx^i$$ being an exact form; which means that (on $$\mathbb{R}^n$$) the form is closed, i.e.
+[Burges et al. (2006)][burges-lambdarank] attempted to show that there is an underlying global loss function for $\lambda$Rank by using [Poincaré lemma][poincare-lemma] in differential geometry. For a set of functions $f_1, \ldots, f_n \colon \mathbb{R}^n \to \mathbb{R}$, the existence of a function $F \colon \mathbb{R}^n \to \mathbb{R}$ such that $\partial F / \partial x_i = f_i$ is equivalent to $\textstyle \sum_{i} f_i dx^i$ being an exact form; which means that (on $\mathbb{R}^n$) the form is closed, i.e.
 
 $$
 \begin{align*}
@@ -502,9 +504,9 @@ $$
 \end{align*}
 $$
 
-For a given pair, for any particular values for the model weights, it is easy to verify that the requirement is satisfied due to the symmetries of $$\lambda$$Rank gradients. However, the existance of a global loss function remains unknown across iterations, since the model with updated weights generates the score by which the urls are sorted, and since the $$\boldsymbol{\lambda}$$'s are computed after the sort.
+For a given pair, for any particular values for the model weights, it is easy to verify that the requirement is satisfied due to the symmetries of $\lambda$Rank gradients. However, the existance of a global loss function remains unknown across iterations, since the model with updated weights generates the score by which the urls are sorted, and since the $\boldsymbol{\lambda}$'s are computed after the sort.
 
-Finally, [Wang et al. (2019)][lambdaloss] developed a probabilistic framework, within which $$\lambda$$Rank optimizes for an upper bound of a well-defined cost function, which we will review closely in the next section.
+Finally, [Wang et al. (2019)][lambdaloss] developed a probabilistic framework, within which $\lambda$Rank optimizes for an upper bound of a well-defined cost function, which we will review closely in the next section.
 
 
 [poincare-lemma]: http://nlab-pages.s3.us-east-2.amazonaws.com/nlab/show/Poincar%C3%A9%20lemma
@@ -520,6 +522,25 @@ Finally, [Wang et al. (2019)][lambdaloss] developed a probabilistic framework, w
 <a name="click-biases"></a>
 ## 5. Click Signal Biases
 
+In the previous section, we have learned how to train a ranker on labeled data, where each document-query pair is annotated with a score (from 1 to 5) that shows how relevant that document is to the given query. This process is very expensive: to ensure the objectivity of labeled score, the human labeler would have to go through a strict checklist with multiple questions, then the document's relevance score will be calculated from the given answers. [Google's guidelines for search quality rating][google_sqe_guidelines] is a clear example of how complicated that process is.
+
+One might wonder **why we can't just use user's clicks as relevance labels?** Which is quite a natural idea: the more relevant the document is to the given query, the more likely it is going to be clicked on. Well, not that easy &mdash; implicit user signals typically include multiple biases, the most common types are: position bias, presentation bias, and quality-of-context bias.
+
+
+<a name="position-bias"></a>
+### 5.1. Position Bias
+
+
+<a name="fig-lambdamart-fi"></a>
+{% capture imblock_lambdamart_fi %}
+  {{ site.url }}/articles/images/2021-08-15-learning-to-rank/feat_importance.svg
+{% endcapture %}
+{% capture imcaption_lambdamart_fin %}
+  Top 20 most important features by split (left plot) and by gain (right plot) for the LambdaMART model trained on the MSLR-WEB30K dataset.
+{% endcapture %}
+{% include gallery images=imblock_lambdamart_fi cols=1 caption=imcaption_lambdamart_fin %}
+
+
 
 <a name="fig-click-google"></a>
 {% capture imblock_click_google %}
@@ -529,6 +550,11 @@ Finally, [Wang et al. (2019)][lambdaloss] developed a probabilistic framework, w
   Top 20 most important features by split (left plot) and by gain (right plot) for the LambdaMART model trained on the MSLR-WEB30K dataset.
 {% endcapture %}
 {% include gallery images=imblock_click_google cols=1 caption=imcaption_click_google %}
+
+
+
+[google_sqe_guidelines]: https://static.googleusercontent.com/media/guidelines.raterhub.com/en//searchqualityevaluatorguidelines.pdf
+
 
 
 ---------------------------------------------------------------------------------

@@ -15,6 +15,10 @@
   <script type="text/x-mathjax-config">
     MathJax.Hub.Config({
       CommonHTML: { scale: 100 },
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        processEscapes: true
+      },
       TeX: {
         equationNumbers: { autoNumber: "AMS" },
         extensions: ["color.js"],
