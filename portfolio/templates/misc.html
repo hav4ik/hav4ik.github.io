@@ -4,7 +4,7 @@
   <div class="research" style="padding-bottom:1em;">
     <div class="research-illu">
       {% capture my_include %}
-        {% include_relative sections/misc-hydra.md %}
+        {% include_relative sections/misc-imc2022.md %}
       {% endcapture %}
       {{ my_include | markdownify }}
     </div>
@@ -16,21 +16,19 @@
     </div>
   </div>
 
-  <div class="research">
+  <div class="research" style="padding-bottom:1em;">
     <div class="research-illu">
+      {% capture my_include %}
+        {% include_relative sections/misc-hydra.md %}
+      {% endcapture %}
+      {{ my_include | markdownify }}
+    </div>
+    <div class="research-desc">
       {% capture my_include %}
         {% include_relative sections/misc-eyesight.md %}
       {% endcapture %}
       {{ my_include | markdownify }}
-    </div>
-
-    <!--
-    <div class="research-desc">
-      {% capture my_include %}
-        {% include_relative sections/misc-mtl-survey.md %}
-      {% endcapture %}
-      {{ my_include | markdownify }}
-    </div>
-    -->
+    </div>  
   </div>
+
 </div>

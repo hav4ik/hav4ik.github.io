@@ -5,17 +5,17 @@
   </div>
   <div class="header-right">
     <ul class="icons">
-      {% if site.github %}
-        <li>
-          <a target="_blank" href="https://github.com/{{ site.github }}" class="button button--sacnite button--round-l">
-            <i class="fab fa-github"></i>
-          </a>
-        </li>
-      {% endif %}
       {% if site.kaggle %}
         <li>
           <a target="_blank" href="https://www.kaggle.com/{{ site.kaggle }}" class="button button--sacnite button--round-l">
             <i class="fab fa-kaggle"></i>
+          </a>
+        </li>
+      {% endif %}
+      {% if site.github %}
+        <li>
+          <a target="_blank" href="https://github.com/{{ site.github }}" class="button button--sacnite button--round-l">
+            <i class="fab fa-github"></i>
           </a>
         </li>
       {% endif %}

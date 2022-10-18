@@ -6,3 +6,6 @@
 _site/
 .sass-cache/
 .jekyll-cache/
+
+# vscode
+workspace.code-workspace
