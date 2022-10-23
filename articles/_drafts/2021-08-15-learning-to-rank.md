@@ -17,12 +17,11 @@ highlighted: true
 
 I still remember being fascinated by Google Search when I saw it the first time. As an 8th-grade kid getting his first computer, the ability to search for any information I want among billions of web pages looked like magic to me. As Arthur C. Clarke famously said, ["any sufficiently advanced technology is indistinguishable from magic."][tech_is_magic] By that definition, the search engines that allow us to access thousands of years of humanity's accumulated knowledge at our fingertip, are the modern version of magic!
 
-{% comment %}
-
 Back then, even in my wildest dreams, I couldn't have imagined that 25 years old me will have the privilege to move across the globe to work on a search engine called [Microsoft Bing][bing] &mdash; an ambitious project with enough guts to compete with Google in the search market! Now that I can see how it works from the inside, the "magic" behind that little search box became even more impressive to me. The search engine is a truly gigantic marvel of modern technology, built and supported by tens of thousands of hardware engineers, software developers, and machine learning scientists.
 
 There is a lot for me to learn about and there is a lot of things that I don't know, so in this blog post, I'll take you together with me on my study journey about [Learning to Rank (LTR)][ltr] algorithms. I'm by no means an expert in this field so this post is likely to be filled with a lot of inaccuracies. If you spotted any mistakes in this post or if I'm completely wrong in some sections, please let me know.
 
+{% comment %}
 {% endcomment %}
 
 > **Disclaimer:** all information in this blog post is taken from published research papers or publically available online articles. No [NDA][nda]s were violated. Only general knowledge is presented. You won't find any details specific to the inner working of [Bing][bing] or other search engines here :)
@@ -36,7 +35,7 @@ There is a lot for me to learn about and there is a lot of things that I don't k
 
 
 - [How do search engines work?](#how-search-engines-work)
-- [Learning to Rank (LTR)](#ltr-intro)
+- [Introduction to Learning to Rank](#ltr-intro)
   - [Search Relevance](#search-relevance)
   - [Flavors of LTR methods](#ltr-flavors)
 - [Relevance Ranking Metrics](#ltr-metrics)
@@ -46,7 +45,10 @@ There is a lot for me to learn about and there is a lot of things that I don't k
     - [Train $\lambda$MART using LightGBM](#train-lambdamart-using-lgbm)
     - [Theoretical justification of $\lambda$Rank](#theoretical-justification-of-lambrank)
   - [LambdaLoss Framework](#lambdaloss)
-- [Click signal biases](#)
+- [Unbiased Learning to Rank (from User Behavior)](#)
+  - [Click signal biases](#)
+  - [Counterfactual Learning to Rank](#)
+  - [Online Learning to Rank](#)
 - [References](#)
 
 
@@ -110,7 +112,7 @@ There was a time when [PageRank][pagerank] was a sole ranking factor for Google,
 
 
 <a name="ltr-intro"></a>
-## 2. Learning to Rank (LTR)
+## 2. Introduction to Learning to Rank
 
 Given a query $\mathcal{Q}$ and a set of $n$ retrieved documents $\mathcal{D} = \{ d_1, d_2, \ldots, d_n \}$, we'd like to learn a function $f(\mathcal{Q}, \mathcal{D})$ that will return a correct ordering of the documents, such that the first documents would be the most relevant to the user. Usually, $f$ predicts a score for each document, and then the ranking order is determined by the scores.
 
@@ -515,42 +517,42 @@ Finally, [Wang et al. (2019)][lambdaloss] developed a probabilistic framework, w
 <a name="lambdaloss"></a>
 ### 4.3. LambdaLoss Framework
 
+> **TODO:** recap the main results of lambdaloss paper
 
 ---------------------------------------------------------------------------------
 
 
+<a name="unbiased-ltr"></a>
+## 5. Unbiased Learning to Rank (from User Behavior)
+
+In the previous section, we have learned how to train a ranker on labeled data, where each document-query pair is annotated with a score (from 1 to 5) that shows how relevant that document is to the given query. This process is very expensive: to ensure the objectivity of labeled score, the human labeler would have to go through a strict checklist with multiple questions, then the document's relevance score will be calculated from the given answers. [Google's guidelines for search quality rating][google_sqe_guidelines] is a clear example of how complicated that process is (167 pages of guideline).
+
+One might wonder **why we can't just use user's clicks as relevance labels?** Which is quite a natural idea: the more relevant the document is to the given query, the more likely it is going to be clicked on. User click should be a good indicator that a document is relevant to the user, right? Well, not that easy &mdash; not every relevant document is given an equal chance to be clicked by the user. In the next section, we will examine most common types of click signal biases.
+
+
 <a name="click-biases"></a>
-## 5. Click Signal Biases
+### 5.1. Click Signal Biases
 
-In the previous section, we have learned how to train a ranker on labeled data, where each document-query pair is annotated with a score (from 1 to 5) that shows how relevant that document is to the given query. This process is very expensive: to ensure the objectivity of labeled score, the human labeler would have to go through a strict checklist with multiple questions, then the document's relevance score will be calculated from the given answers. [Google's guidelines for search quality rating][google_sqe_guidelines] is a clear example of how complicated that process is.
+Implicit user signals typically include multiple biases, the most common types are: position bias, selection bias, and trust bias. It is important to identify the types of biases, because for Unbiased Learning to Rank we will need to build models to estimate such biases.
 
-One might wonder **why we can't just use user's clicks as relevance labels?** Which is quite a natural idea: the more relevant the document is to the given query, the more likely it is going to be clicked on. Well, not that easy &mdash; implicit user signals typically include multiple biases, the most common types are: position bias, presentation bias, and quality-of-context bias.
-
-
-<a name="position-bias"></a>
-### 5.1. Position Bias
-
-
-<a name="fig-lambdamart-fi"></a>
-{% capture imblock_lambdamart_fi %}
-  {{ site.url }}/articles/images/2021-08-15-learning-to-rank/feat_importance.svg
-{% endcapture %}
-{% capture imcaption_lambdamart_fin %}
-  Top 20 most important features by split (left plot) and by gain (right plot) for the LambdaMART model trained on the MSLR-WEB30K dataset.
-{% endcapture %}
-{% include gallery images=imblock_lambdamart_fi cols=1 caption=imcaption_lambdamart_fin %}
-
-
+**Position bias** occurs because users usually clicks on an item only after examining it, and users are more likely to examine the items displayed at the beginning of search results page, i.e. with higher ranks by the ranking model [(Craswell & Taylor, 2008)][experimental_comparison_of_click_models]. The best way to illustrate the effects of position bias is by tracking user's eyes while looking at returned search results:
 
 <a name="fig-click-google"></a>
 {% capture imblock_click_google %}
   {{ site.url }}/articles/images/2021-08-15-learning-to-rank/eyetrack_heatmap_google.jpg
 {% endcapture %}
 {% capture imcaption_click_google %}
-  Top 20 most important features by split (left plot) and by gain (right plot) for the LambdaMART model trained on the MSLR-WEB30K dataset.
+  Eye-tracking heatmaps for Google Search page in 2004 (left) and 2014 (right).
 {% endcapture %}
 {% include gallery images=imblock_click_google cols=1 caption=imcaption_click_google %}
 
+As we can clearly see, top results gets way more attention than bottom results. Also, notice how in 2004 the eye-tracking heatmap was concentrated on the top few results, but in 2014 the heatmap gets more "flattened" accross the whole results page. What have changed? Design.
+
+> The design of a search results page can greatly affect the biases of the user's behavior. Make sure to adjust your position bias estimators after each major web page design change.
+
+**Selection bias** occurs when some items have zero probability of being examined. Let's take Google search results page as an example. How often do you go to second search results page? To the third? Have you ever reached 10th page of Google's search results? The user rarely goes further than top few results.
+
+**Trust bias** occurs because the users trust the ranking system, so they are more likely to click on top ranked items even when they are not relevant. This may sound similar to position bias that we described above, because ultimately both of these biases amplifies the top items ranked by the relevance ranking model, but it's actually important to have this distinction if we want to build a model for such biases.
 
 
 [google_sqe_guidelines]: https://static.googleusercontent.com/media/guidelines.raterhub.com/en//searchqualityevaluatorguidelines.pdf
@@ -579,6 +581,9 @@ One might wonder **why we can't just use user's clicks as relevance labels?** Wh
 
 8. Wang X. Li C., Golbandi N., Bendersky M., Najork M. ["The LambdaLoss Framework for Ranking Metric Optimization."][lambdaloss] In *CIKM*, 2018.
 
+9. Nick Craswell, Mike Taylor. ["An experimental comparison of click position-bias models."][experimental_comparison_of_click_models] In *Proceedings of the international conference on Web search and web data mining (WSDM)*, 2008.
+
+
 
 [burges-ranknet]: https://www.microsoft.com/en-us/research/publication/learning-to-rank-using-gradient-descent/
 [burges-lambdarank]: https://papers.nips.cc/paper/2006/hash/af44c4c56f385c43f2529f9b1b018f6a-Abstract.html
@@ -588,3 +593,5 @@ One might wonder **why we can't just use user's clicks as relevance labels?** Wh
 [letor4]: https://arxiv.org/abs/1306.2597
 [donmez-lambdatheory]: https://www.microsoft.com/en-us/research/publication/on-the-local-optimality-of-lambdarank/
 [lambdaloss]: https://research.google/pubs/pub47258/
+[google_sqe_guidelines]: https://static.googleusercontent.com/media/guidelines.raterhub.com/en//searchqualityevaluatorguidelines.pdf
+[experimental_comparison_of_click_models]: https://www.microsoft.com/en-us/research/publication/an-experimental-comparison-of-click-position-bias-models/
