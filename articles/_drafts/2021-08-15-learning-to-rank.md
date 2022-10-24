@@ -520,7 +520,7 @@ Finally, [Wang et al. (2019)][lambdaloss] developed a probabilistic framework, w
 
 
 <a name="unbiased-ltr"></a>
-## 4. Unbiased Learning to Rank (from User Behavior)
+## 4. Unbiased Learning to Rank (from User Clicks)
 
 In the previous section, we have learned how to train a ranker on labeled data, where each document-query pair is annotated with a score (from 1 to 5) that shows how relevant that document is to the given query. This process is very expensive: to ensure the objectivity of labeled score, the human labeler would have to go through a strict checklist with multiple questions, then the document's relevance score will be calculated from the given answers. [Google's guidelines for search quality rating][google_sqe_guidelines] is a clear example of how complicated that process is (167 pages of guideline).
 
@@ -571,27 +571,27 @@ Counterfactual Learning to Rank is a family of LTR methods that learns from hist
 
 
 <a name="fullinfo-ltr">
-#### 4.2.1. Full-Information LTR
+#### 4.2.1. Full Information LTR
 
-Before talking about approaches for Learning-to-Rank from biased implicit feedback (e.g. user clicks), let's review what we know so far about LTR from a curated & notoriously annotated dataset, where true relevance labels are known for each query-document pairs (i.e. we have full information about the data we're evaluating the model $$f_\theta$$ on). Given a sample $$\boldsymbol{\mathcal{Q}}$$ of queries $$\boldsymbol{\mathcal{q}}_k \sim P(\boldsymbol{\mathcal{q}}_k)$$ for which we assume the binary relevances $$y_{\text{true}}(\boldsymbol{\mathcal{q}}, d_i)$$ of all documents $$d_i \in \boldsymbol{\mathcal{D}}$$ are known, we can define overall empirical risk of a ranking system $$f_\theta$$ as follows:
+Before talking about approaches for Learning-to-Rank from biased implicit feedback (e.g. user clicks), let's review what we know so far about LTR from a curated & notoriously annotated dataset, where true relevance labels are known for each query-document pairs (i.e. we have full information about the data we're evaluating the model $$f_\theta$$ on). Given a sample $$\boldsymbol{\mathcal{Q}}$$ of queries $$\boldsymbol{\mathcal{q}}_k \sim P(\boldsymbol{\mathcal{q}}_k)$$ for which we assume the binary relevances $$y_{\text{true}}(\boldsymbol{\mathcal{q}}_k, d_i)$$ of all documents $$d_i \in \boldsymbol{\mathcal{D}}$$ are known (assuming $\boldsymbol{\mathcal{q}}_k$ already captures user context), we can define overall empirical risk of a ranking system $$f_\theta$$ as follows:
 
 $$
 \begin{equation*}
   \hat{R}(f_\theta) = \sum_{\boldsymbol{\mathcal{q}}_k \in \boldsymbol{\mathcal{Q}}} {
-    \frac{\mathcal{w}\left( \boldsymbol{\mathcal{q}} \right)}{|\boldsymbol{\mathcal{Q}}|} \cdot
-    \Delta_{\boldsymbol{\mathcal{q}}_k} \left( f_\theta, \boldsymbol{\mathcal{D}}, y_{\text{true}}\right)
+    \frac{\mathcal{w}\left( \boldsymbol{\mathcal{q}}_k \right)}{|\boldsymbol{\mathcal{Q}}|} \cdot
+    \Delta \left( \boldsymbol{\mathcal{q}}_k, f_\theta, \boldsymbol{\mathcal{D}}, y_{\text{true}}\right)
   }
 \end{equation*}
 $$
 
-where $\mathcal{w}( \boldsymbol{\mathcal{q}} )$ is the weight for each query (depending on its frequency, importance, or other criterias that are important to your business). $\Delta_\boldsymbol{\mathcal{q}}$ denotes any additive linearly composable IR metric that measures ranking quality of $f_\theta$ for query $\boldsymbol{\mathcal{q}}$ and can be computed as follows:
+where $$\mathcal{w}( \boldsymbol{\mathcal{q}}_k )$$ is the weight for each query (depending on its frequency, importance, or other criterias that are important to your business). $$\Delta$$ denotes any additive linearly composable IR metric that measures ranking quality of $$f_\theta$$ for query $$\boldsymbol{\mathcal{q}}$$ and can be computed as follows:
 
 $$
 \begin{equation*}
-  \Delta_\boldsymbol{\mathcal{q}} \left( f_\theta, \boldsymbol{\mathcal{D}}, y_{\text{true}}\right) =
+  \Delta \left( \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}}, y_{\text{true}}\right) =
   \sum_{d_i \in \boldsymbol{\mathcal{D}}} {
     \mu \big[
-      \text{rank}\left( d_i \vert f_\theta, \boldsymbol{\mathcal{D}} \right)
+      \text{rank}\left( d_i \vert\, \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}} \right)
     \big] \cdot
     y_{\text{true}}(\boldsymbol{\mathcal{q}}, d_i)
   }
@@ -603,8 +603,25 @@ where $\mu$ is a rank weighting function, some of which were mentioned in the [R
 - For DCG@T (Discounted Cumulative Gain at T), $\mu(r) = 1 / \log_2 (1 + r)$ if $r < T$ else $\mu(r) = 0$. For NDCG@T, just divide the whole thing to $\max \text{DCG@T}$.
 - For precision at $k$, $\mu(r) = \boldsymbol{1} [r \le k] / k$.
 
-For our analysis, we only care about per-query metric $\Delta_\boldsymbol{\mathcal{q}}$. Since we treat each query similarly (up to a weighting factor), from now on we can omit the query $\boldsymbol{\mathcal{q}}$ altogether in our notations.
+For our analysis, we only care about per-query metric $\Delta$. Since we treat each query similarly (up to a weighting factor), from now on we can omit the query $\boldsymbol{\mathcal{q}}$ altogether in our notations.
 
+
+<a name="partialinfo-ltr">
+#### 4.2.1. Partial Information LTR
+
+Since we don't know the true relevance $y_\text{true}(\cdot)$ of each document and rely on user clicks, we need to understand how the click biases plays out in practice. Let's take a look at toy example illustrated below:
+
+<a name="fig-fullinfo-vs-clickinfo"></a>
+{% capture imblock_fullinfo_vs_clickinfo %}
+  {{ site.url }}/articles/images/2021-08-15-learning-to-rank/fullinfo_vs_clickinfo.png
+{% endcapture %}
+{% capture imcaption_fullinfo_vs_clickinfo %}
+  Left: full information setting when you know true relevance $$y(d_i)$$ of each document. Right: partial information setting when you only have user click information and the true relevances $$y(d_i)$$ are not known. If the document is relevant and is observed by the user, then we might observe a click (i.e. $$d_1$$). Non-relevant documents can still get user clicks due to noise or trust bias (i.e. $$d_3$$). Un-observed documents are not getting any clicks at all even if they're relevant (i.e. $$d_4$$). *(Source: [Oosterhuis et al.](https://ilps.github.io/webconf2020-tutorial-unbiased-ltr/WWW2020handout.pdf))*
+{% endcapture %}
+{% include gallery images=imblock_fullinfo_vs_clickinfo cols=1 caption=imcaption_fullinfo_vs_clickinfo %}
+
+<a name="naiveestimator">
+#### 4.2.1. What's wrong with Naive Estimator?
 
 
 ---------------------------------------------------------------------------------
