@@ -38,8 +38,8 @@ There is a lot for me to learn about and there is a lot of things that I don't k
 - [Introduction to Learning to Rank](#ltr-intro)
   - [Search Relevance](#search-relevance)
   - [Flavors of LTR methods](#ltr-flavors)
-- [Relevance Ranking Metrics](#ltr-metrics)
-- [Supervised LTR methods](#supervised-ltr)
+  - [Relevance Ranking Metrics](#ltr-metrics)
+- [Supervised Learning to Rank methods](#supervised-ltr)
   - [RankNet](#ranknet)
   - [LambdaRank and LambdaMART](#lambdarank-and-lambdamart)
     - [Train $\lambda$MART using LightGBM](#train-lambdamart-using-lgbm)
@@ -48,6 +48,8 @@ There is a lot for me to learn about and there is a lot of things that I don't k
 - [Unbiased Learning to Rank (from User Behavior)](#)
   - [Click signal biases](#)
   - [Counterfactual Learning to Rank](#)
+    - [What's wrong with naive estimator?](#)
+    - [Inverse Propensity Scoring](#)
   - [Online Learning to Rank](#)
 - [References](#)
 
@@ -114,7 +116,7 @@ There was a time when [PageRank][pagerank] was a sole ranking factor for Google,
 <a name="ltr-intro"></a>
 ## 2. Introduction to Learning to Rank
 
-Given a query $\mathcal{Q}$ and a set of $n$ retrieved documents $\mathcal{D} = \{ d_1, d_2, \ldots, d_n \}$, we'd like to learn a function $f(\mathcal{Q}, \mathcal{D})$ that will return a correct ordering of the documents, such that the first documents would be the most relevant to the user. Usually, $f$ predicts a score for each document, and then the ranking order is determined by the scores.
+Given a query $q$ and a set of $n$ retrieved documents $\mathcal{D} = \{ d_1, d_2, \ldots, d_n \}$, we'd like to learn a function $f(\mathcal{Q}, \mathcal{D})$ that will return a correct ordering of the documents, such that the first documents would be the most relevant to the user. Usually, $f$ predicts a score for each document, and then the ranking order is determined by the scores.
 
 {% capture imblock_ltrtask %}
     {{ site.url }}/articles/images/2021-08-15-learning-to-rank/ltr_task.png
@@ -154,13 +156,8 @@ Supervised methods, depending on how the optimization objective is constructed, 
 Online and Counterfactual LTR are extremely important classes of LTR methods and are currently active areas of research. They are much trickier to train than supervised approaches since both Online and Counterfactual methods learns from biased signals. Approaches to counter this bias are commonly called **Unbiased Learning-to-Rank**.
 
 
-
----------------------------------------------------------------------------------
-
-
-
 <a name="ltr-metrics"></a>
-## 3. Relevance Ranking Metrics
+### 2.3. Relevance Ranking Metrics
 
 Information retrieval researchers use ranking quality metrics such as [Mean Average Precision (**MAP**)][map-explained] which I'm sure many of you are familiar with, [Mean Reciprocal Rank (**MRR**)][wiki-mrr], Expected Reciprocal Rank (**ERR**), and Normalized Discounted Cumulative Gain (**NDCG**) to evaluate the quality of search results ranking. The former two (MAP and MRR) are widely used for documents retrieval but not for search results ranking because they don't take into account the relevance score for each document.
 
@@ -210,7 +207,7 @@ where $R_{i}$ models the probability that the user finds the document at $i$-th 
 
 
 <a name="supervised-ltr"></a>
-## 4. Supervised LTR methods
+## 3. Supervised Learning to Rank methods
 
 From 2005 to 2006, a series of incredibly important papers in Learning to Rank research were published by [Christopher Burges][burges-website], a researcher at [Microsoft][microsoft-research]. With **RankNet** [(Burges et al. 2005)][burges-ranknet], the LTR problem is re-defined as an optimization problem that can be solved using gradient descent. In **LambdaRank** and **LambdaMART** [(Burges et al. 2006)][burges-lambdarank], a method for directly optimizing NDCG was proposed. At the time of writing this blog post, LamdaMART is still being used as a strong baseline model, and can even out-perform newer methods on various benchmarks. If you want to know more about the story behind these methods, I highly recomment [this blog post by Microsoft][ranknet-retrospect].
 
@@ -247,7 +244,7 @@ In this section, I will closely follow the survey by [Burges (2010)][burges-rank
 
 
 <a name="ranknet"></a>
-### 4.1. RankNet
+### 3.1. RankNet
 
 [Burges et al. (2005)][burges-ranknet] proposed an optimization objective for the Learning-to-Rank problem so that a model can be trained using gradient descent. Let's model the learned probability $P_{ij}$ that $i$-th document should rank higher than $j$-th document as a sigmoid function:
 
@@ -271,7 +268,7 @@ RankNet opened a new direction in LTR research, and is the precursor to LambdaRa
 
 
 <a name="lambdarank-and-lambdamart"></a>
-### 4.2. LambdaRank and LambdaMART
+### 3.2. LambdaRank and LambdaMART
 
 The objective of [RankNet](#ranknet) is optimizing for (a smooth, convex approximation to) the number
 of pairwise errors, which is fine if that is the desired cost. However, it does not produce desired gradients for minimizing position-sensitive objectives like [NDCG](#metrics-ndcg) or [ERR](#metrics-ERR), as we will illustrate in figure below.
@@ -370,7 +367,7 @@ which takes $O(n^2)$ time to compute for all pair of documents. From first glanc
 
 
 <a name="train-lambdamart-using-lgbm"></a>
-#### 4.2.1. Train $\lambda$MART using LightGBM
+#### 3.2.1. Train $\lambda$MART using LightGBM
 
 <a href="#"><img src="https://img.shields.io/badge/open_in_colab-F9AB00?style=for-the-badge&logo=googlecolab&logoColor=white" alt="Open in Colab"></a>
 <a href="#"><img src="https://img.shields.io/badge/github-000000?style=for-the-badge&logo=github&logoColor=white" alt="Github"></a>
@@ -485,7 +482,7 @@ If we instead sort the features by their gains (i.e. `feature_importance='gain'`
 
 
 <a name="theoretical-justification-of-lambrank"></a>
-#### 4.2.2. Theoretical justification of $\lambda$Rank
+#### 3.2.2. Theoretical justification of $\lambda$Rank
 
 Despite experimental success and promising results of $\lambda$Rank and $\lambda$MART in optimizing the ranking metrics like NDCG and ERR, there are few questions that has bothered researcher for a long time:
 
@@ -515,7 +512,7 @@ Finally, [Wang et al. (2019)][lambdaloss] developed a probabilistic framework, w
 
 
 <a name="lambdaloss"></a>
-### 4.3. LambdaLoss Framework
+### 3.3. LambdaLoss Framework
 
 > **TODO:** recap the main results of lambdaloss paper
 
@@ -523,17 +520,27 @@ Finally, [Wang et al. (2019)][lambdaloss] developed a probabilistic framework, w
 
 
 <a name="unbiased-ltr"></a>
-## 5. Unbiased Learning to Rank (from User Behavior)
+## 4. Unbiased Learning to Rank (from User Behavior)
 
 In the previous section, we have learned how to train a ranker on labeled data, where each document-query pair is annotated with a score (from 1 to 5) that shows how relevant that document is to the given query. This process is very expensive: to ensure the objectivity of labeled score, the human labeler would have to go through a strict checklist with multiple questions, then the document's relevance score will be calculated from the given answers. [Google's guidelines for search quality rating][google_sqe_guidelines] is a clear example of how complicated that process is (167 pages of guideline).
 
-One might wonder **why we can't just use user's clicks as relevance labels?** Which is quite a natural idea: the more relevant the document is to the given query, the more likely it is going to be clicked on. User click should be a good indicator that a document is relevant to the user, right? Well, not that easy &mdash; not every relevant document is given an equal chance to be clicked by the user. In the next section, we will examine most common types of click signal biases.
+One might wonder **why we can't just use user's clicks as relevance labels?** Which is quite a natural idea: clicks are the main way users interacts with our web page, and the more relevant the document is to the given query, the more likely it is going to be clicked on. In this section, we will learn about approaches that allows us to learn directly from click data.
+
+The structure of this section will closely follow the structure of the amazing lecture by [Oosterhuis et. al. (youtube, 2020)][ltr-lectures-harrie-youtube], which I personally used when I first started to learn about LTR.
+
+Since we're learning from user clicks only, it is hereby natural to make following **assumptions:**
+- By drawing the training signal directly from the user, it is more appropriate to talk about query instances $\boldsymbol{\mathcal{q}}$ that include contextual information about the user, instead of just a query string, since each user acts upon their own relevance judgement subject to their specific context and intention.
+- Relevance label to each document is binary ($1$ if relevant to given query and specific user, $0$ if not).
+
+
+[google_sqe_guidelines]: https://static.googleusercontent.com/media/guidelines.raterhub.com/en//searchqualityevaluatorguidelines.pdf
+[ltr-lectures-harrie-youtube]: https://www.youtube.com/watch?v=BEEfMrn9T9c
 
 
 <a name="click-biases"></a>
-### 5.1. Click Signal Biases
+### 4.1. Click Signal Biases
 
-Implicit user signals typically include multiple biases, the most common types are: position bias, selection bias, and trust bias. It is important to identify the types of biases, because for Unbiased Learning to Rank we will need to build models to estimate such biases.
+User click should be a good indicator that a document is relevant to the user, right? Well, not that easy &mdash; not every relevant document is given an equal chance to be clicked by the user. Implicit user signals typically include multiple biases, the most common types are: position bias, selection bias, and trust bias. It is important to identify the types of biases, because for Unbiased Learning to Rank we will need to build models to estimate such biases.
 
 **Position bias** occurs because users usually clicks on an item only after examining it, and users are more likely to examine the items displayed at the beginning of search results page, i.e. with higher ranks by the ranking model [(Craswell & Taylor, 2008)][experimental_comparison_of_click_models]. The best way to illustrate the effects of position bias is by tracking user's eyes while looking at returned search results:
 
@@ -548,14 +555,55 @@ Implicit user signals typically include multiple biases, the most common types a
 
 As we can clearly see, top results gets way more attention than bottom results. Also, notice how in 2004 the eye-tracking heatmap was concentrated on the top few results, but in 2014 the heatmap gets more "flattened" accross the whole results page. What have changed? Design.
 
-> The design of a search results page can greatly affect the biases of the user's behavior. Make sure to adjust your position bias estimators after each major web page design change.
+> **Takeaway:** the design of a search results page can greatly affect the biases of the user's behavior. Make sure to adjust your position bias estimators after each major web page design change.
 
-**Selection bias** occurs when some items have zero probability of being examined. Let's take Google search results page as an example. How often do you go to second search results page? To the third? Have you ever reached 10th page of Google's search results? The user rarely goes further than top few results.
+**Selection bias** occurs when some items have zero probability of being examined. Let's take Google search results page as an example. How often do you go to second search results page? To the third? Have you ever reached 10th page of Google's search results? The user rarely goes further than top few results. The distiction between position bias and selection bias is important because some methods can only correct for the former if the later is not present.
 
 **Trust bias** occurs because the users trust the ranking system, so they are more likely to click on top ranked items even when they are not relevant. This may sound similar to position bias that we described above, because ultimately both of these biases amplifies the top items ranked by the relevance ranking model, but it's actually important to have this distinction if we want to build a model for such biases.
 
 
-[google_sqe_guidelines]: https://static.googleusercontent.com/media/guidelines.raterhub.com/en//searchqualityevaluatorguidelines.pdf
+<a name="counterfactual-ltr">
+### 4.2. Counterfactual Learning to Rank
+
+Counterfactual Learning to Rank is a family of LTR methods that learns from historical interactions between users and returned results (e.g. in form of clicks, content engagement, or other discrete or non-discrete factors). At the core of these methods lies the following idea:
+
+> **Counterfactual Evaluation:** evaluate a new ranking function $f_\theta$ using historical interaction data collected from a previously deployed ranking function $f_\text{deploy}$.
+
+
+<a name="fullinfo-ltr">
+#### 4.2.1. Full-Information LTR
+
+Before talking about approaches for Learning-to-Rank from biased implicit feedback (e.g. user clicks), let's review what we know so far about LTR from a curated & notoriously annotated dataset, where true relevance labels are known for each query-document pairs (i.e. we have full information about the data we're evaluating the model $$f_\theta$$ on). Given a sample $$\boldsymbol{\mathcal{Q}}$$ of queries $$\boldsymbol{\mathcal{q}}_k \sim P(\boldsymbol{\mathcal{q}}_k)$$ for which we assume the binary relevances $$y_{\text{true}}(\boldsymbol{\mathcal{q}}, d_i)$$ of all documents $$d_i \in \boldsymbol{\mathcal{D}}$$ are known, we can define overall empirical risk of a ranking system $$f_\theta$$ as follows:
+
+$$
+\begin{equation*}
+  \hat{R}(f_\theta) = \sum_{\boldsymbol{\mathcal{q}}_k \in \boldsymbol{\mathcal{Q}}} {
+    \frac{\mathcal{w}\left( \boldsymbol{\mathcal{q}} \right)}{|\boldsymbol{\mathcal{Q}}|} \cdot
+    \Delta_{\boldsymbol{\mathcal{q}}_k} \left( f_\theta, \boldsymbol{\mathcal{D}}, y_{\text{true}}\right)
+  }
+\end{equation*}
+$$
+
+where $\mathcal{w}( \boldsymbol{\mathcal{q}} )$ is the weight for each query (depending on its frequency, importance, or other criterias that are important to your business). $\Delta_\boldsymbol{\mathcal{q}}$ denotes any additive linearly composable IR metric that measures ranking quality of $f_\theta$ for query $\boldsymbol{\mathcal{q}}$ and can be computed as follows:
+
+$$
+\begin{equation*}
+  \Delta_\boldsymbol{\mathcal{q}} \left( f_\theta, \boldsymbol{\mathcal{D}}, y_{\text{true}}\right) =
+  \sum_{d_i \in \boldsymbol{\mathcal{D}}} {
+    \mu \big[
+      \text{rank}\left( d_i \vert f_\theta, \boldsymbol{\mathcal{D}} \right)
+    \big] \cdot
+    y_{\text{true}}(\boldsymbol{\mathcal{q}}, d_i)
+  }
+\end{equation*}
+$$
+
+where $\mu$ is a rank weighting function, some of which were mentioned in the [Relevance Ranking Metrics section](#ltr-metrics). For example:
+- For ARR (Average Relevant Position), $\mu(r) = r$.
+- For DCG@T (Discounted Cumulative Gain at T), $\mu(r) = 1 / \log_2 (1 + r)$ if $r < T$ else $\mu(r) = 0$. For NDCG@T, just divide the whole thing to $\max \text{DCG@T}$.
+- For precision at $k$, $\mu(r) = \boldsymbol{1} [r \le k] / k$.
+
+For our analysis, we only care about per-query metric $\Delta_\boldsymbol{\mathcal{q}}$. Since we treat each query similarly (up to a weighting factor), from now on we can omit the query $\boldsymbol{\mathcal{q}}$ altogether in our notations.
 
 
 
