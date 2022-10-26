@@ -620,6 +620,12 @@ Since we don't know the true relevance $y_\text{true}(\cdot)$ of each document a
 {% endcapture %}
 {% include gallery images=imblock_fullinfo_vs_clickinfo cols=1 caption=imcaption_fullinfo_vs_clickinfo %}
 
+A few obvious observations that is worth pointing out from the toy example above:
+- A click $c_i$ on document $d_i$ is a **biased and noisy** indicator of its relevance. Sometimes, user click on an non-relevant item because they trust the search algorithm or simply noise.
+- A missing click does not necessarily indicate non-relevance. The user might not click on a relevant document for various reasons.
+- If a document was not examined by the user (i.e. the user did not scroll down to that document, or did not go to 2nd search page), we can't tell anything about its relevance.
+
+
 <a name="naiveestimator">
 #### 4.2.1. What's wrong with Naive Estimator?
 
