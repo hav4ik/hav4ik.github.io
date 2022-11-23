@@ -17,7 +17,7 @@ highlighted: true
 
 I still remember being fascinated by Google Search when I saw it the first time. As an 8th-grade kid getting his first computer, the ability to search for any information I want among billions of web pages looked like magic to me. As Arthur C. Clarke famously said, ["any sufficiently advanced technology is indistinguishable from magic."][tech_is_magic] By that definition, the search engines that allow us to access thousands of years of humanity's accumulated knowledge at our fingertip, are the modern version of magic!
 
-Back then, even in my wildest dreams, I couldn't have imagined that 25 years old me will have the privilege to move across the globe to work on a search engine called [Microsoft Bing][bing] &mdash; an ambitious project with enough guts to compete with Google in the search market! Now that I can see how it works from the inside, the "magic" behind that little search box became even more impressive to me. The search engine is a truly gigantic marvel of modern technology, built and supported by tens of thousands of hardware engineers, software developers, and machine learning scientists.
+Back then, even in my wildest dreams, I couldn't have imagined that 25 years old me will have the privilege to move across the globe to work on a search engine called [Microsoft Bing][bing] &mdash; an ambitious project with enough guts to compete with Google in the search market! Now that I can see how it works from the inside, the "magic" behind that little search box became even more impressive to me. The search engine is a truly gigantic marvel of modern technology, built and supported by thousands of hardware engineers, software developers, and machine learning scientists.
 
 There is a lot for me to learn about and there is a lot of things that I don't know, so in this blog post, I'll take you together with me on my study journey about [Learning to Rank (LTR)][ltr] algorithms. I'm by no means an expert in this field so this post is likely to be filled with a lot of inaccuracies. If you spotted any mistakes in this post or if I'm completely wrong in some sections, please let me know.
 
@@ -609,14 +609,14 @@ For our analysis, we only care about per-query metric $\Delta$. Since we treat e
 <a name="partialinfo-ltr">
 #### 4.2.1. Partial Information LTR
 
-Since we don't know the true relevance $y_\text{true}(\cdot)$ of each document and rely on user clicks, we need to understand how the click biases plays out in practice. Let's take a look at toy example illustrated below:
+Since we don't know the true relevance $y_\text{true}(\cdot)$ of each document and rely on user clicks, we need to understand how the click biases plays out in practice. Let's take a look at toy example of a typical user session (also called "impression" in search and recommendation sysmtes) illustrated below:
 
 <a name="fig-fullinfo-vs-clickinfo"></a>
 {% capture imblock_fullinfo_vs_clickinfo %}
   {{ site.url }}/articles/images/2021-08-15-learning-to-rank/fullinfo_vs_clickinfo.png
 {% endcapture %}
 {% capture imcaption_fullinfo_vs_clickinfo %}
-  Left: full information setting when you know true relevance $$y(d_i)$$ of each document. Right: partial information setting when you only have user click information and the true relevances $$y(d_i)$$ are not known. If the document is relevant and is observed by the user, then we might observe a click (i.e. $$d_1$$). Non-relevant documents can still get user clicks due to noise or trust bias (i.e. $$d_3$$). Un-observed documents are not getting any clicks at all even if they're relevant (i.e. $$d_4$$). *(Source: [Oosterhuis et al.](https://ilps.github.io/webconf2020-tutorial-unbiased-ltr/WWW2020handout.pdf))*
+  Toy example of a typical user session (also called "impression"). Left: full information setting when you know true relevance $$y(d_i)$$ of each document. Right: partial information setting when you only have user click information and the true relevances $$y(d_i)$$ are not known. If the document is relevant and is observed by the user, then we might observe a click (i.e. $$d_1$$). Non-relevant documents can still get user clicks due to noise or trust bias (i.e. $$d_3$$). Un-observed documents are not getting any clicks at all even if they're relevant (i.e. $$d_4$$). *(Source: [Oosterhuis et al.](https://ilps.github.io/webconf2020-tutorial-unbiased-ltr/WWW2020handout.pdf))*
 {% endcapture %}
 {% include gallery images=imblock_fullinfo_vs_clickinfo cols=1 caption=imcaption_fullinfo_vs_clickinfo %}
 
@@ -625,9 +625,68 @@ A few obvious observations that is worth pointing out from the toy example above
 - A missing click does not necessarily indicate non-relevance. The user might not click on a relevant document for various reasons.
 - If a document was not examined by the user (i.e. the user did not scroll down to that document, or did not go to 2nd search page), we can't tell anything about its relevance.
 
+The above observation is very primitive and does not include other kinds of deeper biases that might affect the user's behavior. However, it still captures the most common factors that we need to take into account: *position bias*, *selection bias*, and *click noise*.
+
 
 <a name="naiveestimator">
 #### 4.2.1. What's wrong with Naive Estimator?
+
+For the sake of demonstration and simplicity, let's only consider *examination* and *relevance*: a user clicks on the document [if and only if][iff_wiki] the user had a chance to observe the document and the document is perceived as relevant to the given query.
+
+Let's denote the probability of document $$d_i$$ at position $$i$$ **being examined** ($$o_i = 1$$) as $$P(o_i = 1 \vert q, d, i)$$. It is safe to assume for now that this probability depends only on the position $$i$$ at which the document $$d$$ is being presented, so we can write $$P(o_i = 1 \vert q, d, k) = P(o_i = 1 \vert i)$$. In our simplified model, this probability encapsulates both *position* and *selection* biases because ultimately they depend only on the presentation order.
+
+A naive way to estimate $$\Delta$$ is to assume that clicks are unbiased indicators of document's relevance, i.e. $$c_i = 1 \iff y_{\text{true}}(d_i) = 1$$:
+
+$$
+\begin{equation*}
+\Delta_{\text{naive}} \left( \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}}, c \right) =
+\sum_{d_i \in \boldsymbol{\mathcal{D}}} {
+  \mu \big[
+    \text{rank}\left( d_i \vert\, \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}} \right)
+  \big] \cdot c_i
+}
+\end{equation*}
+$$
+
+One can easily show that, even when no click noise or other biases is present, this estimator is biased by the examination probabilities:
+
+$$
+\begin{align*}
+\mathbb{E}\big[ \Delta_{\text{naive}} \left( \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}}, c \right) \big]
+& =
+\mathbb{E} \left[ 
+  \sum_{d_i \colon o_i = 1 \land y(d_i) = 1} {
+    \text{rank}\left( d_i \vert\, \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}} \right)
+  }
+\right]
+\\
+& =
+\sum_{d_i \colon y(d_i) = 1} {
+  P\left( o_i = 1 \vert i \right) \cdot
+  \mu \big[
+    \text{rank}\left( d_i \vert\, \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}} \right)
+  \big]
+}
+\\
+& =
+\sum_{d_i \in \boldsymbol{\mathcal{D}}} {
+  \underbrace{
+    P\left( o_i = 1 \vert i \right)
+  }_{\text{bias}}
+  \cdot
+  \underbrace{
+    \mu \big[
+      \text{rank}\left( d_i \vert\, \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}} \right)
+    \big] \cdot y(d_i)
+  }_{\text{estimates }\Delta}
+}
+\end{align*}
+$$
+
+The biased estimator $$\Delta_{\text{naive}}$$ weights documents according to their examination probabilities in the ranking displayed during logging.
+
+
+[iff_wiki]: https://en.wikipedia.org/wiki/If_and_only_if
 
 
 ---------------------------------------------------------------------------------
@@ -654,6 +713,9 @@ A few obvious observations that is worth pointing out from the toy example above
 
 9. Nick Craswell, Mike Taylor. ["An experimental comparison of click position-bias models."][experimental_comparison_of_click_models] In *Proceedings of the international conference on Web search and web data mining (WSDM)*, 2008.
 
+10. Thorsten Joachims, Laura Granka, Bing Pan, Helene Hembrooke, and Geri Gay. ["Accurately
+interpreting clickthrough data as implicit feedback."][joachims_2005] In SIGIR, 2005.
+
 
 
 [burges-ranknet]: https://www.microsoft.com/en-us/research/publication/learning-to-rank-using-gradient-descent/
@@ -666,3 +728,4 @@ A few obvious observations that is worth pointing out from the toy example above
 [lambdaloss]: https://research.google/pubs/pub47258/
 [google_sqe_guidelines]: https://static.googleusercontent.com/media/guidelines.raterhub.com/en//searchqualityevaluatorguidelines.pdf
 [experimental_comparison_of_click_models]: https://www.microsoft.com/en-us/research/publication/an-experimental-comparison-of-click-position-bias-models/
+[joachims_2005]: https://www.cs.cornell.edu/people/tj/publications/joachims_etal_17a.pdf
