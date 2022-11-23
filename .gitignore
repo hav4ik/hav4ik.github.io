@@ -9,3 +9,6 @@ _site/
 
 # vscode
 workspace.code-workspace
+
+# temp files
+Gemfile.lock
