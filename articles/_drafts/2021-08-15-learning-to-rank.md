@@ -1,6 +1,6 @@
 ---
 layout: post
-permalink: /articles/:title
+permalink: /:title
 type: "article"
 title: "Learning to Rank: at the core of a Search Engine"
 image:
