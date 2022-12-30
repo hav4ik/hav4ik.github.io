@@ -12,3 +12,6 @@ workspace.code-workspace
 
 # temp files
 Gemfile.lock
+
+# MacOS files
+.DS_Store

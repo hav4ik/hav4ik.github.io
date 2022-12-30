@@ -2,29 +2,41 @@
 layout: post
 permalink: /:title
 type: "article"
-title: "Learning to Rank: at the core of a Search Engine"
+title: "At the core of a Search Engine: Learning to Rank"
 image:
   feature: "/articles/images/2021-08-15-learning-to-rank/feature.png"
   display: false
 commits: "#"
 tags: [information retrieval, tutorial, deep dive]
-excerpt: "Search relevance ranking is one of the most important part of any search and recommendation system. This post is just my personal study notes, where I delve deeper into Learning-to-Rank (LTR) approaches and try to make sense for myself."
+excerpt: "Search relevance ranking is one of the most important part of any search and recommendation system. This post is just my personal study notes, where I delve deeper into Learning-to-Rank (LTR) approaches and try to make sense of the current body of literature for myself."
 show_excerpt: true
 comments: true
 hidden: false
 highlighted: true
 ---
 
-I still remember being fascinated by Google Search when I saw it the first time. As an 8th-grade kid getting his first computer, the ability to search for any information I want among billions of web pages looked like magic to me. As Arthur C. Clarke famously said, ["any sufficiently advanced technology is indistinguishable from magic."][tech_is_magic] By that definition, the search engines that allow us to access thousands of years of humanity's accumulated knowledge at our fingertip, are the modern version of magic!
+I still remember being fascinated by Google Search when I saw it the first time. As an 8th-grade kid getting his first computer, the 
+ability to search for any information I want among billions of web pages looked like magic to me. As Arthur C. Clarke famously said, 
+["any sufficiently advanced technology is indistinguishable from magic."][tech_is_magic] By that definition, the search engines that 
+allow us to access thousands of years of humanity's accumulated knowledge at our fingertip, are the modern version of magic!
 
-Back then, even in my wildest dreams, I couldn't have imagined that 25 years old me will have the privilege to move across the globe to work on a search engine called [Microsoft Bing][bing] &mdash; an ambitious project with enough guts to compete with Google in the search market! Now that I can see how it works from the inside, the "magic" behind that little search box became even more impressive to me. The search engine is a truly gigantic marvel of modern technology, built and supported by thousands of hardware engineers, software developers, and machine learning scientists.
+Back then, even in my wildest dreams, I couldn't have imagined that 25 years old me will have the privilege to move across the globe 
+to work on a search engine called [Microsoft Bing][bing] &mdash; an ambitious project with enough guts to compete with Google in the 
+search market! Now that I can see how it works from the inside, the "magic" behind that little search box became even more 
+impressive to me. The search engine is a truly gigantic marvel of modern technology, built and supported by thousands of hardware 
+engineers, software developers, and machine learning scientists.
 
-There is a lot for me to learn about and there is a lot of things that I don't know, so in this blog post, I'll take you together with me on my study journey about [Learning to Rank (LTR)][ltr] algorithms. I'm by no means an expert in this field so this post is likely to be filled with a lot of inaccuracies. If you spotted any mistakes in this post or if I'm completely wrong in some sections, please let me know.
+There is a lot for me to learn about and there is a lot of things that I don't know, so in this blog post, I'll take you together 
+with me on my study journey about [Learning to Rank (LTR)][ltr] algorithms. I'm by no means an expert in this field so this post is 
+likely to be filled with a lot of inaccuracies. If you spotted any mistakes in this post or if I'm completely wrong in some 
+sections, please let me know.
 
 {% comment %}
 {% endcomment %}
 
-> **Disclaimer:** all information in this blog post is taken from published research papers or publically available online articles. No [NDA][nda]s were violated. Only general knowledge is presented. You won't find any details specific to the inner working of [Bing][bing] or other search engines here :)
+> **Disclaimer:** all information in this blog post is taken from published research papers or publically available online articles. 
+No [NDA][nda]s were violated. Only general knowledge is presented. You won't find any details specific to the inner working of [Bing]
+[bing] or other search engines here :)
 
 
 
@@ -49,7 +61,8 @@ There is a lot for me to learn about and there is a lot of things that I don't k
   - [Click signal biases](#)
   - [Counterfactual Learning to Rank](#)
     - [What's wrong with naive estimator?](#)
-    - [Inverse Propensity Scoring](#)
+    - [Inverse Propensity Weighting (IPW)](#)
+    - [Dual Learning Algorithm (DLA)](#)
   - [Online Learning to Rank](#)
 - [References](#)
 
@@ -60,9 +73,14 @@ There is a lot for me to learn about and there is a lot of things that I don't k
 <a name="how-search-engines-work"></a>
 ## 1. How do search engines work?
 
-Not all search engines are built with the ambitious goal of "searching the whole internet." Tech giants like Quora, Netflix, Amazon, and Facebook have in-house search engines as well, created to recommend the best products, content, and movies that match the user’s search queries. Big online retail companies, for example, also have their own search engines. That's how they recommend you the products that you are more likely to be interested in, given your prior purchases.
+Not all search engines are built with the ambitious goal of "searching the whole internet." Tech giants like Quora, Netflix, Amazon, 
+and Facebook have in-house search engines as well, created to recommend the best products, content, and movies that match the user’s 
+search queries. Big online retail companies, for example, also have their own search engines. That's how they recommend you the 
+products that you are more likely to be interested in, given your prior purchases.
 
-In information retrieval, the items that are being searched for (e.g. videos, books, web pages, etc.) are regarded as **documents.** All modern search engines, on the most abstract schematic level, have a similar underlying mechanism of searching for the most relevant documents for a given query:
+In information retrieval, the items that are being searched for (e.g. videos, books, web pages, etc.) are regarded as **documents.** 
+All modern search engines, on the most abstract schematic level, have a similar underlying mechanism of searching for the most 
+relevant documents for a given query:
 
 {% capture imblock_search_engine %}
     {{ site.url }}/articles/images/2021-08-15-learning-to-rank/search_engine.png
@@ -72,17 +90,41 @@ In information retrieval, the items that are being searched for (e.g. videos, bo
 {% endcapture %}
 {% include gallery images=imblock_search_engine cols=1 caption=imcaption_search_engine %}
 
-**Indexing** is performed continuously offline. At this step, meaningful features and signals from all crawled documents are extracted and stored in the Index database. For retail companies, these features can be as primitive as raw description or [TF-IDF][tfidf] of the product description together with its popularity and user rating. For web-scale search engines like Google and [Bing][bing], the index is constructed from thousands of different signals and compressed embeddings from state-of-the-art neural networks. Needless to say, feature engineering is extremely important, so the choice of what signals and features to extract is kept secret by each search engine to maintain the competitive edge on the market.
+**Indexing** is performed continuously offline. At this step, meaningful features and signals from all crawled documents are 
+extracted and stored in the Index database. For retail companies, these features can be as primitive as raw description or [TF-IDF]
+[tfidf] of the product description together with its popularity and user rating. For web-scale search engines like Google and [Bing]
+[bing], the index is constructed from thousands of different signals and compressed embeddings from state-of-the-art neural 
+networks. Needless to say, feature engineering is extremely important, so the choice of what signals and features to extract is kept 
+secret by each search engine to maintain the competitive edge on the market.
 
-**Top-k Retrieval** (sometimes also called *"Level-0 Ranking"* or *"Matching"*) is performed on each user's query to retrieve the potentially relevant documents for the given query. For small search engines, simple text matching is usually enough at this stage. For web-scale search engines, a hybrid of keyword (entity) matching and [Embedding][embedding_in_ml]-based Retrieval is used. In Embedding-based Retrieval, an embedding vector is calculated for the given query, and then k nearest embedding vectors (by euclidean or cosine similarity) of all documents stored in the Index database are retrieved.
+**Top-k Retrieval** (sometimes also called *"Level-0 Ranking"* or *"Matching"*) is performed on each user's query to retrieve the 
+potentially relevant documents for the given query. For small search engines, simple text matching is usually enough at this stage. 
+For web-scale search engines, a hybrid of keyword (entity) matching and [Embedding][embedding_in_ml]-based Retrieval is used. In 
+Embedding-based Retrieval, an embedding vector is calculated for the given query, and then k nearest embedding vectors (by euclidean 
+or cosine similarity) of all documents stored in the Index database are retrieved.
 
-[Huang et al. (2020)][fbsearch_embedding] described in detail how Facebook Search is using Embedding-based Retrieval in their search engine. [Bing Search][bing], according to their [2018 blog post][bing_img_search_2018], calculates image embeddings in addition to text embeddings for their retrieval stage. Google's blog post ["Building a real-time embeddings similarity matching system"][google_building_retrieval] gives us a glimpse of how Embedding-based Retrieval is likely to be performed inside Google, although their inner system is for sure much more sophisticated than that, and is probably combined Rule-based Retrieval as well.
+[Huang et al. (2020)][fbsearch_embedding] described in detail how Facebook Search is using Embedding-based Retrieval in their search 
+engine. [Bing Search][bing], according to their [2018 blog post][bing_img_search_2018], calculates image embeddings in addition to 
+text embeddings for their retrieval stage. Google's blog post ["Building a real-time embeddings similarity matching system"][google_building_retrieval] 
+gives us a glimpse of how Embedding-based Retrieval is likely to be performed inside Google, although their inner system is for sure 
+much more sophisticated than that, and is probably combined Rule-based Retrieval as well.
 
-Algorithmic nerds out there might find it interesting that metric trees (like [k-d tree][kdtree]) is not used in large-scale search engines due to their slow $O(\log n)$ complexity and large memory consumption. Instead, [Approximate Nearest Neighbors (ANN)][ann_methods] search (like [LHS][lhs_hashing] or [PCA hashing][pca_hashing]) is used to achieve close to $O(1)$ retrieval complexity. If you want to learn more about these algorithms, I highly recommend [this Medium post][ann_methods] about ANN search.
+Algorithmic nerds out there might find it interesting that metric trees (like [k-d tree][kdtree]) is not used in large-scale search 
+engines due to their slow $O(\log n)$ complexity and large memory consumption. Instead, [Approximate Nearest Neighbors (ANN)][ann_methods] 
+search (like [LHS][lhs_hashing] or [PCA hashing][pca_hashing]) is used to achieve close to $O(1)$ retrieval complexity. If you want 
+to learn more about these algorithms, I highly recommend [this Medium post][ann_methods] about ANN search.
 
-**Ranking** is the step that actually makes search engines work. Retrieved documents from the previous step are then ranked by their relevance to the given query and (optionally) the user's preferences. While hand-crafted heuristics and rule-based methods for relevance ranking are often more than enough for small and even mid-sized search engines, all big names in the industry right now are using Machine-Learning (i.e. [Learning-to-Rank][ltr]) techniques for search results ranking.
+**Ranking** is the step that actually makes search engines work. Retrieved documents from the previous step are then ranked by their 
+relevance to the given query and (optionally) the user's preferences. While hand-crafted heuristics and rule-based methods for 
+relevance ranking are often more than enough for small and even mid-sized search engines, all big names in the industry right now 
+are using Machine-Learning (i.e. [Learning-to-Rank][ltr]) techniques for search results ranking.
 
-There was a time when [PageRank][pagerank] was a sole ranking factor for Google, but they quickly moved to more sophisticated ranking algorithms as more diverse features are extracted from web pages. As of 2020, [PageRank][pagerank] score is still a small part of Google's index, as [confirmed multiple times][pagerank_alive] by googlers. Interestingly, for a long time Google has resisted using machine learning for their core search ranking algorithm, as explained in [this Quora answer][google_hates_ml] from 2011 by a former Google engineer. For more information about Google's algorithm changes over years, [this blog post][google_algo_changes] is an excellent tracker of their recent publically known major changes.
+There was a time when [PageRank][pagerank] was a sole ranking factor for Google, but they quickly moved to more sophisticated 
+ranking algorithms as more diverse features are extracted from web pages. As of 2020, [PageRank][pagerank] score is still a small 
+part of Google's index, as [confirmed multiple times][pagerank_alive] by googlers. Interestingly, for a long time Google has 
+resisted using machine learning for their core search ranking algorithm, as explained in [this Quora answer][google_hates_ml] from 
+2011 by a former Google engineer. For more information about Google's algorithm changes over years, [this blog post][google_algo_changes] 
+is an excellent tracker of their recent publically known major changes.
 
 
 > **Note:** Despite the deceptive simplicity of the above described schema, for web-scale search engines everything is a million times more complicated. Only few companies have enough infrastructure, computing resources, and manpower to develop and deploy search engines at such scale.
@@ -122,7 +164,7 @@ Given a query $q$ and a set of $n$ retrieved documents $\mathcal{D} = \{ d_1, d_
     {{ site.url }}/articles/images/2021-08-15-learning-to-rank/ltr_task.png
 {% endcapture %}
 {% capture imcaption_ltrtask %}
-  Given a query and a list of documents, the Learning-to-Rank task is to predict the relevance ranking of the documents, i.e. which document is the most relevant to the query.
+  Given a query and a list of documents, the Learning-to-Rank task is to predict the relevance ranking of the documents, i.e. which document is the most relevant to the query. *(Source: I drew it 😜)*
 {% endcapture %}
 {% include gallery images=imblock_ltrtask cols=1 caption=imcaption_ltrtask %}
 
@@ -573,55 +615,64 @@ Counterfactual Learning to Rank is a family of LTR methods that learns from hist
 <a name="fullinfo-ltr">
 #### 4.2.1. Full Information LTR
 
-Before talking about approaches for Learning-to-Rank from biased implicit feedback (e.g. user clicks), let's review what we know so far about LTR from a curated & notoriously annotated dataset, where true relevance labels are known for each query-document pairs (i.e. we have full information about the data we're evaluating the model $$f_\theta$$ on). Given a sample $$\boldsymbol{\mathcal{Q}}$$ of queries $$\boldsymbol{\mathcal{q}}_k \sim P(\boldsymbol{\mathcal{q}}_k)$$ for which we assume the binary relevances $$y_{\text{true}}(\boldsymbol{\mathcal{q}}_k, d_i)$$ of all documents $$d_i \in \boldsymbol{\mathcal{D}}$$ are known (assuming $\boldsymbol{\mathcal{q}}_k$ already captures user context), we can define overall empirical risk of a ranking system $$f_\theta$$ as follows:
+Before talking about approaches for Learning-to-Rank from biased implicit feedback (e.g. user clicks), let's review what we know so far about LTR from a curated & notoriously annotated dataset, where true relevance labels are known for each query-document pairs (i.e. we have full information about the data we're evaluating the model $$f_\theta$$ on). Given a sample $$\boldsymbol{\mathcal{Q}}$$ of queries $$\boldsymbol{\mathcal{q}} \sim P(\boldsymbol{\mathcal{q}})$$ for which we assume the user-specific binary relevances $$y(\boldsymbol{\mathcal{q}}, d)$$ of all documents $$d \in \boldsymbol{\mathcal{D}}$$ are known (assuming $\boldsymbol{\mathcal{q}}$ already captures user context), we can define overall empirical risk of a ranking system $$f_\theta$$ as follows:
 
 $$
 \begin{equation*}
-  \hat{R}(f_\theta) = \sum_{\boldsymbol{\mathcal{q}}_k \in \boldsymbol{\mathcal{Q}}} {
-    \frac{\mathcal{w}\left( \boldsymbol{\mathcal{q}}_k \right)}{|\boldsymbol{\mathcal{Q}}|} \cdot
-    \Delta \left( \boldsymbol{\mathcal{q}}_k, f_\theta, \boldsymbol{\mathcal{D}}, y_{\text{true}}\right)
+  \hat{R}(f_\theta) = \sum_{\boldsymbol{\mathcal{q}} \in \boldsymbol{\mathcal{Q}}} {
+    \frac{\mathcal{w}\left( \boldsymbol{\mathcal{q}} \right)}{|\boldsymbol{\mathcal{Q}}|} \cdot
+    \Delta \left( \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}}, y\right)
   }
 \end{equation*}
 $$
 
-where $$\mathcal{w}( \boldsymbol{\mathcal{q}}_k )$$ is the weight for each query (depending on its frequency, importance, or other criterias that are important to your business). $$\Delta$$ denotes any additive linearly composable IR metric that measures ranking quality of $$f_\theta$$ for query $$\boldsymbol{\mathcal{q}}$$ and can be computed as follows:
+where $$\mathcal{w}( \boldsymbol{\mathcal{q}} )$$ is the weight for each query (depending on its frequency, importance, or other criterias that are important to your business). $$\Delta$$ denotes any additive linearly composable IR metric that measures ranking quality of $$f_\theta$$ for query $$\boldsymbol{\mathcal{q}}$$ and can be computed as follows:
 
 $$
 \begin{equation*}
-  \Delta \left( \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}}, y_{\text{true}}\right) =
-  \sum_{d_i \in \boldsymbol{\mathcal{D}}} {
+  \Delta \left( \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}}, y\right) =
+  \sum_{d \in \boldsymbol{\mathcal{D}}} {
     \mu \big[
-      \text{rank}\left( d_i \vert\, \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}} \right)
+      \text{rank}\left( d \vert\, \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}} \right)
     \big] \cdot
-    y_{\text{true}}(\boldsymbol{\mathcal{q}}, d_i)
+    y(\boldsymbol{\mathcal{q}}, d)
   }
 \end{equation*}
 $$
 
-where $\mu$ is a rank weighting function, some of which were mentioned in the [Relevance Ranking Metrics section](#ltr-metrics). For example:
+where $$\text{rank}\left( d \vert\, \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}} \right)$$ is the rank of document $$d$$ after calculating the document's score $$f_\theta(\boldsymbol{\mathcal{q}}, d)$$ and sorting by descending order; $\mu$ is a rank weighting function, some of which were mentioned in the [Relevance Ranking Metrics section](#ltr-metrics). For example:
 - For ARR (Average Relevant Position), $\mu(r) = r$.
 - For DCG@T (Discounted Cumulative Gain at T), $\mu(r) = 1 / \log_2 (1 + r)$ if $r < T$ else $\mu(r) = 0$. For NDCG@T, just divide the whole thing to $\max \text{DCG@T}$.
 - For precision at $k$, $\mu(r) = \boldsymbol{1} [r \le k] / k$.
 
-For our analysis, we only care about per-query metric $\Delta$. Since we treat each query similarly (up to a weighting factor), from now on we can omit the query $\boldsymbol{\mathcal{q}}$ altogether in our notations.
+Having so many variables and functions to keep in mind can be confusing and makes tracking core ideas harder, so let's simplify the notation a bit.
+We don't always need to know the details about ranking model $$f_\theta$$, the query $$\boldsymbol{\mathcal{q}}$$, or the collection of documents $$\boldsymbol{\mathcal{D}}$$. The only thing we care about is the ranking $$\boldsymbol{\mathcal{r}}$$ produced by sorting the documents $$d \in \boldsymbol{\mathcal{D}}$$ by their score $$f_\theta(\boldsymbol{\mathcal{q}}, d)$$:
+
+$$
+\begin{equation*}
+\boldsymbol{\mathcal{r}} = \{ \text{rank}\left( d \vert\, \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}} \right) \}_{d \in \boldsymbol{\mathcal{D}}}
+\end{equation*}
+$$
+
+Different rankings $$\boldsymbol{\mathcal{r}}_1$$ and $$\boldsymbol{\mathcal{r}}_2$$ are only different in the order of documents in the ranking. For our analysis, we only care about per-query metric $\Delta$. Since we treat each query similarly (up to a weighting factor), from now on we can omit the query $\boldsymbol{\mathcal{q}}$ altogether in our notations.
 
 
 <a name="partialinfo-ltr">
-#### 4.2.1. Partial Information LTR
+#### 4.2.2. Partial Information LTR
 
-Since we don't know the true relevance $y_\text{true}(\cdot)$ of each document and rely on user clicks, we need to understand how the click biases plays out in practice. Let's take a look at toy example of a typical user session (also called "impression" in search and recommendation sysmtes) illustrated below:
+Since we don't know the true relevance $y(\boldsymbol{\mathcal{q}}, \cdot)$ of each document and rely on user clicks, we need to understand how the click biases plays out in practice. Let's take a look at toy example of a typical user session (also called "impression" in search and recommendation sysmtes) illustrated below:
 
 <a name="fig-fullinfo-vs-clickinfo"></a>
 {% capture imblock_fullinfo_vs_clickinfo %}
   {{ site.url }}/articles/images/2021-08-15-learning-to-rank/fullinfo_vs_clickinfo.png
 {% endcapture %}
 {% capture imcaption_fullinfo_vs_clickinfo %}
-  Toy example of a typical user session (also called "impression"). Left: full information setting when you know true relevance $$y(d_i)$$ of each document. Right: partial information setting when you only have user click information and the true relevances $$y(d_i)$$ are not known. If the document is relevant and is observed by the user, then we might observe a click (i.e. $$d_1$$). Non-relevant documents can still get user clicks due to noise or trust bias (i.e. $$d_3$$). Un-observed documents are not getting any clicks at all even if they're relevant (i.e. $$d_4$$). *(Source: [Oosterhuis et al.](https://ilps.github.io/webconf2020-tutorial-unbiased-ltr/WWW2020handout.pdf))*
+  Toy example of a typical user session (also called "impression"). Left: full information setting when you know true relevance $$y(d)$$ of each document. Right: partial information setting when you only have user click information and the true relevances $$y(d)$$ are not known. If the document is relevant and is observed by the user, then we might observe a click (i.e. $$d_1$$). Non-relevant documents can still get user clicks due to noise or trust bias (i.e. $$d_3$$). Un-observed documents are not getting any clicks at all even if they're relevant (i.e. $$d_4$$). *(Source: [Oosterhuis et al.](https://ilps.github.io/webconf2020-tutorial-unbiased-ltr/WWW2020handout.pdf))*
 {% endcapture %}
 {% include gallery images=imblock_fullinfo_vs_clickinfo cols=1 caption=imcaption_fullinfo_vs_clickinfo %}
 
 A few obvious observations that is worth pointing out from the toy example above:
-- A click $c_i$ on document $d_i$ is a **biased and noisy** indicator of its relevance. Sometimes, user click on an non-relevant item because they trust the search algorithm or simply noise.
+- A click $c_i$ on document $d$ is a **biased and noisy** indicator of its relevance. Sometimes, user click on an non-relevant item because they trust the search algorithm or simply noise.
 - A missing click does not necessarily indicate non-relevance. The user might not click on a relevant document for various reasons.
 - If a document was not examined by the user (i.e. the user did not scroll down to that document, or did not go to 2nd search page), we can't tell anything about its relevance.
 
@@ -629,20 +680,22 @@ The above observation is very primitive and does not include other kinds of deep
 
 
 <a name="naiveestimator">
-#### 4.2.1. What's wrong with Naive Estimator?
+#### 4.2.3. What's wrong with Naive Estimator?
 
-For the sake of demonstration and simplicity, let's only consider *examination* and *relevance*: a user clicks on the document [if and only if][iff_wiki] the user had a chance to observe the document and the document is perceived as relevant to the given query.
+Let $$o \sim P(o \vert \boldsymbol{\mathcal{r}}, y)$$ denote the 0/1 vector indicating which relevance values are being revealed. For each element $$o_i = o(d)$$, denote with $$Q(o(d) = 1 \vert \boldsymbol{\mathcal{r}}, y)$$ the marginal probability of observing the relevance $$y(\boldsymbol{\mathcal{q}}, d)$$ of result $$d$$ for the given user query $$\boldsymbol{\mathcal{q}}$$, if the user was presented a ranking $$\boldsymbol{\mathcal{r}}$$. This probability value is called *propensity* of the observation. Later, we will discuss how this propensity can be estimated from different click models.
 
-Let's denote the probability of document $$d_i$$ at position $$i$$ **being examined** ($$o_i = 1$$) as $$P(o_i = 1 \vert q, d, i)$$. It is safe to assume for now that this probability depends only on the position $$i$$ at which the document $$d$$ is being presented, so we can write $$P(o_i = 1 \vert q, d, k) = P(o_i = 1 \vert i)$$. In our simplified model, this probability encapsulates both *position* and *selection* biases because ultimately they depend only on the presentation order.
+For the sake of demonstration simplicity, let's only consider *examination* and *relevance*: a user clicks on the document [if and only if][iff_wiki] the user had a chance to observe the document and the document is perceived as relevant to the given query.
 
-A naive way to estimate $$\Delta$$ is to assume that clicks are unbiased indicators of document's relevance, i.e. $$c_i = 1 \iff y_{\text{true}}(d_i) = 1$$:
+Within this simplified framework, the user-specific relevance value observation probability depends only on the position $$i$$ at which the document $$d$$ is being presented, so we can write $$Q(o(d) = 1 \vert \boldsymbol{\mathcal{r}}, y) = P(o(d) = 1 \vert i)$$. In our simplified model, this probability encapsulates both *position* and *selection* biases because ultimately they depend only on the presentation order.
+
+A naive way to estimate $$\Delta$$ is to assume that clicks are unbiased indicators of document's relevance, i.e. $$c_i = 1 \iff y(\boldsymbol{\mathcal{q}}, d) = 1$$:
 
 $$
 \begin{equation*}
 \Delta_{\text{naive}} \left( \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}}, c \right) =
-\sum_{d_i \in \boldsymbol{\mathcal{D}}} {
+\sum_{d \in \boldsymbol{\mathcal{D}}} {
   \mu \big[
-    \text{rank}\left( d_i \vert\, \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}} \right)
+    \text{rank}\left( d \vert\, \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}} \right)
   \big] \cdot c_i
 }
 \end{equation*}
@@ -652,32 +705,32 @@ One can easily show that, even when no click noise or other biases is present, t
 
 $$
 \begin{align*}
-\mathbb{E}\big[ \Delta_{\text{naive}} \left( \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}}, c \right) \big]
+\mathbb{E}_o\big[ \Delta_{\text{naive}} \left( \boldsymbol{\mathcal{r}}, c \right) \big]
 & =
-\mathbb{E} \left[ 
-  \sum_{d_i \colon o_i = 1 \land y(d_i) = 1} {
-    \text{rank}\left( d_i \vert\, \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}} \right)
+\mathbb{E}_o \left[ 
+  \sum_{d \colon o(d) = 1 \\ \land y(d) = 1} {
+    \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
   }
 \right]
 \\
 & =
-\sum_{d_i \colon y(d_i) = 1} {
-  P\left( o_i = 1 \vert i \right) \cdot
+\sum_{d \colon y(d) = 1} {
+  P\left( o(d) = 1 \vert i \right) \cdot
   \mu \big[
-    \text{rank}\left( d_i \vert\, \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}} \right)
+    \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
   \big]
 }
 \\
 & =
-\sum_{d_i \in \boldsymbol{\mathcal{D}}} {
+\sum_{d \in \boldsymbol{\mathcal{D}}} {
   \underbrace{
-    P\left( o_i = 1 \vert i \right)
+    P\left( o(d) = 1 \vert i \right)
   }_{\text{bias}}
   \cdot
   \underbrace{
     \mu \big[
-      \text{rank}\left( d_i \vert\, \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}} \right)
-    \big] \cdot y(d_i)
+      \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
+    \big] \cdot y(d)
   }_{\text{estimates }\Delta}
 }
 \end{align*}
@@ -687,6 +740,84 @@ The biased estimator $$\Delta_{\text{naive}}$$ weights documents according to th
 
 
 [iff_wiki]: https://en.wikipedia.org/wiki/If_and_only_if
+
+
+<a name="inverse-propensity-weighting">
+#### 4.2.4. Inverse Propensity Weighting
+
+The naive estimator above can be easily de-biased by dividing each term by its bias factor. That's the basic idea of **Inverse Propensity Weighting** Estimator, first applied to the Learning to Rank problem in the works of [Joachims et al. (2016)][joachims_2016] and [Wang et al. (2016)][wang_2016]. For any new ranking $$\boldsymbol{\mathcal{r}}$$ (different from the ranking $$\bar{\boldsymbol{\mathcal{r}}}$$ presented to the user), the IPS estimator is defined as:
+
+$$
+\begin{equation*} \tag{IPS} \label{eq:ips}
+  \Delta_{\text{IPS}} \left( \boldsymbol{\mathcal{r}} \vert \bar{\boldsymbol{\mathcal{r}}}, o\right)
+  =
+  \sum_{d \colon o(d) = 1} {
+    \frac{
+      \mu \big[
+        \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
+      \big] \cdot y(d)
+    }{
+      Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right)
+    }
+  }
+\end{equation*}
+$$
+
+This is an unbiased estimate of $$\Delta \left( \boldsymbol{\mathcal{r}} \vert o\right)$$ for any ranking $$\boldsymbol{\mathcal{r}}$$ and relevance observation indicator $$o$$, if $$Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right) > 0$$ for all documents that are relevant, i.e. $$y(d) = 1$$ (but not necessarily for the irrelevant documents).
+
+$$
+\begin{align*}
+\mathbb{E}_o\big[ \Delta_{\text{IPS}} \left( \boldsymbol{\mathcal{r}} \vert \bar{\boldsymbol{\mathcal{r}}}, o\right) \big]
+& =
+\mathbb{E}_o\left[
+\sum_{d \colon o(d) = 1} {
+  \frac{
+    \mu \big[
+      \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
+    \big] \cdot y(d)
+  }{
+    Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right)
+  }
+}
+\right]
+\\ &=
+\sum_{d \in \boldsymbol{\mathcal{D}}} {
+  \mathbb{E}_o\left[
+  \frac{
+    o(d) \cdot
+    \mu \big[
+      \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
+    \big] \cdot y(d)
+  }{
+    Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right)
+  }
+  \right]
+}
+\\ &=
+\sum_{d \in \boldsymbol{\mathcal{D}}} {
+  \frac{
+    Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right) \cdot
+    \mu \big[
+      \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
+    \big] \cdot y(d)
+  }{
+    Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right)
+  }
+}
+\\ &=
+\sum_{d \in \boldsymbol{\mathcal{D}}} {
+  \mu \big[
+    \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
+  \big] \cdot y(d)
+}
+\\ &=
+\Delta \left( \boldsymbol{\mathcal{r}} \vert o\right)\,.
+\end{align*}
+$$
+
+Note that this estimator sums only over the results where the relevance feedback is observed (i.e. $$o(d) = 1$$) and positive (i.e. $$y(d) = 1$$). Therefore, we only need the propensities $$Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right)$$ for the relevant documents, which means that we do not have to disambiguate whether lack of positive feedback (e.g., the lack of a click) is due to a lack of relevance or due to missing the observation (e.g., result not relevant vs. not viewed). An additional requirement for making $$\Delta_\text{IPS}$$ computable while remaining unbiased is that the propensities only depends on observable information.
+
+
 
 
 ---------------------------------------------------------------------------------
@@ -709,12 +840,16 @@ The biased estimator $$\Delta_{\text{naive}}$$ weights documents according to th
 
 7. Pinar Donmez, Krysta M. Svore, Chris J.C. Burges. ["On the Local Optimality of LambdaRank."][donmez-lambdatheory] In *SIGIR*, Pages 460–467, 2009.
 
-8. Wang X. Li C., Golbandi N., Bendersky M., Najork M. ["The LambdaLoss Framework for Ranking Metric Optimization."][lambdaloss] In *CIKM*, 2018.
+8. Xuanhui Wang Cheng Li Nadav Golbandi Mike Bendersky Marc Najork. ["The LambdaLoss Framework for Ranking Metric Optimization."][lambdaloss] In *CIKM*, 2018.
 
 9. Nick Craswell, Mike Taylor. ["An experimental comparison of click position-bias models."][experimental_comparison_of_click_models] In *Proceedings of the international conference on Web search and web data mining (WSDM)*, 2008.
 
 10. Thorsten Joachims, Laura Granka, Bing Pan, Helene Hembrooke, and Geri Gay. ["Accurately
 interpreting clickthrough data as implicit feedback."][joachims_2005] In SIGIR, 2005.
+
+11. Thorsten Joachims, Adith Swaminathan, Tobias Schnabel. ["Unbiased Learning-to-Rank with Biased Feedback."][joachims_2016] In IJCAI, 2018.
+
+12. Xuanhui Wang, Michael Bendersky, Donald Metzler, Marc Najork. ["Learning to Rank with Selection Bias in Personal Search."][wang_2016] In SIGIR, 2016.
 
 
 
@@ -729,3 +864,5 @@ interpreting clickthrough data as implicit feedback."][joachims_2005] In SIGIR, 
 [google_sqe_guidelines]: https://static.googleusercontent.com/media/guidelines.raterhub.com/en//searchqualityevaluatorguidelines.pdf
 [experimental_comparison_of_click_models]: https://www.microsoft.com/en-us/research/publication/an-experimental-comparison-of-click-position-bias-models/
 [joachims_2005]: https://www.cs.cornell.edu/people/tj/publications/joachims_etal_17a.pdf
+[joachims_2016]: https://arxiv.org/abs/1608.04468
+[wang_2016]: https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/45286.pdf
