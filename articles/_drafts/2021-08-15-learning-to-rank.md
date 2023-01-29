@@ -26,17 +26,18 @@ search market! Now that I can see how it works from the inside, the "magic" behi
 impressive to me. The search engine is a truly gigantic marvel of modern technology, built and supported by thousands of hardware 
 engineers, software developers, and machine learning scientists.
 
+{% comment %}
+
 There is a lot for me to learn about and there is a lot of things that I don't know, so in this blog post, I'll take you together 
 with me on my study journey about [Learning to Rank (LTR)][ltr] algorithms. I'm by no means an expert in this field so this post is 
 likely to be filled with a lot of inaccuracies. If you spotted any mistakes in this post or if I'm completely wrong in some 
 sections, please let me know.
 
-{% comment %}
 {% endcomment %}
 
-> **Disclaimer:** all information in this blog post is taken from published research papers or publically available online articles. 
+***Disclaimer:** all information in this blog post is taken from published research papers or publically available online articles. 
 No [NDA][nda]s were violated. Only general knowledge is presented. You won't find any details specific to the inner working of [Bing]
-[bing] or other search engines here :)
+[bing] or other search engines here :)*
 
 
 
@@ -533,7 +534,11 @@ Despite experimental success and promising results of $\lambda$Rank and $\lambda
 
 [Donmez et al. (2009)][donmez-lambdatheory] empirically showed the local optimality of $\lambda$Rank by applying an one-sided Monte-Carlo test. They sample $n$ random directions uniformly from a unit sphere, then move the model's weights $\theta$ along each direction by a small $\eta > 0$ and check that the chosen metric $M$ always decreases. Their experimental results indicates that the iterative procedure employed by $\lambda$Rank converges to a local minimum with a high statistical significance.
 
-[Burges et al. (2006)][burges-lambdarank] attempted to show that there is an underlying global loss function for $\lambda$Rank by using [Poincaré lemma][poincare-lemma] in differential geometry. For a set of functions $f_1, \ldots, f_n \colon \mathbb{R}^n \to \mathbb{R}$, the existence of a function $F \colon \mathbb{R}^n \to \mathbb{R}$ such that $\partial F / \partial x_i = f_i$ is equivalent to $\textstyle \sum_{i} f_i dx^i$ being an exact form; which means that (on $\mathbb{R}^n$) the form is closed, i.e.
+[Burges et al. (2006)][burges-lambdarank] attempted to show that there is an underlying global loss function for $\lambda$Rank by using [Poincaré lemma][poincare-lemma] in differential geometry:
+
+> **Poincaré lemma**. For a set of functions $f_1, \ldots, f_n \colon \mathbb{R}^n \to \mathbb{R}$, the existence of a function $F \colon \mathbb{R}^n \to \mathbb{R}$ such that $\partial F / \partial x_i = f_i$ is equivalent to $\textstyle \sum_{i} f_i dx^i$ being an exact form.
+
+On $\mathbb{R}^n$ being exact means that the form is closed. More specifically:
 
 $$
 \begin{align*}
@@ -748,8 +753,8 @@ The biased estimator $$\Delta_{\text{naive}}$$ weights documents according to th
 The naive estimator above can be easily de-biased by dividing each term by its bias factor. That's the basic idea of **Inverse Propensity Weighting** Estimator, first applied to the Learning to Rank problem in the works of [Joachims et al. (2016)][joachims_2016] and [Wang et al. (2016)][wang_2016]. For any new ranking $$\boldsymbol{\mathcal{r}}$$ (different from the ranking $$\bar{\boldsymbol{\mathcal{r}}}$$ presented to the user), the IPS estimator is defined as:
 
 $$
-\begin{equation*} \tag{IPS} \label{eq:ips}
-  \Delta_{\text{IPS}} \left( \boldsymbol{\mathcal{r}} \vert \bar{\boldsymbol{\mathcal{r}}}, o\right)
+\begin{equation*} \tag{IPW} \label{eq:ipw}
+  \Delta_{\text{IPW}} \left( \boldsymbol{\mathcal{r}}, y \vert \bar{\boldsymbol{\mathcal{r}}}, o\right)
   =
   \sum_{d \colon o(d) = 1} {
     \frac{
@@ -766,8 +771,102 @@ $$
 This is an unbiased estimate of $$\Delta \left( \boldsymbol{\mathcal{r}} \vert o\right)$$ for any ranking $$\boldsymbol{\mathcal{r}}$$ and relevance observation indicator $$o$$, if $$Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right) > 0$$ for all documents that are relevant, i.e. $$y(d) = 1$$ (but not necessarily for the irrelevant documents).
 
 $$
-\begin{align*}
-\mathbb{E}_o\big[ \Delta_{\text{IPS}} \left( \boldsymbol{\mathcal{r}} \vert \bar{\boldsymbol{\mathcal{r}}}, o\right) \big]
+\begin{equation}
+\begin{aligned}
+\mathbb{E}_o\big[ \Delta_{\text{IPW}} \left( \boldsymbol{\mathcal{r}}, y \vert \bar{\boldsymbol{\mathcal{r}}}, o\right) \big]
+& =
+\mathbb{E}_o\left[
+\sum_{d \colon o(d) = 1} {
+  \frac{
+    \mu \big[
+      \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
+    \big] \cdot y(d)
+  }{
+    Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right)
+  }
+}
+\right]
+\\ &=
+\sum_{d \in \boldsymbol{\mathcal{D}}} {
+  \mathbb{E}_o\left[
+  \frac{
+    o(d) \cdot
+    \mu \big[
+      \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
+    \big] \cdot y(d)
+  }{
+    Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right)
+  }
+  \right]
+}
+\\ &=
+\sum_{d \in \boldsymbol{\mathcal{D}}} {
+  \frac{
+    Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right) \cdot
+    \mu \big[
+      \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
+    \big] \cdot y(d)
+  }{
+    Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right)
+  }
+}
+\\ &=
+\sum_{d \in \boldsymbol{\mathcal{D}}} {
+  \mu \big[
+    \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
+  \big] \cdot y(d)
+}
+\\ &=
+\Delta \left( \boldsymbol{\mathcal{r}}, y\right).
+\end{aligned}
+\label{eq:ipw_unbiased}
+\end{equation}
+$$
+
+Note that this estimator sums only over the results where the relevance feedback is observed (i.e. $$o(d) = 1$$) and positive (i.e. $$y(d) = 1$$). Therefore, we only need the propensities $$Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right)$$ for the relevant documents, which means that we do not have to disambiguate whether lack of positive feedback (e.g., the lack of a click) is due to a lack of relevance or due to missing the observation (e.g., result not relevant vs. not viewed). An additional requirement for making $$\Delta_\text{IPS}$$ computable while remaining unbiased is that the propensities only depends on observable information.
+
+
+
+<a name="dual-learning-algorithm">
+#### 4.2.5. Dual Learning Algorithm
+
+
+The most crucial part of Inverse Propensity Weighting (IPW) is to accurately model the click propensities. Most of such click bias estimation methods (that were described in [Section 4.1](#click-biases)) either conduct randomization of the search results ordering in online setting (which negatively affects user experience) or offline estimation which often has special assumptions and requirements for click data and is optimized for objectives that are not directly related to the main ranking metric.
+
+[Ai et al. (2018)][ai_2018] proposed the **Dual Learning Algorithm** to jointly learn a propensity model together with the relevance ranking model. Let's assume that a click on a document happens only when that document was observed and it is perceived as relevant by the user. More formally, if we model the probability of a click (conditioned by a ranking $$\boldsymbol{\mathcal{r}}$$):
+
+$$
+\begin{equation} \label{eq:symmetric_click}
+P\left( c_d = 1 \vert \boldsymbol{\mathcal{r}} \right) = 
+P\left( o_d = 1 \vert \boldsymbol{\mathcal{r}} \right) \cdot
+P\left( y_d = 1 \vert \boldsymbol{\mathcal{r}} \right)
+\end{equation}
+$$
+
+We cannot directly infer the relevance of a document without knowing whether it was examined. Symmetrically, we also cannot estimate the propensity of observation without knowing whether the documents are relevant or not. The key observation here is that $$o_d$$ and $$y_d$$ are interchangeable in $$\eqref{eq:symmetric_click}$$, so we can treat the estimation examination propensity and learning to rank problems as dual to each other. Similarly to IPW, we can construct an Inverted Relevance Weighting (IRW) loss function:
+
+$$
+\begin{equation*} \tag{IRW}
+  \Delta_{\text{IRW}} \left( \boldsymbol{\mathcal{o}} \vert \bar{\boldsymbol{\mathcal{r}}}, r\right)
+  =
+  \sum_{d \colon o(d) = 1} {
+    \frac{
+      \mu \big[
+        \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
+      \big] \cdot y(d)
+    }{
+      Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right)
+    }
+  }
+\end{equation*}
+$$
+
+We can show that is is an unbiased estimator by following the same logic as $$\eqref{eq:ipw_unbiased}$$:
+
+$$
+\begin{equation}
+\begin{aligned}
+\mathbb{E}_o\big[ \Delta_{\text{IPW}} \left( \boldsymbol{\mathcal{r}} \vert \bar{\boldsymbol{\mathcal{r}}}, o\right) \big]
 & =
 \mathbb{E}_o\left[
 \sum_{d \colon o(d) = 1} {
@@ -812,11 +911,11 @@ $$
 }
 \\ &=
 \Delta \left( \boldsymbol{\mathcal{r}} \vert o\right)\,.
-\end{align*}
+\end{aligned}
+\end{equation}
 $$
 
-Note that this estimator sums only over the results where the relevance feedback is observed (i.e. $$o(d) = 1$$) and positive (i.e. $$y(d) = 1$$). Therefore, we only need the propensities $$Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right)$$ for the relevant documents, which means that we do not have to disambiguate whether lack of positive feedback (e.g., the lack of a click) is due to a lack of relevance or due to missing the observation (e.g., result not relevant vs. not viewed). An additional requirement for making $$\Delta_\text{IPS}$$ computable while remaining unbiased is that the propensities only depends on observable information.
-
+In this paper, [Ai et al. (2018)][ai_2018] also provided a rigorous proof that the Dual Learning Algorithm (DLA) will converge, under assumption that only position bias is considered.
 
 
 
@@ -851,6 +950,9 @@ interpreting clickthrough data as implicit feedback."][joachims_2005] In SIGIR, 
 
 12. Xuanhui Wang, Michael Bendersky, Donald Metzler, Marc Najork. ["Learning to Rank with Selection Bias in Personal Search."][wang_2016] In SIGIR, 2016.
 
+13. Ai, Qingyao, Keping Bi, Cheng Luo, Jiafeng Guo, and W. Bruce Croft. ["Unbiased learning to rank with unbiased propensity estimation."][ai_2018] In The 41st international ACM SIGIR conference on research & development in information retrieval, pp. 385-394. 2018.
+
+14. Ai, Qingyao, Tao Yang, Huazheng Wang, and Jiaxin Mao. ["Unbiased learning to rank: online or offline?."][ai_2021] ACM Transactions on Information Systems (TOIS) 39, no. 2 (2021): 1-29.
 
 
 [burges-ranknet]: https://www.microsoft.com/en-us/research/publication/learning-to-rank-using-gradient-descent/
@@ -866,3 +968,5 @@ interpreting clickthrough data as implicit feedback."][joachims_2005] In SIGIR, 
 [joachims_2005]: https://www.cs.cornell.edu/people/tj/publications/joachims_etal_17a.pdf
 [joachims_2016]: https://arxiv.org/abs/1608.04468
 [wang_2016]: https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/45286.pdf
+[ai_2018]: https://ciir-publications.cs.umass.edu/getpdf.php?id=1297
+[ai_2021]: https://arxiv.org/abs/2004.13574
