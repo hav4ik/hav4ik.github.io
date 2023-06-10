@@ -16,6 +16,8 @@ highlighted: true
 updates:
   - date: 2021-08-15 00:00:00 0000
     description: Fixed the mistake in the overall description of the effectiveness of Contrastive appoaches. Added some ablation studies as suggested by Eugene Dobrovolskyi.
+  - date: 2022-11-30 00:00:00 0000
+    description: Fixed the mistake in Quadruplet Loss description, thanks Marius Binner for noticing!
 ---
 
 One of the most amazing aspects of the human visual system is the ability to recognize similar objects and scenes. We don't need hundreds of photos of the same face to be able to differentiate it among thousands of other faces that we've seen. We don't need thousands of images of the Eiffel Tower to recognize that unique architectureal landmark when we visit Paris. Is it possible to design a Deep Neural Network with a similar ability to tell which objects are visually similar and which ones are not? That's essentially what **Deep Metric Learning** attempts to solve.
@@ -176,7 +178,29 @@ Despite its popularity, Triplet Loss has a lot of limitations. Over the past yea
 {% include gallery images=imblock_metriclosses cols=1 caption=imcaption_metriclosses %}
 
 <a name="quadruplet-loss"></a>
-**Quadruplet Loss** ([Chen et al. 2017][quadruplet_loss_paper]) is an attempt to make inter-class variation of the features $$f_\theta(x)$$ larger and intra-class variation smaller, contrary to the Triplet Loss that doesn't care about class variation of the features. For samples $$x_a, x_p, x_n, x_s$$ and their corresponding labels $$y_a = y_p = y_s$$, $$y_a \ne y_n$$, the Quadruplet Loss is defined as:
+**Quadruplet Loss** ([Chen et al. 2017][quadruplet_loss_paper]) is an attempt to make inter-class variation of the features $$f_\theta(x)$$ larger and intra-class variation smaller, contrary to the Triplet Loss that doesn't care about class variation of the features. For all quadruplets $$(x_i, x_j, x_k, x_l)$$ where $$y_i = y_j$$, $$y_i \ne y_k$$, $$y_i \ne y_l$$, and $$y_k \ne y_l$$ (basically $$(i, j)$$ is a positive pair, and samples $$k$$ and $$l$$ are from completely different categories), the Quadruplet Loss is defined as:
+
+$$
+\begin{eqnarray*}
+\mathcal{L}_\text{quadruplet}
+= &
+\sum_{i,j,k} {
+\max\left(0,
+\mathcal{D}^2_{f_\theta}(x_i, x_j) -
+\mathcal{D}^2_{f_\theta}(x_i, x_k)
++ \alpha_1\right)} \\
++ &
+\sum_{i,j,k} {
+\max\left(0,
+\mathcal{D}^2_{f_\theta}(x_i, x_j) -
+\mathcal{D}^2_{f_\theta}(x_k, x_l)
++ \alpha_2\right)}
+\end{eqnarray*}
+$$
+
+With the help of this constraint, the minimum inter-class distance is required to be larger than the maximum intra-class distance regardless of whether pairs contain the same probe.
+
+In a similar paper ([Ni et al. 2017][quadruplet_loss_2_paper]) with the same core idea, for samples $$x_a, x_p, x_n, x_s$$ and their corresponding labels $$y_a = y_p = y_s$$, $$y_a \ne y_n$$, the Quadruplet Loss is defined as:
 
 $$
 \begin{eqnarray*}
@@ -193,6 +217,8 @@ $$
 + \alpha_2\right)
 \end{eqnarray*}
 $$
+
+
 
 <a name="structured-loss"></a>
 **Structured Loss** ([Song et al. 2016][structured_loss_paper]) was proposed to improve the sampling effectiveness of Triplet Loss and make full use of the samples in each batch of training data. Here, I will describe the generalized version of it by [Hermans et al. (2017)][generalized_structured_loss_paper].
@@ -255,6 +281,7 @@ The methods described in this section are part of a wider family of machine lear
 [triplet_loss_explained]: https://omoindrot.github.io/triplet-loss
 [paperswithcode_tripletloss]: https://paperswithcode.com/method/triplet-loss
 [quadruplet_loss_paper]: https://arxiv.org/abs/1704.01719
+[quadruplet_loss_2_paper]: https://dl.acm.org/doi/10.1145/3132847.3133022
 [triplet_vs_quadruplet]: https://towardsdatascience.com/how-to-choose-your-loss-when-designing-a-siamese-neural-net-contrastive-triplet-or-quadruplet-ecba11944ec
 [structured_loss_paper]: https://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Song_Deep_Metric_Learning_CVPR_2016_paper.pdf
 [generalized_structured_loss_paper]: https://arxiv.org/abs/1703.07737
