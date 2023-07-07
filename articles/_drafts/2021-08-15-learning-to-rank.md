@@ -866,7 +866,7 @@ We can show that is is an unbiased estimator by following the same logic as $$\e
 $$
 \begin{equation}
 \begin{aligned}
-\mathbb{E}_o\big[ \Delta_{\text{IPW}} \left( \boldsymbol{\mathcal{r}} \vert \bar{\boldsymbol{\mathcal{r}}}, o\right) \big]
+\mathbb{E}_o\big[ \Delta_{\text{IRW}} \left( \boldsymbol{\mathcal{r}} \vert \bar{\boldsymbol{\mathcal{r}}}, o\right) \big]
 & =
 \mathbb{E}_o\left[
 \sum_{d \colon o(d) = 1} {
