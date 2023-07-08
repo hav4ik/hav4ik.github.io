@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: minima/post
 permalink: /articles/:title
 type: "article"
 title: "Deep Metric Learning: a (Long) Survey"

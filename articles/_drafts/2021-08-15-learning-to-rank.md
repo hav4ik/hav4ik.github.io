@@ -1,5 +1,5 @@
 ---
-layout: post
+layout: minima/post
 permalink: /:title
 type: "article"
 title: "At the core of a Search Engine: Learning to Rank"

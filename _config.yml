@@ -22,3 +22,4 @@ disqus_shortname: tranhavu
 plugins:
   - jekyll-sitemap
   - jekyll-feed
+  - jekyll-seo-tag
