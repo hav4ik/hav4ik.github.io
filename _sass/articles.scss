@@ -174,3 +174,32 @@ a:active { color:#85144b }
 .description {
   padding: 0 0 1em 0;
 }
+
+.center-cropped.medium-article {
+  position: relative; /* This is added to make sure the pseudo-element positions correctly */
+}
+
+.center-cropped.medium-article::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  height: 40px;
+  width: 40px;
+  background: #fff; /* Set background color to white */
+  border-radius: 50%;
+  z-index: 1;
+}
+
+.center-cropped.medium-article::after {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  height: 40px;
+  width: 40px;
+  background: url('/assets/img/medium_logo.svg') no-repeat;
+  background-size: cover;
+  border-radius: 50%; /* This will make the logo rounded */
+  z-index: 2;
+}
