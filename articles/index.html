@@ -15,7 +15,8 @@ permalink: /articles
       <div class="content-wrap">
 
         {% assign article_count = 0 %}
-        {% assign all_articles_merged = site.data.medium_posts | concat: site.categories.articles | sort: 'date' | reverse %}
+        {% assign all_articles_merged = site.data.medium_posts | concat: site.categories.articles  | reverse%}
+        {% comment %} {% assign all_articles_merged = all_articles_merged | sort: 'date' | reverse %} {% endcomment %}
         {% for post in all_articles_merged %}
           {% if post.medium_identificator %}
             {% assign article_count = article_count | plus:1 %}

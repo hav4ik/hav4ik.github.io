@@ -861,7 +861,7 @@ $$
 \end{equation*}
 $$
 
-We can show that is is an unbiased estimator by following the same logic as $$\eqref{eq:ipw_unbiased}$$:
+We can show that is is an unbiased estimator by following the same steps as in $$\eqref{eq:ipw_unbiased}$$:
 
 $$
 \begin{equation}
