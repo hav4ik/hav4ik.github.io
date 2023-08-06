@@ -80,6 +80,87 @@ blockquote {
 	}
 }
 
+// Algorithm pseudocode
+.algorithm {
+    padding: 10px;
+    margin: 20px 0;
+
+    .algo-name {
+        font-weight: bold;
+        border-top: 1px solid #000;
+        border-bottom: 1px solid #000;
+        padding: 5px 0;
+        margin-bottom: 10px;
+    }
+
+    .algo-input,
+    .algo-output,
+    .algo-body { // Adding padding for the whole code body block
+        display: block;
+        padding: 5px;
+    }
+
+    .algo-input::before,
+    .algo-output::before {
+        font-weight: bold;
+    }
+
+    .algo-input::before {
+        content: "Input: ";
+    }
+
+    .algo-output::before {
+        content: "Output: ";
+    }
+
+    .algo-emph {
+        font-weight: bold;
+    }
+
+    .algo-code-line {
+        display: flex; // Use flexbox for two columns
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 3px; // Small margin for line separation
+
+        & > .code {
+            flex: 1; // Code takes full width and pushes comment to the side
+            margin-right: 20px; // Provide space for comment
+        }
+
+        & > .comment {
+            color: #777; // Grayish color for comments
+            flex-basis: 200px; // Fixed width for comments. Adjust as needed.
+            text-align: right; // Align comments to the right
+        }
+    }
+
+    .algo-indent-block {
+        padding-left: 20px;
+        position: relative;
+
+        &::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 5px;
+            border-left: 2px dotted #aaa;
+        }
+
+        & > .algo-header {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+    }
+
+	.algo-end {
+		margin-top: 10px;
+		border-bottom: 1px solid #000;
+	}
+}
+
 // figcaption
 figcaption {
     padding-top: 10px;

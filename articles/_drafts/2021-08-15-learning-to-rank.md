@@ -17,14 +17,13 @@ highlighted: true
 
 I still remember being fascinated by Google Search when I saw it the first time. As an 8th-grade kid getting his first computer, the 
 ability to search for any information I want among billions of web pages looked like magic to me. As Arthur C. Clarke famously said, 
-["any sufficiently advanced technology is indistinguishable from magic."][tech_is_magic] By that definition, the search engines that 
-allow us to access thousands of years of humanity's accumulated knowledge at our fingertip, are the modern version of magic!
+["any sufficiently advanced technology is indistinguishable from magic."][tech_is_magic] Search engines that 
+allow us to access thousands of years of humanity's accumulated knowledge are truly the modern version of magic!
 
 Back then, even in my wildest dreams, I couldn't have imagined that 25 years old me will have the privilege to move across the globe 
-to work on a search engine called [Microsoft Bing][bing] &mdash; an ambitious project with enough guts to compete with Google in the 
+to work on a search engine called [Bing][bing] &mdash; an ambitious project with enough guts to compete with Google in the 
 search market! Now that I can see how it works from the inside, the "magic" behind that little search box became even more 
-impressive to me. The search engine is a truly gigantic marvel of modern technology, built and supported by thousands of hardware 
-engineers, software developers, and machine learning scientists.
+impressive to me. The search engine is a truly gigantic marvel of modern technology, built and maintained by thousands of engineers.
 
 {% comment %}
 
@@ -47,23 +46,25 @@ No [NDA][nda]s were violated. Only general knowledge is presented. You won't fin
 [ltr]: https://en.wikipedia.org/wiki/Learning_to_rank
 
 
-- [How do search engines work?](#how-search-engines-work)
-- [Introduction to Learning to Rank](#ltr-intro)
-  - [Search Relevance](#search-relevance)
-  - [Flavors of LTR methods](#ltr-flavors)
-  - [Relevance Ranking Metrics](#ltr-metrics)
-- [Supervised Learning to Rank methods](#supervised-ltr)
-  - [RankNet](#ranknet)
-  - [LambdaRank and LambdaMART](#lambdarank-and-lambdamart)
-    - [Train $\lambda$MART using LightGBM](#train-lambdamart-using-lgbm)
-    - [Theoretical justification of $\lambda$Rank](#theoretical-justification-of-lambrank)
-  - [LambdaLoss Framework](#lambdaloss)
-- [Unbiased Learning to Rank (from User Behavior)](#)
-  - [Click signal biases](#)
-  - [Counterfactual Learning to Rank](#)
-    - [What's wrong with naive estimator?](#)
-    - [Inverse Propensity Weighting (IPW)](#)
-    - [Dual Learning Algorithm (DLA)](#)
+- [1. How do search engines work?](#how-search-engines-work)
+- [2. Introduction to Learning to Rank](#ltr-intro)
+  - [2.1. Search Relevance](#search-relevance)
+  - [2.2. Flavors of LTR methods](#ltr-flavors)
+  - [2.3. Relevance Ranking Metrics](#ltr-metrics)
+- [3. Supervised Learning to Rank methods](#supervised-ltr)
+  - [3.1. RankNet](#ranknet)
+  - [3.2. LambdaRank and LambdaMART](#lambdarank-and-lambdamart)
+    - [3.2.1. Train $\lambda$MART using LightGBM](#train-lambdamart-using-lgbm)
+    - [3.2.2. Theoretical justification of $\lambda$Rank](#theoretical-justification-of-lambrank)
+  - [3.3. LambdaLoss Framework](#lambdaloss)
+- [4. Unbiased Learning to Rank (from User Behavior)](#)
+  - [4.1. Click signal biases](#)
+  - [4.2. Counterfactual Learning to Rank](#)
+    - [4.2.1. Full information Learning to Rank](#)
+    - [4.2.2. Partial information Learning to Rank](#)
+    - [4.2.3. What's wrong with naive estimator?](#)
+    - [4.2.4. Inverse Propensity Weighting (IPW)](#)
+    - [4.2.5. Dual Learning Algorithm (DLA)](#)
   - [Online Learning to Rank](#)
 - [References](#)
 
@@ -609,6 +610,10 @@ As we can clearly see, top results gets way more attention than bottom results. 
 **Trust bias** occurs because the users trust the ranking system, so they are more likely to click on top ranked items even when they are not relevant. This may sound similar to position bias that we described above, because ultimately both of these biases amplifies the top items ranked by the relevance ranking model, but it's actually important to have this distinction if we want to build a model for such biases.
 
 
+<!---------------------------------------------------------------------------------------------------------------
+COUNTERFACTUAL LEARNING TO RANK
+----------------------------------------------------------------------------------------------------------------->
+
 <a name="counterfactual-ltr">
 ### 4.2. Counterfactual Learning to Rank
 
@@ -616,56 +621,64 @@ Counterfactual Learning to Rank is a family of LTR methods that learns from hist
 
 > **Counterfactual Evaluation:** evaluate a new ranking function $f_\theta$ using historical interaction data collected from a previously deployed ranking function $f_\text{deploy}$.
 
+In Unbiased Learning-to-Rank literature, the ranking function $f_\text{deploy}$ is often referred to as **"policy"** (or **"behavior policy"**), and the new ranking function $f_\theta$ (parametrized by $$\theta$$) is referred to as **"evaluation policy"**. The goal of counterfactual evaluation is to estimate the performance of the new ranking function $f_\theta$ without deploying it in production, which is often expensive and risky. The evaluation policy $f_\theta$ is trained on a dataset of historical interactions between users and the deployed ranking function $f_\text{deploy}$, and the performance of the evaluation policy $f_\theta$ is estimated by comparing the ranking of the evaluation policy $f_\theta$ to the ranking of the deployed ranking function $f_\text{deploy}$.
+
 
 <a name="fullinfo-ltr">
 #### 4.2.1. Full Information LTR
 
-Before talking about approaches for Learning-to-Rank from biased implicit feedback (e.g. user clicks), let's review what we know so far about LTR from a curated & notoriously annotated dataset, where true relevance labels are known for each query-document pairs (i.e. we have full information about the data we're evaluating the model $$f_\theta$$ on). Given a sample $$\boldsymbol{\mathcal{Q}}$$ of queries $$\boldsymbol{\mathcal{q}} \sim P(\boldsymbol{\mathcal{q}})$$ for which we assume the user-specific binary relevances $$y(\boldsymbol{\mathcal{q}}, d)$$ of all documents $$d \in \boldsymbol{\mathcal{D}}$$ are known (assuming $\boldsymbol{\mathcal{q}}$ already captures user context), we can define overall empirical risk of a ranking system $$f_\theta$$ as follows:
+Before talking about approaches for Learning-to-Rank from biased implicit feedback (e.g. user clicks), let's review what we know so far about LTR from a curated & notoriously annotated dataset, where true relevance labels are known for each query-document pairs (i.e. we have full information about the data we're evaluating the model $$f_\theta$$ on). Given a sample $$\boldsymbol{\mathcal{Q}}$$ of queries $$\boldsymbol{\mathcal{q}} \sim P(\boldsymbol{\mathcal{q}})$$ for which we assume the user-specific binary relevances $$\boldsymbol{\mathcal{y}}^{\boldsymbol{\mathcal{q}}} = \{y^{\boldsymbol{\mathcal{q}}}_d\}_{d \in \boldsymbol{\mathcal{D}}}$$ of all documents $$d \in \boldsymbol{\mathcal{D}}$$ are known (assuming $\boldsymbol{\mathcal{q}}$ already captures user context), we can define overall empirical risk of a ranking system $$f_\theta$$ as follows:
 
 $$
 \begin{equation*}
   \hat{R}(f_\theta) = \sum_{\boldsymbol{\mathcal{q}} \in \boldsymbol{\mathcal{Q}}} {
-    \frac{\mathcal{w}\left( \boldsymbol{\mathcal{q}} \right)}{|\boldsymbol{\mathcal{Q}}|} \cdot
-    \Delta \left( \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}}, y\right)
-  }
+    \frac{\mathcal{w}^\boldsymbol{\mathcal{q}}}{|\boldsymbol{\mathcal{Q}}|} \cdot
+    \Delta \left( \boldsymbol{\mathcal{y}}^{\boldsymbol{\mathcal{q}}}, \boldsymbol{\pi}_\theta^{\boldsymbol{\mathcal{q}}} \right)
+  }\,.
 \end{equation*}
 $$
 
-where $$\mathcal{w}( \boldsymbol{\mathcal{q}} )$$ is the weight for each query (depending on its frequency, importance, or other criterias that are important to your business). $$\Delta$$ denotes any additive linearly composable IR metric that measures ranking quality of $$f_\theta$$ for query $$\boldsymbol{\mathcal{q}}$$ and can be computed as follows:
+There's quite a bit of shortcut notations here:
+- $$\mathcal{w}^\boldsymbol{\mathcal{q}}$$ is the weight for each query $$\boldsymbol{\mathcal{q}}$$ (depending on its frequency, importance, or other criterias that are important to your business).
+- $$\boldsymbol{\pi}^{\boldsymbol{\mathcal{q}}}_\theta$$ denotes the ranking of documents $$\boldsymbol{\mathcal{D}}$$ for query $$\boldsymbol{\mathcal{q}}$$ by the ranking system $$f_\theta$$ (parametrized by $$\theta$$). The individual rank of document $$d$$ is denoted as $$\boldsymbol{\pi}^{\boldsymbol{\mathcal{q}}}_\theta(d)$$, in other words it is the rank of document $$d$$ after calculating the document's score $$f_\theta(\boldsymbol{\mathcal{q}}, d)$$ and sorting by descending order;
+- $$\Delta$$ denotes any additive linearly composable IR metric that measures ranking quality.
+
+For query $$\boldsymbol{\mathcal{q}}$$, $$\Delta (\cdot, \cdot)$$ can be computed as follows:
 
 $$
-\begin{equation*}
-  \Delta \left( \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}}, y\right) =
+\begin{align*}
+  \Delta \left( \boldsymbol{\mathcal{y}}^{\boldsymbol{\mathcal{q}}}, \boldsymbol{\pi}_\theta^{\boldsymbol{\mathcal{q}}} \right)
+  & =
   \sum_{d \in \boldsymbol{\mathcal{D}}} {
     \mu \big[
-      \text{rank}\left( d \vert\, \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}} \right)
+      \boldsymbol{\pi}^{\boldsymbol{\mathcal{q}}}_\theta(d)
     \big] \cdot
-    y(\boldsymbol{\mathcal{q}}, d)
+    \boldsymbol{\mathcal{y}}^{\boldsymbol{\mathcal{q}}}_d
   }
-\end{equation*}
+  \\
+  & =
+  \sum_{d \in \boldsymbol{\mathcal{D}} \colon \boldsymbol{\mathcal{y}}^{\boldsymbol{\mathcal{q}}}_d = 1} {
+    \mu \big[
+      \boldsymbol{\pi}^{\boldsymbol{\mathcal{q}}}_\theta(d)
+    \big]
+  }
+\end{align*}
 $$
 
-where $$\text{rank}\left( d \vert\, \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}} \right)$$ is the rank of document $$d$$ after calculating the document's score $$f_\theta(\boldsymbol{\mathcal{q}}, d)$$ and sorting by descending order; $\mu$ is a rank weighting function, some of which were mentioned in the [Relevance Ranking Metrics section](#ltr-metrics). For example:
+where $\mu$ is a rank weighting function, some of which were mentioned in the [Relevance Ranking Metrics section](#ltr-metrics). For example:
 - For ARR (Average Relevant Position), $\mu(r) = r$.
 - For DCG@T (Discounted Cumulative Gain at T), $\mu(r) = 1 / \log_2 (1 + r)$ if $r < T$ else $\mu(r) = 0$. For NDCG@T, just divide the whole thing to $\max \text{DCG@T}$.
 - For precision at $k$, $\mu(r) = \boldsymbol{1} [r \le k] / k$.
 
-Having so many variables and functions to keep in mind can be confusing and makes tracking core ideas harder, so let's simplify the notation a bit.
-We don't always need to know the details about ranking model $$f_\theta$$, the query $$\boldsymbol{\mathcal{q}}$$, or the collection of documents $$\boldsymbol{\mathcal{D}}$$. The only thing we care about is the ranking $$\boldsymbol{\mathcal{r}}$$ produced by sorting the documents $$d \in \boldsymbol{\mathcal{D}}$$ by their score $$f_\theta(\boldsymbol{\mathcal{q}}, d)$$:
+Having so many variables and functions to keep in mind can be confusing and makes tracking core ideas harder, so let's simplify the notation a bit:
 
-$$
-\begin{equation*}
-\boldsymbol{\mathcal{r}} = \{ \text{rank}\left( d \vert\, \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}} \right) \}_{d \in \boldsymbol{\mathcal{D}}}
-\end{equation*}
-$$
-
-Different rankings $$\boldsymbol{\mathcal{r}}_1$$ and $$\boldsymbol{\mathcal{r}}_2$$ are only different in the order of documents in the ranking. For our analysis, we only care about per-query metric $\Delta$. Since we treat each query similarly (up to a weighting factor), from now on we can omit the query $\boldsymbol{\mathcal{q}}$ altogether in our notations.
+> Since we treat each query similarly (up to a weighting factor), from now on we can omit the query $\boldsymbol{\mathcal{q}}$ altogether in our notations when we're working with a single query.
 
 
 <a name="partialinfo-ltr">
 #### 4.2.2. Partial Information LTR
 
-Since we don't know the true relevance $y(\boldsymbol{\mathcal{q}}, \cdot)$ of each document and rely on user clicks, we need to understand how the click biases plays out in practice. Let's take a look at toy example of a typical user session (also called "impression" in search and recommendation sysmtes) illustrated below:
+Since we don't know the true relevance $\boldsymbol{\mathcal{y}}_d$ of each document and rely on user clicks, we need to understand how the click biases plays out in practice. Let's take a look at toy example of a typical user session (also called "impression" in search and recommendation sysmtes) illustrated below:
 
 <a name="fig-fullinfo-vs-clickinfo"></a>
 {% capture imblock_fullinfo_vs_clickinfo %}
@@ -687,57 +700,68 @@ The above observation is very primitive and does not include other kinds of deep
 <a name="naiveestimator">
 #### 4.2.3. What's wrong with Naive Estimator?
 
-Let $$o \sim P(o \vert \boldsymbol{\mathcal{r}}, y)$$ denote the 0/1 vector indicating which relevance values are being revealed. For each element $$o_i = o(d)$$, denote with $$Q(o(d) = 1 \vert \boldsymbol{\mathcal{r}}, y)$$ the marginal probability of observing the relevance $$y(\boldsymbol{\mathcal{q}}, d)$$ of result $$d$$ for the given user query $$\boldsymbol{\mathcal{q}}$$, if the user was presented a ranking $$\boldsymbol{\mathcal{r}}$$. This probability value is called *propensity* of the observation. Later, we will discuss how this propensity can be estimated from different click models.
+Let $$\boldsymbol{o} = \{ o_d \}_{d \in \boldsymbol{\mathcal{D}}}$$ denote the indicator of which relevance values are being revealed (think of it as "the user saw the document and decided that it is relevant enough"). For each document $$d$$, denote $$P(o_d = 1 \vert \boldsymbol{\mathcal{\pi}})$$ as the marginal probability of observing the relevance $$y_d$$ of result $$d$$ for the given user query $$\boldsymbol{\mathcal{q}}$$, if the user was presented a ranking $$\boldsymbol{\mathcal{\pi}}$$. This probability value is called *propensity* of the observation. Later, we will discuss how this propensity can be estimated from different click models.
 
 For the sake of demonstration simplicity, let's only consider *examination* and *relevance*: a user clicks on the document [if and only if][iff_wiki] the user had a chance to observe the document and the document is perceived as relevant to the given query.
 
-Within this simplified framework, the user-specific relevance value observation probability depends only on the position $$i$$ at which the document $$d$$ is being presented, so we can write $$Q(o(d) = 1 \vert \boldsymbol{\mathcal{r}}, y) = P(o(d) = 1 \vert i)$$. In our simplified model, this probability encapsulates both *position* and *selection* biases because ultimately they depend only on the presentation order.
+Within this simplified framework, the user-specific relevance value observation probability depends only on the position $$i$$ at which the document $$d$$ is being presented. In our simplified model, this probability encapsulates both *position* and *selection* biases because ultimately they depend only on the presentation order.
 
-A naive way to estimate $$\Delta$$ is to assume that clicks are unbiased indicators of document's relevance, i.e. $$c_i = 1 \iff y(\boldsymbol{\mathcal{q}}, d) = 1$$:
+A naive way to estimate $$\Delta$$ is to assume that clicks are unbiased indicators of document's relevance, i.e. $$c_d = 1 \iff y_d = 1$$:
 
 $$
-\begin{equation*}
-\Delta_{\text{naive}} \left( \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}}, c \right) =
+\begin{align*}
+\Delta_{\text{naive}} \left( \boldsymbol{\mathcal{c}}, \boldsymbol{\pi} \right)
+& =
 \sum_{d \in \boldsymbol{\mathcal{D}}} {
   \mu \big[
-    \text{rank}\left( d \vert\, \boldsymbol{\mathcal{q}}, f_\theta, \boldsymbol{\mathcal{D}} \right)
-  \big] \cdot c_i
+    \boldsymbol{\pi}(d)
+  \big]
+  \cdot c_d
 }
-\end{equation*}
+\\ & =
+\sum_{d \in \boldsymbol{\mathcal{D}} \colon c_d = 1} {
+  \mu \big[
+    \boldsymbol{\pi}(d)
+  \big]
+}\,.
+\end{align*}
 $$
 
 One can easily show that, even when no click noise or other biases is present, this estimator is biased by the examination probabilities:
 
 $$
 \begin{align*}
-\mathbb{E}_o\big[ \Delta_{\text{naive}} \left( \boldsymbol{\mathcal{r}}, c \right) \big]
+\mathbb{E}_o\big[ \Delta_{\text{naive}} \left( \boldsymbol{\mathcal{c}}, \boldsymbol{\pi} \right) \big]
 & =
 \mathbb{E}_o \left[ 
-  \sum_{d \colon o(d) = 1 \\ \land y(d) = 1} {
-    \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
+  \sum_{d \colon o_d = 1 \\ \land y_d = 1} {
+    \mu \big[
+      \boldsymbol{\pi}(d)
+    \big]
   }
 \right]
 \\
 & =
-\sum_{d \colon y(d) = 1} {
-  P\left( o(d) = 1 \vert i \right) \cdot
+\sum_{d \colon y_d = 1} {
+  P\left( o_d = 1 \vert \boldsymbol{\pi} \right) \cdot
   \mu \big[
-    \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
+    \boldsymbol{\pi}(d)
   \big]
 }
 \\
 & =
 \sum_{d \in \boldsymbol{\mathcal{D}}} {
   \underbrace{
-    P\left( o(d) = 1 \vert i \right)
+    P\left( o_d = 1 \vert \boldsymbol{\pi} \right)
   }_{\text{bias}}
   \cdot
   \underbrace{
     \mu \big[
-      \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
-    \big] \cdot y(d)
+      \boldsymbol{\pi}(d)
+    \big]
+    \cdot y(d)
   }_{\text{estimates }\Delta}
-}
+} \,.
 \end{align*}
 $$
 
@@ -750,168 +774,207 @@ The biased estimator $$\Delta_{\text{naive}}$$ weights documents according to th
 <a name="inverse-propensity-weighting">
 #### 4.2.4. Inverse Propensity Weighting
 
-The naive estimator above can be easily de-biased by dividing each term by its bias factor. That's the basic idea of **Inverse Propensity Weighting** Estimator, first applied to the Learning to Rank problem in the works of [Joachims et al. (2016)][joachims_2016] and [Wang et al. (2016)][wang_2016]. For any new ranking $$\boldsymbol{\mathcal{r}}$$ (different from the ranking $$\bar{\boldsymbol{\mathcal{r}}}$$ presented to the user), the IPS estimator is defined as:
+The naive estimator above can be easily de-biased by dividing each term by its bias factor. That's the basic idea of **Inverse Propensity Weighting** Estimator, first applied to the Learning to Rank problem in the works of [Joachims et al. (2016)][joachims_2016] and [Wang et al. (2016)][wang_2016]. For any new ranking $$\boldsymbol{\pi}_{\phi}$$ (different from the ranking $$\boldsymbol{\mathcal{\pi}}_{\theta}$$ presented to the user), the IPS estimator is defined as:
 
 $$
 \begin{equation*} \tag{IPW} \label{eq:ipw}
-  \Delta_{\text{IPW}} \left( \boldsymbol{\mathcal{r}}, y \vert \bar{\boldsymbol{\mathcal{r}}}, o\right)
+  \Delta_{\text{IPW}} \left(
+    \boldsymbol{\mathcal{\pi}}_\phi, \boldsymbol{\mathcal{y}} \vert
+    \boldsymbol{\pi}_\theta
+  \right)
   =
-  \sum_{d \colon o(d) = 1} {
+  \sum_{d \colon o_d = 1} {
     \frac{
       \mu \big[
-        \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
-      \big] \cdot y(d)
+        \boldsymbol{\pi}_\phi(d)
+      \big]
+      \cdot y_d
     }{
-      Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right)
+      P\left(o_d = 1 \vert \boldsymbol{\pi}_\theta \right)
     }
   }
 \end{equation*}
 $$
 
-This is an unbiased estimate of $$\Delta \left( \boldsymbol{\mathcal{r}} \vert o\right)$$ for any ranking $$\boldsymbol{\mathcal{r}}$$ and relevance observation indicator $$o$$, if $$Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right) > 0$$ for all documents that are relevant, i.e. $$y(d) = 1$$ (but not necessarily for the irrelevant documents).
+This is an unbiased estimate of $$\Delta \left( \boldsymbol{\mathcal{\pi}}_\phi, \boldsymbol{\mathcal{y}} \right)$$ for any ranking $$\boldsymbol{\mathcal{\pi}}$$ and relevance observation indicator $$\boldsymbol{o}$$, if $$P\left(o_d = 1 \vert \boldsymbol{\mathcal{\pi}}\right) > 0$$ for all documents that are relevant for the specific user (again, we assume that the query $$\boldsymbol{q}$$ captures user context as well), i.e. $$y_d = 1$$ (but not necessarily for the irrelevant documents).
 
 $$
 \begin{equation}
 \begin{aligned}
-\mathbb{E}_o\big[ \Delta_{\text{IPW}} \left( \boldsymbol{\mathcal{r}}, y \vert \bar{\boldsymbol{\mathcal{r}}}, o\right) \big]
+\mathbb{E}_{\boldsymbol{o}^{\boldsymbol{q}}}
+\big[
+  \Delta_{\text{IPW}} \left(
+    \boldsymbol{\mathcal{\pi}}_\phi, \boldsymbol{\mathcal{y}} \vert
+    \boldsymbol{\pi}_\theta
+  \right)
+\big]
 & =
-\mathbb{E}_o\left[
-\sum_{d \colon o(d) = 1} {
+\mathbb{E}_{\boldsymbol{o}^{\boldsymbol{q}}}
+\left[
+\sum_{d \colon o_d = 1} {
   \frac{
     \mu \big[
-      \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
-    \big] \cdot y(d)
+      \boldsymbol{\pi}_\phi(d)
+    \big]
+    \cdot y_d
   }{
-    Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right)
+    P\left(o_d = 1 \vert \boldsymbol{\mathcal{\pi}}_{\theta}\right)
   }
 }
 \right]
 \\ &=
 \sum_{d \in \boldsymbol{\mathcal{D}}} {
-  \mathbb{E}_o\left[
+  \mathbb{E}_{\boldsymbol{o}^{\boldsymbol{q}}}
+  \left[
   \frac{
-    o(d) \cdot
+    o_d \cdot
     \mu \big[
-      \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
-    \big] \cdot y(d)
+      \boldsymbol{\pi}_\phi(d)
+    \big]
+    \cdot y_d
   }{
-    Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right)
+    P\left(o_d = 1 \vert \boldsymbol{\mathcal{\pi}}_{\theta}\right)
   }
   \right]
 }
 \\ &=
 \sum_{d \in \boldsymbol{\mathcal{D}}} {
   \frac{
-    Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right) \cdot
+    P\left(o_d = 1 \vert \boldsymbol{\mathcal{\pi}}_\theta \right) \cdot
     \mu \big[
-      \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
-    \big] \cdot y(d)
+      \boldsymbol{\pi}_\phi(d)
+    \big]
+    \cdot y_d
   }{
-    Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right)
+    P\left(o_d = 1 \vert \boldsymbol{\mathcal{\pi}}_{\theta}\right)
   }
 }
 \\ &=
 \sum_{d \in \boldsymbol{\mathcal{D}}} {
   \mu \big[
-    \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
-  \big] \cdot y(d)
+    \boldsymbol{\pi}_\phi(d)
+  \big]
+  \cdot y_d
 }
 \\ &=
-\Delta \left( \boldsymbol{\mathcal{r}}, y\right).
+\Delta \left( \boldsymbol{\mathcal{\pi}}_\phi, \boldsymbol{y}\right)
+\,.
 \end{aligned}
 \label{eq:ipw_unbiased}
 \end{equation}
 $$
 
-Note that this estimator sums only over the results where the relevance feedback is observed (i.e. $$o(d) = 1$$) and positive (i.e. $$y(d) = 1$$). Therefore, we only need the propensities $$Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right)$$ for the relevant documents, which means that we do not have to disambiguate whether lack of positive feedback (e.g., the lack of a click) is due to a lack of relevance or due to missing the observation (e.g., result not relevant vs. not viewed). An additional requirement for making $$\Delta_\text{IPS}$$ computable while remaining unbiased is that the propensities only depends on observable information.
+Note that this estimator sums only over the results where the relevance feedback is observed (i.e. $$o(d) = 1$$) and positive (i.e. $$y_d = 1$$). Therefore, we only need the propensities $$P\left(o_d = 1 \vert \boldsymbol{\mathcal{\pi}}\right)$$ for the relevant documents, which means that we do not have to disambiguate whether lack of positive feedback (e.g., the lack of a click) is due to a lack of relevance or due to missing the observation (e.g., result not relevant vs. not viewed). An additional requirement for making $$\Delta_\text{IPS}$$ computable while remaining unbiased is that the propensities only depends on observable information.
 
 
 
 <a name="dual-learning-algorithm">
-#### 4.2.5. Dual Learning Algorithm
-
+#### 4.2.5. Dual Learning Algorithm (DLA)
 
 The most crucial part of Inverse Propensity Weighting (IPW) is to accurately model the click propensities. Most of such click bias estimation methods (that were described in [Section 4.1](#click-biases)) either conduct randomization of the search results ordering in online setting (which negatively affects user experience) or offline estimation which often has special assumptions and requirements for click data and is optimized for objectives that are not directly related to the main ranking metric.
 
-[Ai et al. (2018)][ai_2018] proposed the **Dual Learning Algorithm** to jointly learn a propensity model together with the relevance ranking model. Let's assume that a click on a document happens only when that document was observed and it is perceived as relevant by the user. More formally, if we model the probability of a click (conditioned by a ranking $$\boldsymbol{\mathcal{r}}$$):
+Let's denote $$\boldsymbol{c}^{\boldsymbol{q}} = \{ c_d^\boldsymbol{q}\}_{d \in \boldsymbol{\mathcal{D}}}$$ be a Bernoulli variable that represent whether the documents in the ranked list $$\boldsymbol{\mathcal{\pi}}^{\boldsymbol{q}}$$ presented to the user got clicked on. Let's assume that a click on a document happens only when that document was observed and it is perceived as relevant by the user. If we model the probability of a click (conditioned by a ranking $$\boldsymbol{\mathcal{\pi}}$$):
 
 $$
 \begin{equation} \label{eq:symmetric_click}
-P\left( c_d = 1 \vert \boldsymbol{\mathcal{r}} \right) = 
-P\left( o_d = 1 \vert \boldsymbol{\mathcal{r}} \right) \cdot
-P\left( y_d = 1 \vert \boldsymbol{\mathcal{r}} \right)
+P\left( c_d = 1 \vert \boldsymbol{\mathcal{\pi}} \right) = 
+P\left( o_d = 1 \vert \boldsymbol{\mathcal{\pi}} \right) \cdot
+P\left( y_d = 1 \vert \boldsymbol{\mathcal{\pi}} \right)
 \end{equation}
 $$
 
-We cannot directly infer the relevance of a document without knowing whether it was examined. Symmetrically, we also cannot estimate the propensity of observation without knowing whether the documents are relevant or not. The key observation here is that $$o_d$$ and $$y_d$$ are interchangeable in $$\eqref{eq:symmetric_click}$$, so we can treat the estimation examination propensity and learning to rank problems as dual to each other. Similarly to IPW, we can construct an Inverted Relevance Weighting (IRW) loss function:
+We cannot directly infer the relevance of a document without knowing whether it was examined. Symmetrically, we also cannot estimate the propensity of observation without knowing whether the documents are relevant or not. The key observation here is that $$o_d$$ and $$y_d$$ are interchangeable in $$\eqref{eq:symmetric_click}$$, so we can treat the *Unbiased Propensity Estimation* and *Unbiased Learning to Rank* problems as dual to each other, so they can be solved jointly in a symmetric way. That's the core idea of **Dual Learning Algorithm** proposed by [Ai et al. (2018)][ai_2018].
+
+In Learning to Rank problem we need to train a ranking model $$f_\theta$$ that minimizes the global loss function $$\mathcal{L}_\text{R}$$ accross all the queries $$\boldsymbol{\mathcal{Q}}$$. Similarly, in Propensity Estimation problem we need to train a propensity model $$g_\psi$$ that minimizes $$\mathcal{L}_\text{P}$$. The global loss functions are defined as:
 
 $$
-\begin{equation*} \tag{IRW}
-  \Delta_{\text{IRW}} \left( \boldsymbol{\mathcal{o}} \vert \bar{\boldsymbol{\mathcal{r}}}, r\right)
+\begin{align*}
+\mathcal{L}_\text{R} \left( f_\theta \right) & =
+\mathbb{E}_{\boldsymbol{q} \in \boldsymbol{\mathcal{Q}}} \left[
+\mathcal{l}_{\text{R}} \left( f_\theta, \boldsymbol{q} \right)
+\right]
+\\
+\mathcal{L}_\text{P} \left( g_\psi \right) & =
+\mathbb{E}_{\boldsymbol{q} \in \boldsymbol{\mathcal{Q}}} \left[
+\mathcal{l}_{\text{P}} \left( g_\psi, \boldsymbol{q} \right)
+\right]
+\end{align*}
+$$
+
+where $$\mathcal{l}_{\text{R}}$$ and $$\mathcal{l}_{\text{P}}$$ are the local loss functions for ranking and propensity models respectively. The key idea of the Dual Learning Algorithm is to jointly train both models:
+
+<div class="algorithm">
+  <div class="algo-name">Dual Learning  Algorithm (DLA)</div>
+  <div class="algo-input">
+    training data $\boldsymbol{\mathcal{Q}} = \left\{ \boldsymbol{q}, \boldsymbol{\pi}^\boldsymbol{q}, \boldsymbol{c}^\boldsymbol{q} \right\}$ &mdash; set of user sessions (query, presented ranking, user clicks log), initial Ranking model $f_\theta$ and Propensity model $g_\psi$ (parametrized by $\theta$ and $\psi$).
+  </div>
+  <div class="algo-output">
+    Ranking model $f_{\theta^*}$ and Propensity model $g_{\psi^*}$.
+  </div>
+  <div class="algo-body">
+    <div>Initialize $\theta$ and $\psi$ (either randomly or pre-train ranking and propensity models separately).</div>
+    <!-- Repeat block -->
+    <div><b>repeat:</b></div>
+    <div class="algo-indent-block">
+      <div>Randomly sample a batch $\boldsymbol{\mathcal{Q}}' \subset \boldsymbol{\mathcal{Q}}\,$;</div>
+      <!-- For block (session in batch) -->
+      <div><b>for each</b> user session $\left(\boldsymbol{q}, \boldsymbol{\pi}^\boldsymbol{q}, \boldsymbol{c}^\boldsymbol{q}\right) \in \boldsymbol{\mathcal{Q}}'$ <b>do:</b></div>
+      <div class="algo-indent-block">
+        <!-- For block (docs in session)-->
+        <div><b>for each</b> document $d \in \boldsymbol{\pi}^\boldsymbol{q}$ <b>do:</b></div>
+        <div class="algo-indent-block">
+          <div>Compute propensities $P\left( o_d = 1 \vert \boldsymbol{\pi}^\boldsymbol{q} \right)$ and relevances $P\left( y_d = 1 \vert \boldsymbol{\pi}^\boldsymbol{q} \right)$ using $g_\psi$ and $f_\theta\,$;</div>
+        </div>
+        <div><b>end</b></div>
+        <!-- for doc in session -->
+      </div><div><b>end</b></div>
+      <!-- for session in batch -->
+      <div>Compute loss values $\mathcal{l}_{\text{R}}$ and $\mathcal{l}_{\text{P}}$ using $\boldsymbol{\pi}^\boldsymbol{q}$, $\boldsymbol{c}^\boldsymbol{q}$, $P\left( o_d = 1 \vert \boldsymbol{\pi}^\boldsymbol{q} \right)$ and $P\left( y_d = 1 \vert \boldsymbol{\pi}^\boldsymbol{q} \right)\,$;</div>
+      <div>Update $\theta$ and $\psi$ using gradients $\nabla_\theta \mathcal{l}_{\text{R}}$ and $\nabla_\psi \mathcal{l}_{\text{P}}\,$;</div>
+    </div>
+    <div><b>until:</b> Convergence</div>
+    <!-- Repeat -->
+  </div> <!-- algo-body -->
+  <div class="algo-end"></div>
+</div>
+
+Similarly to IPW, we can define an Inverted Relevance Weighting (IRW) loss function to be additive over the documents in the dataset:
+
+$$
+\begin{equation*} \tag{IRW} \label{eq:irw}
+  \Delta_{\text{IRW}} \left(
+    \boldsymbol{\mathcal{\pi}}_\phi, \boldsymbol{\mathcal{o}} \vert
+    \boldsymbol{\pi}_\theta
+  \right)
   =
-  \sum_{d \colon o(d) = 1} {
+  \sum_{d \colon y_d = 1} {
     \frac{
       \mu \big[
-        \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
-      \big] \cdot y(d)
+        \boldsymbol{\pi}_\phi(d)
+      \big]
+      \cdot o_d
     }{
-      Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right)
+      P\left(y_d = 1 \vert \boldsymbol{\pi}_\theta \right)
     }
   }
 \end{equation*}
 $$
 
-We can show that is is an unbiased estimator by following the same steps as in $$\eqref{eq:ipw_unbiased}$$:
+Notice that it looks exactly like ($$\ref{eq:ipw}$$), just with the observance indicator $$\boldsymbol{o}$$ and relevance indicator $$\boldsymbol{y}$$ swapped. We can show that is is an unbiased estimator of $$\Delta \left( \boldsymbol{\mathcal{\pi}}_\phi, \boldsymbol{\mathcal{o}} \right)$$ by following the same steps as in $$\eqref{eq:ipw_unbiased}$$:
 
 $$
 \begin{equation}
-\begin{aligned}
-\mathbb{E}_o\big[ \Delta_{\text{IRW}} \left( \boldsymbol{\mathcal{r}} \vert \bar{\boldsymbol{\mathcal{r}}}, o\right) \big]
-& =
-\mathbb{E}_o\left[
-\sum_{d \colon o(d) = 1} {
-  \frac{
-    \mu \big[
-      \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
-    \big] \cdot y(d)
-  }{
-    Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right)
-  }
-}
-\right]
-\\ &=
-\sum_{d \in \boldsymbol{\mathcal{D}}} {
-  \mathbb{E}_o\left[
-  \frac{
-    o(d) \cdot
-    \mu \big[
-      \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
-    \big] \cdot y(d)
-  }{
-    Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right)
-  }
-  \right]
-}
-\\ &=
-\sum_{d \in \boldsymbol{\mathcal{D}}} {
-  \frac{
-    Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right) \cdot
-    \mu \big[
-      \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
-    \big] \cdot y(d)
-  }{
-    Q\left(o(d) = 1 \vert \bar{\boldsymbol{\mathcal{r}}}, y\right)
-  }
-}
-\\ &=
-\sum_{d \in \boldsymbol{\mathcal{D}}} {
-  \mu \big[
-    \text{rank}\left( d \vert\, \boldsymbol{\mathcal{r}} \right)
-  \big] \cdot y(d)
-}
-\\ &=
-\Delta \left( \boldsymbol{\mathcal{r}} \vert o\right)\,.
-\end{aligned}
+\mathbb{E}_{\boldsymbol{y}^{\boldsymbol{q}}}
+\big[
+  \Delta_{\text{IRW}} \left(
+    \boldsymbol{\mathcal{\pi}}_\phi, \boldsymbol{\mathcal{o}} \vert
+    \boldsymbol{\pi}_\theta
+  \right)
+\big]
+=
+\Delta \left( \boldsymbol{\mathcal{\pi}}_\phi, \boldsymbol{y}\right)
+\,.
+\label{eq:irw_unbiased}
 \end{equation}
 $$
 
