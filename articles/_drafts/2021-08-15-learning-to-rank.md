@@ -868,6 +868,7 @@ Note that this estimator sums only over the results where the relevance feedback
 
 
 
+
 <a name="dual-learning-algorithm">
 #### 4.2.5. Dual Learning Algorithm (DLA)
 
@@ -885,16 +886,16 @@ $$
 
 We cannot directly infer the relevance of a document without knowing whether it was examined. Symmetrically, we also cannot estimate the propensity of observation without knowing whether the documents are relevant or not. The key observation here is that $$o_d$$ and $$y_d$$ are interchangeable in $$\eqref{eq:symmetric_click}$$, so we can treat the *Unbiased Propensity Estimation* and *Unbiased Learning to Rank* problems as dual to each other, so they can be solved jointly in a symmetric way. That's the core idea of **Dual Learning Algorithm** proposed by [Ai et al. (2018)][ai_2018].
 
-In Learning to Rank problem we need to train a ranking model $$f_\theta$$ that minimizes the global loss function $$\mathcal{L}_\text{R}$$ accross all the queries $$\boldsymbol{\mathcal{Q}}$$. Similarly, in Propensity Estimation problem we need to train a propensity model $$g_\psi$$ that minimizes $$\mathcal{L}_\text{P}$$. The global loss functions are defined as:
+In Learning to Rank problem we need to train a ranking model $$f_\theta$$ that minimizes the global ranking loss function $$\mathcal{L}_\text{R}$$ accross all the queries $$\boldsymbol{\mathcal{Q}}$$. Similarly, in Propensity Estimation problem we need to train a propensity model $$g_\psi$$ that minimizes propensity loss $$\mathcal{L}_\text{P}$$. The empirical loss functions are defined as:
 
 $$
 \begin{align*}
-\mathcal{L}_\text{R} \left( f_\theta \right) & =
+\hat{\mathcal{L}}_\text{R} \left( f_\theta \right) & =
 \mathbb{E}_{\boldsymbol{q} \in \boldsymbol{\mathcal{Q}}} \left[
 \mathcal{l}_{\text{R}} \left( f_\theta, \boldsymbol{q} \right)
 \right]
 \\
-\mathcal{L}_\text{P} \left( g_\psi \right) & =
+\hat{\mathcal{L}}_\text{P} \left( g_\psi \right) & =
 \mathbb{E}_{\boldsymbol{q} \in \boldsymbol{\mathcal{Q}}} \left[
 \mathcal{l}_{\text{P}} \left( g_\psi, \boldsymbol{q} \right)
 \right]
@@ -929,8 +930,8 @@ where $$\mathcal{l}_{\text{R}}$$ and $$\mathcal{l}_{\text{P}}$$ are the local lo
         <!-- for doc in session -->
       </div><div><b>end</b></div>
       <!-- for session in batch -->
-      <div>Compute loss values $\mathcal{l}_{\text{R}}$ and $\mathcal{l}_{\text{P}}$ using $\boldsymbol{\pi}^\boldsymbol{q}$, $\boldsymbol{c}^\boldsymbol{q}$, $P\left( o_d = 1 \vert \boldsymbol{\pi}^\boldsymbol{q} \right)$ and $P\left( y_d = 1 \vert \boldsymbol{\pi}^\boldsymbol{q} \right)\,$;</div>
-      <div>Update $\theta$ and $\psi$ using gradients $\nabla_\theta \mathcal{l}_{\text{R}}$ and $\nabla_\psi \mathcal{l}_{\text{P}}\,$;</div>
+      <div>Compute empirical loss values $\hat{\mathcal{L}}_{\text{R}}$ and $\hat{\mathcal{L}}_{\text{P}}$ using $\boldsymbol{\pi}^\boldsymbol{q}$, $\boldsymbol{c}^\boldsymbol{q}$, $P\left( o_d = 1 \vert \boldsymbol{\pi}^\boldsymbol{q} \right)$ and $P\left( y_d = 1 \vert \boldsymbol{\pi}^\boldsymbol{q} \right)\,$;</div>
+      <div>Update $\theta$ and $\psi$ using gradients $\nabla_\theta \hat{\mathcal{L}}_{\text{R}}$ and $\nabla_\psi \hat{\mathcal{L}}_{\text{P}}\,$;</div>
     </div>
     <div><b>until:</b> Convergence</div>
     <!-- Repeat -->
