@@ -65,8 +65,8 @@ No [NDA][nda]s were violated. Only general knowledge is presented. You won't fin
     - [4.2.3. What's wrong with naive estimator?](#)
     - [4.2.4. Inverse Propensity Weighting (IPW)](#)
     - [4.2.5. Dual Learning Algorithm (DLA)](#)
-  - [Online Learning to Rank](#)
-- [References](#)
+  - [4.3. Online Learning to Rank](#)
+- [References](#references)
 
 
 ---------------------------------------------------------------------------------
@@ -224,7 +224,15 @@ $$
 
 where the denominator $\max DCG@T$ is the maximum possible DCG for the given query and list of results, so that $NDCG@T \in [0, 1]$. This is the most commonly used metric.
 
-> TODO: add NDCG visualization
+<a name="fig-ndcg-at-10"></a>
+{% capture imblock_ndcg_at_10_fig %}
+  {{ site.url }}/articles/images/2021-08-15-learning-to-rank/ndcg_vis.png
+{% endcapture %}
+{% capture imblock_ndcg_at_10_desc %}
+  Visualization of NDCG@5 metric for different rankings of a collection of retrieved documents, with relevance (to a hypothetical query) scores $\left\[0, 0, 0, 0, 1, 2, 3, 4, 4, 5\right\]$. Left: the best ranking (highest NDCG@5). Right: the worst ranking (lowest NDCG@5). Middle: a random ranking. Notice that the best ranking has the highest possible NDCG@5 of $1.00$, while the worst ranking of the retrieved documents has a non-zero score, because it still has some relevant documents in the list. The only way to get zero NDCG@10 is to have no relevant documents in the list. Feel free to play around with the visualization script: <a href="https://gist.github.com/hav4ik/100aa247eff4d3075db4f8314461f4c2">gist.github.com/hav4ik/100aa247eff4d3075db4f8314461f4c2</a>.
+{% endcapture %}
+{% include gallery images=imblock_ndcg_at_10_fig cols=1 caption=imblock_ndcg_at_10_desc %}
+
 
 
 <a name="metrics-err"></a>
@@ -375,8 +383,6 @@ $$
 $$
 
 where we introduced one $\boldsymbol{\lambda}_ {k}$ for each document. You can think of the $\boldsymbol{\lambda}$'s as little arrows (or forces), one attached to each (sorted) document, the direction of which indicates the direction we'd like the document to move (to increase relevance), the length of which indicates by how much, and where the $\boldsymbol{\lambda}$ for a given document is computed from all the pairs in which that document is a member.
-
-> **NOTE:** add figure illustrating per-document forces
 
 So far, each individual $\boldsymbol{\lambda}_ {ij}$ contributes equally to the magnitude of $\boldsymbol{\lambda}_ {i}$. That means the rankings of documents below, let's say, 100th position is given equal improtance to the rankings of the top documents. This is not what we want if the chosen metric is position-sensitive (like [NDCG](#metrics-ndcg) or [ERR](#metric-err)): we should prioritize having relevant documents at the very top much more than having correct ranking below 100th position. 
 
@@ -930,7 +936,7 @@ where $$\mathcal{l}_{\text{R}}$$ and $$\mathcal{l}_{\text{P}}$$ are the local lo
         <!-- for doc in session -->
       </div><div><b>end</b></div>
       <!-- for session in batch -->
-      <div>Compute empirical loss values $\hat{\mathcal{L}}_{\text{R}}$ and $\hat{\mathcal{L}}_{\text{P}}$ using $\boldsymbol{\pi}^\boldsymbol{q}$, $\boldsymbol{c}^\boldsymbol{q}$, $P\left( o_d = 1 \vert \boldsymbol{\pi}^\boldsymbol{q} \right)$ and $P\left( y_d = 1 \vert \boldsymbol{\pi}^\boldsymbol{q} \right)\,$;</div>
+      <div>Compute empirical loss values $\hat{\mathcal{L}}_{\text{R}}$ and $\hat{\mathcal{L}}_{\text{P}}$ on the batch $\boldsymbol{\mathcal{Q}}'\,$;</div>
       <div>Update $\theta$ and $\psi$ using gradients $\nabla_\theta \hat{\mathcal{L}}_{\text{R}}$ and $\nabla_\psi \hat{\mathcal{L}}_{\text{P}}\,$;</div>
     </div>
     <div><b>until:</b> Convergence</div>
@@ -944,16 +950,15 @@ Similarly to IPW, we can define an Inverted Relevance Weighting (IRW) loss funct
 $$
 \begin{equation*} \tag{IRW} \label{eq:irw}
   \Delta_{\text{IRW}} \left(
-    \boldsymbol{\mathcal{\pi}}_\phi, \boldsymbol{\mathcal{o}} \vert
+    \boldsymbol{\mathcal{o}}\, \vert
     \boldsymbol{\pi}_\theta
   \right)
   =
-  \sum_{d \colon y_d = 1} {
+  \sum_{d \colon y_d = 1, o_d = 1} {
     \frac{
       \mu \big[
-        \boldsymbol{\pi}_\phi(d)
+        \boldsymbol{\pi}_\theta(d)
       \big]
-      \cdot o_d
     }{
       P\left(y_d = 1 \vert \boldsymbol{\pi}_\theta \right)
     }
@@ -961,25 +966,27 @@ $$
 \end{equation*}
 $$
 
-Notice that it looks exactly like ($$\ref{eq:ipw}$$), just with the observance indicator $$\boldsymbol{o}$$ and relevance indicator $$\boldsymbol{y}$$ swapped. We can show that is is an unbiased estimator of $$\Delta \left( \boldsymbol{\mathcal{\pi}}_\phi, \boldsymbol{\mathcal{o}} \right)$$ by following the same steps as in $$\eqref{eq:ipw_unbiased}$$:
+Notice that it looks exactly like ($$\ref{eq:ipw}$$), just with the observance indicator $$\boldsymbol{o}$$ and relevance indicator $$\boldsymbol{y}$$ swapped. We can show that is is an unbiased estimator of the local (per-query) loss $$l_{\text{P}}$$ by following the same steps as in $$\eqref{eq:ipw_unbiased}$$:
 
 $$
 \begin{equation}
 \mathbb{E}_{\boldsymbol{y}^{\boldsymbol{q}}}
 \big[
   \Delta_{\text{IRW}} \left(
-    \boldsymbol{\mathcal{\pi}}_\phi, \boldsymbol{\mathcal{o}} \vert
+    \boldsymbol{\mathcal{o}}\, \vert
     \boldsymbol{\pi}_\theta
   \right)
 \big]
 =
-\Delta \left( \boldsymbol{\mathcal{\pi}}_\phi, \boldsymbol{y}\right)
+\Delta \left( \boldsymbol{\mathcal{\pi}}_\phi, \boldsymbol{o}\right)
+=
+l_{\text{P}} \left( g_\psi, \boldsymbol{q} \right)
 \,.
 \label{eq:irw_unbiased}
 \end{equation}
 $$
 
-In this paper, [Ai et al. (2018)][ai_2018] also provided a rigorous proof that the Dual Learning Algorithm (DLA) will converge, under assumption that only position bias is considered.
+In this paper, [Ai et al. (2018)][ai_2018] also provided a rigorous proof that the Dual Learning Algorithm (DLA) will converge, under assumption that only position bias is considered and the loss functions are chosen as cross-entropy of softmax probabilities.
 
 
 

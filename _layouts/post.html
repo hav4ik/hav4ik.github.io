@@ -72,9 +72,6 @@
         {{ content }}
 
         <hr>
-        {% include donations.html %}
-
-        <hr>
         {% include highlighted_posts.html num_limit=3 description="<h3>Also on Vu's blog</h3>" %}
 
         {% if page.comments == true and site.disqus_shortname %}
