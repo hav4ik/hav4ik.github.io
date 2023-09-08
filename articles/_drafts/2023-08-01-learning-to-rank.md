@@ -25,14 +25,7 @@ to work on a search engine called [Bing][bing] &mdash; an ambitious project with
 search market! Now that I can see how it works from the inside, the "magic" behind that little search box became even more 
 impressive to me. The search engine is a truly gigantic marvel of modern technology, built and maintained by thousands of engineers.
 
-{% comment %}
-
-There is a lot for me to learn about and there is a lot of things that I don't know, so in this blog post, I'll take you together 
-with me on my study journey about [Learning to Rank (LTR)][ltr] algorithms. I'm by no means an expert in this field so this post is 
-likely to be filled with a lot of inaccuracies. If you spotted any mistakes in this post or if I'm completely wrong in some 
-sections, please let me know.
-
-{% endcomment %}
+In this blog post, I'll bring you along my study journey about [Learning to Rank (LTR)][ltr] algorithms. I'm by no means an expert in this field (literally all my team mates are more knowledgeable than me), so this post is likely to be filled with a lot of inaccuracies. If you spotted any mistakes in this post or if I'm completely wrong in some sections, please let me know.
 
 ***Disclaimer:** all information in this blog post is taken from published research papers or publically available online articles. 
 No [NDA][nda]s were violated. Only general knowledge is presented. You won't find any details specific to the inner working of [Bing]
@@ -44,6 +37,9 @@ No [NDA][nda]s were violated. Only general knowledge is presented. You won't fin
 [bing]: https://www.bing.com/
 [nda]: https://en.wikipedia.org/wiki/Non-disclosure_agreement
 [ltr]: https://en.wikipedia.org/wiki/Learning_to_rank
+
+
+---------------------------------------------------------------------------------
 
 
 - [1. How do search engines work?](#how-search-engines-work)
@@ -88,7 +84,7 @@ relevant documents for a given query:
     {{ site.url }}/articles/images/2021-08-15-learning-to-rank/search_engine.png
 {% endcapture %}
 {% capture imcaption_search_engine %}
-  Over-simplified general schema of search engines. Features extracted from all documents using the indexer are stored in the index database. For a search given query, top k documents are retrieved from the index database and then sorted by their relevance to the given query. *(Source: I drew it 😜)*
+  Over-simplified general schema of search engines. Features extracted from all documents using the indexer are stored in the index database. For a search given query, top k documents are retrieved from the index database and then sorted by their relevance to the given query.
 {% endcapture %}
 {% include gallery images=imblock_search_engine cols=1 caption=imcaption_search_engine %}
 
@@ -166,7 +162,7 @@ Given a query $q$ and a set of $n$ retrieved documents $\mathcal{D} = \{ d_1, d_
     {{ site.url }}/articles/images/2021-08-15-learning-to-rank/ltr_task.png
 {% endcapture %}
 {% capture imcaption_ltrtask %}
-  Given a query and a list of documents, the Learning-to-Rank task is to predict the relevance ranking of the documents, i.e. which document is the most relevant to the query. *(Source: I drew it 😜)*
+  Given a query and a list of documents, the Learning-to-Rank task is to predict the relevance ranking of the documents, i.e. which document is the most relevant to the query.
 {% endcapture %}
 {% include gallery images=imblock_ltrtask cols=1 caption=imcaption_ltrtask %}
 
@@ -559,7 +555,7 @@ $$
 
 For a given pair, for any particular values for the model weights, it is easy to verify that the requirement is satisfied due to the symmetries of $\lambda$Rank gradients. However, the existance of a global loss function remains unknown across iterations, since the model with updated weights generates the score by which the urls are sorted, and since the $\boldsymbol{\lambda}$'s are computed after the sort.
 
-Finally, [Wang et al. (2019)][lambdaloss] developed a probabilistic framework, within which $\lambda$Rank optimizes for an upper bound of a well-defined cost function, which we will review closely in the next section.
+Finally, [Wang et al. (2019)][lambdaloss] developed a probabilistic framework, within which $\lambda$Rank optimizes for an upper bound of a well-defined cost function, which we will review closely next.
 
 
 [poincare-lemma]: http://nlab-pages.s3.us-east-2.amazonaws.com/nlab/show/Poincar%C3%A9%20lemma
@@ -568,7 +564,76 @@ Finally, [Wang et al. (2019)][lambdaloss] developed a probabilistic framework, w
 <a name="lambdaloss"></a>
 ### 3.3. LambdaLoss Framework
 
-> **TODO:** recap the main results of lambdaloss paper
+[Wang et al. (2019)][lambdaloss] proposed a general probabilistic framework called **LambdaLoss**, in which Information Retrieval metrics (like NDCG and ARR) can be optimized directly using gradient descend.
+
+Let $$\boldsymbol{s}$$ denote the relevance scores for the documents produced by some function $$f$$, and $$\pi$$ denote a ranked list of documents. We use $$\left\{ P(\pi \vert \boldsymbol{s}) \colon \pi \in \Pi \right\}$$ do denote a distribution over all possible ranked list or permutations, determined by the scores $$\boldsymbol{s}$$. Within this framework, the ranked list $$\pi$$ is treated as a hidden variable, and the generic form of the loss function is defined based on the likelihood of observing relevance labels $$\boldsymbol{y}$$ given the scores $$\boldsymbol{s}$$ using a mixture model over all possible ranked lists $$\Pi$$:
+
+$$
+\begin{equation*}
+P\left(\boldsymbol{y} \vert \boldsymbol{s}\right) = \sum_{\pi \in \Pi} P\left(\boldsymbol{y} \vert \boldsymbol{s}, \pi\right) P\left(\pi \vert \boldsymbol{s}\right)
+\end{equation*}
+$$
+
+We can then define the loss function $$\mathcal{L} \left( \boldsymbol{y}, \boldsymbol{s} \right)$$ as the negative log-likelihood based on the maximum likelihood principle:
+
+$$
+\begin{equation} \label{eq:generic_lambdaloss}
+\mathcal{L} \left( \boldsymbol{y}, \boldsymbol{s} \right) =
+- \log P\left(\boldsymbol{y} \vert \boldsymbol{s}\right) =
+- \log \sum_{\pi \in \Pi} P\left(\boldsymbol{y} \vert \boldsymbol{s}, \pi\right) P\left(\pi \vert \boldsymbol{s}\right)
+\end{equation}
+$$
+
+This loss function can be optimized using an Expectation-Maximization (EM) process: at the E-step, we compute the distribution $$P(\pi \vert \boldsymbol{s})$$ given the scores $$\boldsymbol{s}$$ generated by the model $$f^t$$, and at the M-step, we update the model's weights by minimizing the negative likelihood.
+
+Such generic framework might seem like an overkill &mdash; why do we need to take into consideration **all possible rankings** $$\Pi$$ if we can just sort the documents by their scores $$f(d)$$? The way I like to think about it is to draw an analogy with the classification task: the end metric that we care about is accuracy, but the loss function is defined as the negative log-likelihood of observing the true label $$y$$ given the scores $$f(x)$$. Why? Simply because accuracy is not differentiable, but the log likelihood formulation is.
+
+By playing around with different formulations of the likelihood $$P\left(\boldsymbol{y} \vert \boldsymbol{s}, \pi\right)$$ and the ranked list distribution $$P\left(\pi \vert \boldsymbol{s}\right)$$, we can derive different loss functions that optimize for different metrics.
+
+For example, if we treat the relevance labels $$\boldsymbol{y}$$ as a set of pairwise preference observations and formulate $$P\left(\boldsymbol{y} \vert \boldsymbol{s}, \pi\right)$$ with the basic Bradley-Terry model, where the probability that document $$i$$ is more relevant than $$j$$ (i.e. $$y_i > y_j$$) is only based on their scores $$s_i$$ and $$s_j$$ regardless of $$\pi$$, the loss function ($$\ref{eq:generic_lambdaloss}$$) turns into **RankNet** objective and can be optimized directly since it does not depend on $$P(\pi \vert \boldsymbol{s})$$:
+
+$$
+\begin{equation*} \label{eq:ranknet_lambdaloss}
+\mathcal{L} \left( \boldsymbol{y}, \boldsymbol{s} \right) =
+- \log P\left(y_i > y_j \vert s_i, s_j \right) =
+- \sum_{y_i > y_j} \log \left( 1 + e^{-\sigma \left(s_i - s_j\right)}\right)
+\end{equation*}
+$$
+
+The Bradley-Terry model can be turned into a rank-sensitive one by making $$P(y_i > y_j)$$ sensitive to the document's ranks in $$\pi$$. Assuming that $$\pi_i$$ and $$\pi_j$$ are ranks in $$\pi$$ of documents $$i$$ and $$j$$, let's define the relevance gain $$G(\cdot)$$ and position discount $$D(\cdot)$$ functions as follows:
+
+$$
+\begin{equation*}
+G(i) = \frac{2^{y_i} - 1}{\max \text{DCG}}\,,
+\quad
+D(i) = \log(1 + \pi_i)\,.
+\end{equation*}
+$$
+
+As you might have noticed, $$G(\cdot)$$ and $$D(\cdot)$$ are the same gain and discount functions used in NDCG objective. To construct the likelihood estimation for LambdaRank, we then modify $$P(y_i > y_j)$$ as follows:
+
+$$
+\begin{equation*} \label{eq:lambdarank_likelihood}
+P\left( y_i > y_j \vert s_i, s_j, \pi_i, \pi_j \right) =
+\left(
+  \frac{1}{1 + e^{-\sigma (s_i - s_j)}}
+\right)^{
+  \left| G(i) - G(j) \right| \cdot \left| \frac{1}{D(\pi_i)} - \frac{1}{D(\pi_j)} \right|
+}
+\end{equation*}
+$$
+
+The only thing left is to define the distribution $$P(\pi \vert \boldsymbol{s})$$ over all possible ranked lists. Let's model the uncertainties of the score $$s_i = f(d_i)$$ of document $$d$$ using a normal distribution $$\mathcal{N}\left( s_i, \epsilon \right)$$ with Gaussian noise $$\epsilon$$. Ranked lists $$\pi$$ will now form a distribution $$\mathcal{N}\left( \pi \vert \boldsymbol{s} \right)$$ with soft assignment over $$\Pi$$. In the LambdaLoss paper, the authors considered the hard assignment distribution $$\mathcal{H}\left(\pi \vert \boldsymbol{s}\right) = \lim_{\epsilon \to 0} \mathcal{N}\left( \pi \vert \boldsymbol{s} \right)$$ to reduce the computational cost. The loss function ($$\ref{eq:generic_lambdaloss}$$) thus becomes:
+
+$$
+\begin{equation*} \label{eq:lambdarank_lambdaloss} \tag{LambdaLoss}
+\mathcal{L} \left( \boldsymbol{y}, \boldsymbol{s} \right) =
+- \sum_{y_i > y_j} \log \sum_{\pi \in \Pi} P\left( y_i > y_j \vert s_i, s_j, \pi_i, \pi_j \right) \mathcal{H}\left(\pi \vert \boldsymbol{s}\right)
+\end{equation*}
+$$
+
+[Wang et al. (2019)][lambdaloss] proved that **LambdaRank is an EM procedure that optimizes this loss!** The paper contains a lot more theoretical analysis. A more intriguing aspect of the LambdaLoss framework is that the likelihood $$P\left(\boldsymbol{y} \vert \boldsymbol{s}, \pi\right)$$ allows us to incorporate both scores and ranks into our objective definitions, thus opening the doors to a new family of metric-driven loss functions. They also propose a few new loss functions that offers tighter bounds when optimizing for NDCG.
+
 
 ---------------------------------------------------------------------------------
 
@@ -589,6 +654,46 @@ Since we're learning from user clicks only, it is hereby natural to make followi
 
 [google_sqe_guidelines]: https://static.googleusercontent.com/media/guidelines.raterhub.com/en//searchqualityevaluatorguidelines.pdf
 [ltr-lectures-harrie-youtube]: https://www.youtube.com/watch?v=BEEfMrn9T9c
+
+
+Some frequently used notations for this section:
+
+<table class="notations-table">
+<tr><th>Notation</th><th class="notations-desc">Description</th></tr>
+<tr>
+<td>\( \boldsymbol{\mathcal{q}} \)</td>
+<td>User query, generally assumed to contain some user information and context as well.</td>
+</tr>
+<tr>
+<td>\( d \in \boldsymbol{\mathcal{D}} \)</td>
+<td>Documents retrieved for the query \( \boldsymbol{\mathcal{q}}\, \).</td>
+</tr>
+<tr>
+<td>\( \boldsymbol{\pi}_\theta^{\boldsymbol{\mathcal{q}}} \)</td>
+<td>The ranking of documents for query \( \boldsymbol{\mathcal{q}} \), generated by model \( f \) with parameters \( \theta \).</td>
+</tr>
+<tr>
+<td>\( \boldsymbol{y}^{\boldsymbol{\mathcal{q}}} = \{ y_d^{\boldsymbol{\mathcal{q}}} \} \)</td>
+<td>The true relevance labels for documents \( d \in \boldsymbol{\mathcal{D}} \) retrieved for query \( \boldsymbol{\mathcal{q}}\, \). </td>
+</tr>
+<tr>
+<td>\( \boldsymbol{o}^{\boldsymbol{\mathcal{q}}} = \{ o_d^{\boldsymbol{\mathcal{q}}} \} \)</td>
+<td>The indicators whether relevance labels for documents \( d \in \boldsymbol{\mathcal{D}} \) were observed.</td>
+</tr>
+<tr>
+<td>\( \boldsymbol{c}^{\boldsymbol{\mathcal{q}}} = \{ c_d^{\boldsymbol{\mathcal{q}}} \} \)</td>
+<td>The click indicators. \( c_d^{\boldsymbol{\mathcal{q}}} = 1\) if the user has clicked on document \(d\).</td>
+</tr>
+<tr>
+<td>\( \Delta \left( \boldsymbol{\mathcal{y}}^{\boldsymbol{\mathcal{q}}}, \boldsymbol{\pi}_\theta^{\boldsymbol{\mathcal{q}}} \right) \)</td>
+<td>Any linearly decomposable Information Retrieval metric (NDCG, MRR, MAP, etc.)</td>
+</tr>
+<tr>
+<td>\( \mu (r) \)</td>
+<td>Rank weighting function ("how important are the document at rank \(r\)"), part of \( \Delta \).</td>
+</tr>
+
+</table>
 
 
 <a name="click-biases"></a>
@@ -873,10 +978,21 @@ $$
 Note that this estimator sums only over the results where the relevance feedback is observed (i.e. $$o(d) = 1$$) and positive (i.e. $$y_d = 1$$). Therefore, we only need the propensities $$P\left(o_d = 1 \vert \boldsymbol{\mathcal{\pi}}\right)$$ for the relevant documents, which means that we do not have to disambiguate whether lack of positive feedback (e.g., the lack of a click) is due to a lack of relevance or due to missing the observation (e.g., result not relevant vs. not viewed). An additional requirement for making $$\Delta_\text{IPS}$$ computable while remaining unbiased is that the propensities only depends on observable information.
 
 
+<a name="bias-estimation-randomization">
+#### 4.2.5. Estimating Propensities by Randomization
+
+{% capture imblock_randomization_propensity_estimate %}
+    {{ site.url }}/articles/images/2021-08-15-learning-to-rank/randomization_propensity_estimate.png
+{% endcapture %}
+{% capture imcaption_randomization_propensity_estimate %}
+  The expected Click Through Rate (CTR) after randomization is proportional to the **position bias**. For the same query but during different impressions (e.g. when different users searched for the same query), we shuffle top-K results randomly to see how CTR changes at each rank. *(<a href="https://sites.google.com/view/sigir-2023-tutorial-ultr">Source: Gupta et al.</a>)*
+{% endcapture %}
+{% include gallery images=imblock_randomization_propensity_estimate cols=1 caption=imcaption_randomization_propensity_estimate %}
+
 
 
 <a name="dual-learning-algorithm">
-#### 4.2.5. Dual Learning Algorithm (DLA)
+#### 4.2.6. Dual Learning Algorithm (DLA)
 
 The most crucial part of Inverse Propensity Weighting (IPW) is to accurately model the click propensities. Most of such click bias estimation methods (that were described in [Section 4.1](#click-biases)) either conduct randomization of the search results ordering in online setting (which negatively affects user experience) or offline estimation which often has special assumptions and requirements for click data and is optimized for objectives that are not directly related to the main ranking metric.
 
