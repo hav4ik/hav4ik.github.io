@@ -990,6 +990,23 @@ Note that this estimator sums only over the results where the relevance feedback
 {% include gallery images=imblock_randomization_propensity_estimate cols=1 caption=imcaption_randomization_propensity_estimate %}
 
 
+{% capture imblock_randomization_top_k %}
+    {{ site.url }}/articles/images/2021-08-15-learning-to-rank/randomization_top_k.png
+{% endcapture %}
+{% capture imcaption_randomization_top_k %}
+  The expected Click Through Rate (CTR) after randomization is proportional to the **position bias**. For the same query but during different impressions (e.g. when different users searched for the same query), we shuffle top-K results randomly to see how CTR changes at each rank. *(<a href="https://sites.google.com/view/sigir-2023-tutorial-ultr">Source: Gupta et al.</a>)*
+{% endcapture %}
+{% include gallery images=imblock_randomization_top_k cols=1 caption=imcaption_randomization_top_k %}
+
+
+{% capture imblock_intervention_harvesting %}
+    {{ site.url }}/articles/images/2021-08-15-learning-to-rank/intervention_harvesting.png
+{% endcapture %}
+{% capture imcaption_intervention_harvesting %}
+  The expected Click Through Rate (CTR) after randomization is proportional to the **position bias**. For the same query but during different impressions (e.g. when different users searched for the same query), we shuffle top-K results randomly to see how CTR changes at each rank. *(<a href="https://sites.google.com/view/sigir-2023-tutorial-ultr">Source: Gupta et al.</a>)*
+{% endcapture %}
+{% include gallery images=imblock_intervention_harvesting cols=1 caption=imcaption_intervention_harvesting %}
+
 
 <a name="dual-learning-algorithm">
 #### 4.2.6. Dual Learning Algorithm (DLA)
