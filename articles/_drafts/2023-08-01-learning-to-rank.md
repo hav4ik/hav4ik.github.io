@@ -59,8 +59,9 @@ No [NDA][nda]s were violated. Only general knowledge is presented. You won't fin
     - [4.2.1. Full information Learning to Rank](#)
     - [4.2.2. Partial information Learning to Rank](#)
     - [4.2.3. What's wrong with naive estimator?](#)
-    - [4.2.4. Inverse Propensity Weighting (IPW)](#)
-    - [4.2.5. Dual Learning Algorithm (DLA)](#)
+    - [4.2.4. Inverse Propensity Weighting (IPW)](#inverse-propensity-weighting)
+    - [4.2.5. Estimating Propensities by Randomization](#bias-estimation-randomization)
+    - [4.2.6. Dual Learning Algorithm (DLA)](#dual-learning-algorithm)
   - [4.3. Online Learning to Rank](#)
 - [References](#references)
 
@@ -623,7 +624,7 @@ P\left( y_i > y_j \vert s_i, s_j, \pi_i, \pi_j \right) =
 \end{equation*}
 $$
 
-The only thing left is to define the distribution $$P(\pi \vert \boldsymbol{s})$$ over all possible ranked lists. Let's model the uncertainties of the score $$s_i = f(d_i)$$ of document $$d$$ using a normal distribution $$\mathcal{N}\left( s_i, \epsilon \right)$$ with Gaussian noise $$\epsilon$$. Ranked lists $$\pi$$ will now form a distribution $$\mathcal{N}\left( \pi \vert \boldsymbol{s} \right)$$ with soft assignment over $$\Pi$$. In the LambdaLoss paper, the authors considered the hard assignment distribution $$\mathcal{H}\left(\pi \vert \boldsymbol{s}\right) = \lim_{\epsilon \to 0} \mathcal{N}\left( \pi \vert \boldsymbol{s} \right)$$ to reduce the computational cost. The loss function ($$\ref{eq:generic_lambdaloss}$$) thus becomes:
+The only thing left is to define the distribution $$P(\pi \vert \boldsymbol{s})$$ over all possible ranked lists. Let's model the uncertainties of the score $$s_i = f(d_i)$$ of document $$d$$ using a normal distribution $$\mathcal{N}\left( s_i, \epsilon \right)$$ with Gaussian noise $$\epsilon$$ &mdash; this was proposed in an earlier paper by [Taylor et al. (2008)][softrank_2008]. Ranked lists $$\pi$$ will now form a distribution $$\mathcal{N}\left( \pi \vert \boldsymbol{s} \right)$$ with soft assignment over $$\Pi$$. In the LambdaLoss paper, the authors considered the hard assignment distribution $$\mathcal{H}\left(\pi \vert \boldsymbol{s}\right) = \lim_{\epsilon \to 0} \mathcal{N}\left( \pi \vert \boldsymbol{s} \right)$$ to reduce the computational cost. The loss function ($$\ref{eq:generic_lambdaloss}$$) thus becomes:
 
 $$
 \begin{equation*} \label{eq:lambdarank_lambdaloss} \tag{LambdaLoss}
@@ -1158,6 +1159,8 @@ interpreting clickthrough data as implicit feedback."][joachims_2005] In SIGIR, 
 
 14. Ai, Qingyao, Tao Yang, Huazheng Wang, and Jiaxin Mao. ["Unbiased learning to rank: online or offline?."][ai_2021] ACM Transactions on Information Systems (TOIS) 39, no. 2 (2021): 1-29.
 
+15. Taylor M., Guiver J., Robertson S., Minka T. ["SoftRank: optimizing non-smooth rank metrics."][softrank_2008] In *International Conference on Web Search and Data Mining (WSDM)*, 2008.
+
 
 [burges-ranknet]: https://www.microsoft.com/en-us/research/publication/learning-to-rank-using-gradient-descent/
 [burges-lambdarank]: https://papers.nips.cc/paper/2006/hash/af44c4c56f385c43f2529f9b1b018f6a-Abstract.html
@@ -1174,3 +1177,4 @@ interpreting clickthrough data as implicit feedback."][joachims_2005] In SIGIR, 
 [wang_2016]: https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/45286.pdf
 [ai_2018]: https://ciir-publications.cs.umass.edu/getpdf.php?id=1297
 [ai_2021]: https://arxiv.org/abs/2004.13574
+[softrank_2008]: https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/SoftRankWsdm08Submitted.pdf
