@@ -8,7 +8,7 @@ image:
   display: false
 commits: "#"
 tags: [information retrieval, tutorial, deep dive]
-excerpt: "Search relevance ranking is one of the most important part of any search and recommendation system. This post is just my personal study notes, where I delve deeper into Learning-to-Rank (LTR) approaches and try to make sense of the current body of literature for myself."
+excerpt: "Learning to Rank is one of the most important component of any recommendation system. This post is just my study notes, where I go through the body of LTR literature over the past decade."
 show_excerpt: true
 comments: true
 hidden: false
@@ -20,18 +20,17 @@ ability to search for any information I want among billions of web pages looked 
 ["any sufficiently advanced technology is indistinguishable from magic."][tech_is_magic] Search engines that 
 allow us to access thousands of years of humanity's accumulated knowledge are truly the modern version of magic!
 
-Back then, even in my wildest dreams, I couldn't have imagined that 25 years old me will have the privilege to move across the globe 
-to work on a search engine called [Bing][bing] &mdash; an ambitious project with enough guts to compete with Google in the 
-search market! Now that I can see how it works from the inside, the "magic" behind that little search box became even more 
-impressive to me. The search engine is a truly gigantic marvel of modern technology, built and maintained by thousands of engineers.
+Back then, even in my wildest dreams, I couldn't have imagined that 25 years old me will have the privilege to move across the globe to work on a search engine called [Bing][bing] &mdash; an ambitious project with enough guts to compete with Google in the search market! Now that I can see how it works from the inside, the "magic" behind that little search box became even more  impressive to me. The search engine is a truly gigantic marvel of modern technology, built and maintained by thousands of engineers.
 
-In this blog post, I'll bring you along my study journey about [Learning to Rank (LTR)][ltr] algorithms. I'm by no means an expert in this field (literally all my team mates are more knowledgeable than me), so this post is likely to be filled with a lot of inaccuracies. If you spotted any mistakes in this post or if I'm completely wrong in some sections, please let me know.
+In this blog post, I'll walk you through the basic body of literature of [Learning to Rank (LTR)][ltr] algorithms, starting from the core metrics and supervised methods to the more recent paradigm of learning from user behavior. The list of papers that I'm going to cover is by no means exhaustive, but I hope it will give you a good starting point to dive deeper into the field.
 
 ***Disclaimer:** all information in this blog post is taken from published research papers or publically available online articles. 
 No [NDA][nda]s were violated. Only general knowledge is presented. You won't find any details specific to the inner working of [Bing]
 [bing] or other search engines here :)*
 
-
+{% comment %}
+***Disclaimer 2:** I'm by no means an expert in this field (literally all my team mates are more knowledgeable than me), so this post likely contains inaccuracies. If you spotted any mistakes in this post or if I'm completely wrong somewhere, please let me know.*
+{% endcomment %}
 
 [tech_is_magic]: https://en.wikipedia.org/wiki/Clarke%27s_three_laws
 [bing]: https://www.bing.com/
@@ -60,9 +59,10 @@ No [NDA][nda]s were violated. Only general knowledge is presented. You won't fin
     - [4.2.2. Partial information Learning to Rank](#)
     - [4.2.3. What's wrong with naive estimator?](#)
     - [4.2.4. Inverse Propensity Weighting (IPW)](#inverse-propensity-weighting)
-    - [4.2.5. Estimating Propensities by Randomization](#bias-estimation-randomization)
+    - [4.2.5. Estimating Position Bias by Randomization](#bias-estimation-randomization)
     - [4.2.6. Dual Learning Algorithm (DLA)](#dual-learning-algorithm)
   - [4.3. Online Learning to Rank](#)
+- [5. Advanced Click Models](#)
 - [References](#references)
 
 
@@ -693,9 +693,9 @@ Some frequently used notations for this section:
 <td>\( \mu (r) \)</td>
 <td>Rank weighting function ("how important are the document at rank \(r\)"), part of \( \Delta \).</td>
 </tr>
-
 </table>
 
+Please be aware that the notation used in this section are slightly different from the notation used in the original publications. This is because different authors prefer different notations styles and the bias models are slightly different from each other. This set of notations is my attempt to unify and simplify the notations used in different papers while preserving as much of the semantics as possible, at the cost of losing some of the flexibility and granularity of the original notations.
 
 <a name="click-biases"></a>
 ### 4.1. Click Signal Biases
@@ -980,33 +980,71 @@ Note that this estimator sums only over the results where the relevance feedback
 
 
 <a name="bias-estimation-randomization">
-#### 4.2.5. Estimating Propensities by Randomization
+#### 4.2.5. Estimating Position Bias by Randomization
+
+Now that we have a way to estimate unbiased relevances through Inverse Propensity Weighting, the next step is to address the challenge of accurately estimating propensities $$P\left(o_d = 1 \vert \boldsymbol{\mathcal{\pi}}\right)$$. Here, we will consider only the position bias, which is the most common bias in search and recommendation systems. According to the Position-based Model, or **PBM** ([Craswell & Taylor, 2008][experimental_comparison_of_click_models]):
+
+$$
+P \left(c_d = 1 \vert \boldsymbol{\mathcal{\pi}} \right) =
+P \left(o_d = 1 \vert \boldsymbol{\mathcal{\pi}} \right) \cdot P \left(y_d = 1 \vert \boldsymbol{\mathcal{\pi}} \right)
+$$
+
+In this PBM model, the following assumpttions are implicitly made:
+- The user clicks on an item only after examining (observing) it and perceiving it as relevant.
+- The act of examining an item only depends on its position in the presented ranking. In other words, observing an item is independent of its relevance or other items in the ranking.
+
+The PBM model implies that the only effect on clicks when showing documents at different positions is due to the position bias. This is a strong assumption, but it is often used in practice because it is simple and effective.
+
+The simplest way to estimate $$P\left(o_d = 1 \vert \boldsymbol{\mathcal{\pi}}\right)$$ is to conduct **randomization** experiments (first proposed by [Wang et al. 2016][wang_2016]). The idea is to randomly shuffle the top-K results and see how the click-through rate (CTR) changes at each rank.
 
 {% capture imblock_randomization_propensity_estimate %}
     {{ site.url }}/articles/images/2021-08-15-learning-to-rank/randomization_propensity_estimate.png
 {% endcapture %}
 {% capture imcaption_randomization_propensity_estimate %}
-  The expected Click Through Rate (CTR) after randomization is proportional to the **position bias**. For the same query but during different impressions (e.g. when different users searched for the same query), we shuffle top-K results randomly to see how CTR changes at each rank. *(<a href="https://sites.google.com/view/sigir-2023-tutorial-ultr">Source: Gupta et al.</a>)*
+  The expected Click Through Rate (CTR) after randomization is proportional to the **position bias**. For the same query but during different impressions (e.g. when different users searched for the same query), we shuffle top-K results randomly to see how CTR changes at each rank. *(<a href="https://sites.google.com/view/sigir-2023-tutorial-ultr">Image: Gupta et al.</a>)*
 {% endcapture %}
 {% include gallery images=imblock_randomization_propensity_estimate cols=1 caption=imcaption_randomization_propensity_estimate %}
 
+The expected CTR after randomization is proportional to the **position bias**. For the same query but during different impressions (e.g. when different users searched for the same query), we shuffle top-K results randomly to see how CTR changes at each rank. The position bias can be estimated by the ratio of the expected CTR after randomization to the CTR before randomization.
+
+The major drawback is that it requires randomizing the top search results ordering in online setting, which negatively affects user experience. To mitigate this issue, [Joachims et al. (2017)][joachims_2016] proposed a softer approach that swaps only one item at a time to a fixed pivot rank $$k$$, which is shown to be a good approximation of the full randomization approach. As illustrated below, the impact of randomization on user experience is significantly lower.
 
 {% capture imblock_randomization_top_k %}
     {{ site.url }}/articles/images/2021-08-15-learning-to-rank/randomization_top_k.png
 {% endcapture %}
 {% capture imcaption_randomization_top_k %}
-  The expected Click Through Rate (CTR) after randomization is proportional to the **position bias**. For the same query but during different impressions (e.g. when different users searched for the same query), we shuffle top-K results randomly to see how CTR changes at each rank. *(<a href="https://sites.google.com/view/sigir-2023-tutorial-ultr">Source: Gupta et al.</a>)*
+  The impact of randomization on user experience can be lowered by swapping only one item at a time to a fixed pivot rank $$k$$. *(<a href="https://sites.google.com/view/sigir-2023-tutorial-ultr">Image: Gupta et al.</a>)*
 {% endcapture %}
 {% include gallery images=imblock_randomization_top_k cols=1 caption=imcaption_randomization_top_k %}
 
+The CTR ratio between the original ranking and the swapped ranking of an item is proportional to the **position bias ratio** between the two ranks:
+
+$$
+\begin{equation*}
+\frac{P(C = 1 | \text{no swap})}{P(C = 1 | \text{swap } d \text{ to rank } k)} = \frac{P(C = 1 | d, q, \text{rank}(d | y))}{P(C = 1 | d, q, k)} \propto \frac{P(O = 1 | \text{rank}(d | y))}{P(O = 1 | k)}
+\end{equation*}
+$$
+
+where $$O$$ is the event that the user examines the item, and $$C$$ is the event that the user clicks on the item. $$d$$ is the document to be swapped, $$q$$ is the query, and $$y$$ is the relevance of the document.
+
+Despite their simplicity, online search page randomization approaches are considered the gold standard of propensity estimation and often used for evaluation purposes (for example, we ask multiple judges to compare two search results pages and choose the one that is more relevant to the given query, and then we can use the results of such experiment to estimate the propensity of the observation). However, they are not suitable for training data collection because they require randomizing the top search results ordering in online setting, which may have a negative impact on user experience.
+
+[Agarwal et al. (2019)][agarwal_2019] made an observation that if you have enough historical data, you can estimate the position bias without randomizing the search results ordering in online setting. The idea is to use the log data of previously deployed rankers as an implicit source of "randomized" data. Some observations:
+- Previous rankers probably ranked the documents differently from each other.
+- Different models in previous A/B tests probably made different ranking decisions.
+
+With enough variety in the historical data, we can use it to estimate the position bias. This is the idea behind **Intervention Harvesting** proposed by [Agarwal et al. (2019)][agarwal_2019], illustrated below:
 
 {% capture imblock_intervention_harvesting %}
     {{ site.url }}/articles/images/2021-08-15-learning-to-rank/intervention_harvesting.png
 {% endcapture %}
 {% capture imcaption_intervention_harvesting %}
-  The expected Click Through Rate (CTR) after randomization is proportional to the **position bias**. For the same query but during different impressions (e.g. when different users searched for the same query), we shuffle top-K results randomly to see how CTR changes at each rank. *(<a href="https://sites.google.com/view/sigir-2023-tutorial-ultr">Source: Gupta et al.</a>)*
+  Estimating position bias using **Intervention Harvesting**. We collect the log data of previously deployed rankers, weight the clicks by their exposure at a given rank (since some documents appear in certain ranks more often than others), then we can infer the position bias. *(<a href="https://sites.google.com/view/sigir-2023-tutorial-ultr">Image: Gupta et al.</a>)*
 {% endcapture %}
 {% include gallery images=imblock_intervention_harvesting cols=1 caption=imcaption_intervention_harvesting %}
+
+The downside of Intervention Harvesting is that it requires a lot of historical data, which is not always available. Also, it requires minimal shift in the query distribution between rankers and over time, and no shift of the document relevance over time. Moreover, if there is not enough variety in the historical data (i.e. between rankers), the estimated position bias may be inaccurate.
+
 
 
 <a name="dual-learning-algorithm">
@@ -1161,6 +1199,8 @@ interpreting clickthrough data as implicit feedback."][joachims_2005] In SIGIR, 
 
 15. Taylor M., Guiver J., Robertson S., Minka T. ["SoftRank: optimizing non-smooth rank metrics."][softrank_2008] In *International Conference on Web Search and Data Mining (WSDM)*, 2008.
 
+16. A. Agarwal, I. Zaitsev, X. Wang, C. Li, M. Najork, T. Joachims. ["Estimating Position Bias without Intrusive Interventions."][agarwal_2019] In *Proceedings of the Twelfth ACM International Conference on Web Search and Data Mining* (WSDM), 2019.
+
 
 [burges-ranknet]: https://www.microsoft.com/en-us/research/publication/learning-to-rank-using-gradient-descent/
 [burges-lambdarank]: https://papers.nips.cc/paper/2006/hash/af44c4c56f385c43f2529f9b1b018f6a-Abstract.html
@@ -1178,3 +1218,4 @@ interpreting clickthrough data as implicit feedback."][joachims_2005] In SIGIR, 
 [ai_2018]: https://ciir-publications.cs.umass.edu/getpdf.php?id=1297
 [ai_2021]: https://arxiv.org/abs/2004.13574
 [softrank_2008]: https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/SoftRankWsdm08Submitted.pdf
+[agarwal_2019]: https://arxiv.org/abs/1812.05161
