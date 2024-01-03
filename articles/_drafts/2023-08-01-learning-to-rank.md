@@ -1027,7 +1027,7 @@ $$
 
 where $$O$$ is the event that the user examines the item, and $$C$$ is the event that the user clicks on the item. $$d$$ is the document to be swapped, $$q$$ is the query, and $$y$$ is the relevance of the document.
 
-Despite their simplicity, online search page randomization approaches are considered the gold standard of propensity estimation and often used for evaluation purposes (for example, we ask multiple judges to compare two search results pages and choose the one that is more relevant to the given query, and then we can use the results of such experiment to estimate the propensity of the observation). However, they are not suitable for training data collection because they require randomizing the top search results ordering in online setting, which may have a negative impact on user experience.
+Despite their simplicity, online search page randomization approaches are considered the gold standard of position bias estimation. However, they are not suitable for training data collection because they require randomizing the top search results ordering in online setting, which may have a negative impact on user experience.
 
 [Agarwal et al. (2019)][agarwal_2019] made an observation that if you have enough historical data, you can estimate the position bias without randomizing the search results ordering in online setting. The idea is to use the log data of previously deployed rankers as an implicit source of "randomized" data. Some observations:
 - Previous rankers probably ranked the documents differently from each other.
