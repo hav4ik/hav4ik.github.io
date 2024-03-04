@@ -1192,7 +1192,31 @@ Compared to traditional A/B testing, interleaving is more efficient because it r
 {% endcapture %}
 {% include gallery images=imblock_interleaving_intro cols=1 caption=imcaption_interleaving_intro %}
 
-One of the simplest and the most widely used form of interleaving is **Team-Draft Interleaving**.
+**Team-Draft Interleaving** ([Radlinski et al. 2008][radlinski_2008]) is one of the simplest and the most widely used form of interleaving. Let's say we have two rankers (considered as "teams"), each produced a list of results $$\boldsymbol{\mathcal{\pi}}_A$$ and $$\boldsymbol{\mathcal{\pi}}_B$$, and we want to compare them. I personally find it easiest to understand how Team-Draft Interleaving works through a simple Python implementation, as shown below:
+
+```python
+def team_draft_interleaving(pi_A, pi_B):
+  """Inputs:
+    pi_A, pi_B: list of documents ordered by rankers A and B
+  Output:
+    interleaved: documents shown to the user, interleaved from A and B
+    team_A, team_B: which documents can be attributed to rankers A and B
+  """
+  interleaved, team_A, team_B = [], [], []
+  while A or B:  # Repeat while there are still documents in A or B
+    if (len(team_A) < len(team_B)
+        or (len(team_A) == len(team_B) and random.choice([True, False]))):
+      doc = A.pop(0)
+      if doc not in interleaved:
+        interleaved.append(doc), team_A.append(doc)
+    else:
+      doc = B.pop(0)
+      if doc not in interleaved:
+        interleaved.append(doc), team_B.append(doc)
+  return interleaved, team_A, team_B
+```
+
+The `interleaved` list is then shown to the user, and the user's feedback is used to determine which ranker is better. The lists `team_A` and `team_B` are then used for attribution, i.e. which document's interactions (like clicks) can be attributed to which ranker. Note that, according to this algorithm, if there's a similar document in both lists, it is shown to the user only once and will be attributed to the ranker that ranked it higher.
 
 Here are some cool blog posts and write-ups of how variations of **interleaving** is being used in large-scale recommendation systems:
 * **Netflix**: ["Innovating Faster on Personalization Algorithms at Netflix Using Interleaving." (2017)][netflix_interleaving] Netflix uses a variation of *Team-Draft Interleaving* in a 2-stage process to compare different recommendation algorithms. The best algorithms are then compared in an A/B test, and the winner is deployed to production.
@@ -1206,7 +1230,7 @@ The most fascinating property of interleaving is that, if done properly, it can 
     {{ site.url }}/articles/images/2021-08-15-learning-to-rank/interleaving_100x.png
 {% endcapture %}
 {% capture imcaption_interleaving_100x %}
-  Sensitivity of interleaving vs traditional A/B metrics for two rankers of known relative quality. Bootstrap subsampling was used to measure the sensitivity of interleaving compared to traditional engagement metrics. Both Netflix (left chart) and Thumbtack (right chart) found that interleaving can require >100x fewer subscribers to correctly determine ranker preference even compared to the most sensitive A/B metric.
+  Sensitivity of interleaving vs traditional A/B metrics for two rankers of known relative quality. Bootstrap subsampling was used to measure the sensitivity of interleaving compared to traditional engagement metrics. Both <b>Netflix (left chart)</b> and <b>Thumbtack (right chart)</b> found that interleaving can require >100x fewer subscribers to correctly determine ranker preference even compared to the most sensitive A/B metric.
 {% endcapture %}
 {% include gallery images=imblock_interleaving_100x cols=1 caption=imcaption_interleaving_100x %}
 
@@ -1273,3 +1297,4 @@ interpreting clickthrough data as implicit feedback."][joachims_2005] In SIGIR, 
 [ai_2021]: https://arxiv.org/abs/2004.13574
 [softrank_2008]: https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/SoftRankWsdm08Submitted.pdf
 [agarwal_2019]: https://arxiv.org/abs/1812.05161
+[radlinski_2008]: https://www.cs.cornell.edu/people/tj/publications/radlinski_etal_08b.pdf
