@@ -15,22 +15,20 @@ hidden: false
 highlighted: true
 ---
 
-I still remember being fascinated by Google Search when I saw it the first time. As an 8th-grade kid getting his first computer, the 
+I still remember being fascinated by Google Search when I saw it the first time. As an 8th-grade kid getting his first computer back in 2010, the 
 ability to search for any information I want among billions of web pages looked like magic to me. As Arthur C. Clarke famously said, 
 ["any sufficiently advanced technology is indistinguishable from magic."][tech_is_magic] Search engines that 
 allow us to access thousands of years of humanity's accumulated knowledge are truly the modern version of magic!
 
-Back then, even in my wildest dreams, I couldn't have imagined that 25 years old me will have the privilege to move across the globe to work on a search engine called [Bing][bing] &mdash; an ambitious project with enough guts to compete with Google in the search market! Now that I can see how it works from the inside, the "magic" behind that little search box became even more  impressive to me. The search engine is a truly gigantic marvel of modern technology, built and maintained by thousands of engineers.
+Back then, even in my wildest dreams, I couldn't have imagined that 25 years old me will have the privilege to move across the globe to work on a search engine called [Bing][bing] &mdash; an ambitious project with enough guts to compete with Google in the search market! Now that I can see how it works from the inside, the "magic" behind that little search box became even more  impressive to me. The search engine is a truly gigantic marvel of modern technology, built and maintained by hundreds of engineers.
 
 In this blog post, I'll walk you through the basic body of literature of [Learning to Rank (LTR)][ltr] algorithms, starting from the core metrics and supervised methods to the more recent paradigm of learning from user behavior. The list of papers that I'm going to cover is by no means exhaustive, but I hope it will give you a good starting point to dive deeper into the field.
+
+I'm by no means an expert in this field (literally all my team mates are more knowledgeable than me), so this post likely contains inaccuracies. If you spotted any mistakes in this post or if I'm completely wrong somewhere, please let me know.
 
 ***Disclaimer:** all information in this blog post is taken from published research papers or publically available online articles. 
 No [NDA][nda]s were violated. Only general knowledge is presented. You won't find any details specific to the inner working of [Bing]
 [bing] or other search engines here :)*
-
-{% comment %}
-***Disclaimer 2:** I'm by no means an expert in this field (literally all my team mates are more knowledgeable than me), so this post likely contains inaccuracies. If you spotted any mistakes in this post or if I'm completely wrong somewhere, please let me know.*
-{% endcomment %}
 
 [tech_is_magic]: https://en.wikipedia.org/wiki/Clarke%27s_three_laws
 [bing]: https://www.bing.com/
@@ -52,16 +50,21 @@ No [NDA][nda]s were violated. Only general knowledge is presented. You won't fin
     - [3.2.1. Train $\lambda$MART using LightGBM](#train-lambdamart-using-lgbm)
     - [3.2.2. Theoretical justification of $\lambda$Rank](#theoretical-justification-of-lambrank)
   - [3.3. LambdaLoss Framework](#lambdaloss)
-- [4. Unbiased Learning to Rank (from User Behavior)](#)
-  - [4.1. Click signal biases](#)
-  - [4.2. Counterfactual Learning to Rank](#)
+- [4. Introduction to Unbiased Learning to Rank](#unbiased-ltr)
+  - [4.1. Click signal biases](#click-biases)
+  - [4.2. Counterfactual Learning to Rank](#counterfactual-ltr)
     - [4.2.1. Full information Learning to Rank](#)
     - [4.2.2. Partial information Learning to Rank](#)
     - [4.2.3. What's wrong with naive estimator?](#)
     - [4.2.4. Inverse Propensity Weighting (IPW)](#inverse-propensity-weighting)
     - [4.2.5. Estimating Position Bias by Randomization](#bias-estimation-randomization)
     - [4.2.6. Dual Learning Algorithm (DLA)](#dual-learning-algorithm)
-  - [4.3. Online Learning to Rank](#)
+  - [4.3. Online Learning to Rank](#online-ltr)
+    - [4.3.1. Comparing rankers by Interleaving](#interleaving)
+    - [4.3.2. OLTR as Dueling Bandits Problem](#)
+    - [4.3.3. Counterfactual Online Learning to Rank (COLTR)](#)
+    - [4.3.4. Pairwise Differentiable Gradient Descent (PDGD)](#)
+  - [4.4. Practical Considerations](#)
 - [5. Advanced Click Models](#)
 - [References](#references)
 
@@ -640,7 +643,7 @@ $$
 
 
 <a name="unbiased-ltr"></a>
-## 4. Unbiased Learning to Rank (from User Clicks)
+## 4. Introduction to Unbiased Learning to Rank
 
 In the previous section, we have learned how to train a ranker on labeled data, where each document-query pair is annotated with a score (from 1 to 5) that shows how relevant that document is to the given query. This process is very expensive: to ensure the objectivity of labeled score, the human labeler would have to go through a strict checklist with multiple questions, then the document's relevance score will be calculated from the given answers. [Google's guidelines for search quality rating][google_sqe_guidelines] is a clear example of how complicated that process is (167 pages of guideline).
 
@@ -1045,6 +1048,9 @@ With enough variety in the historical data, we can use it to estimate the positi
 
 The downside of Intervention Harvesting is that it requires a lot of historical data, which is not always available. Also, it requires minimal shift in the query distribution between rankers and over time, and no shift of the document relevance over time. Moreover, if there is not enough variety in the historical data (i.e. between rankers), the estimated position bias may be inaccurate.
 
+{% comment %}
+TODO: write more detailed explanation of Intervention Harvesting, as this is a very important paper published by Google and tested on both ArXiv and Google Drive search data.
+{% endcomment %}
 
 
 <a name="dual-learning-algorithm">
@@ -1158,8 +1164,56 @@ l_{\text{P}} \left( g_\psi, \boldsymbol{q} \right)
 \end{equation}
 $$
 
+> **Exercise for the reader:** Prove that the IRW estimator is unbiased by following the same steps as in $$\eqref{eq:ipw_unbiased}$$.
+
 In this paper, [Ai et al. (2018)][ai_2018] also provided a rigorous proof that the Dual Learning Algorithm (DLA) will converge, under assumption that only position bias is considered and the loss functions are chosen as cross-entropy of softmax probabilities.
 
+
+
+
+<a name="online-ltr"></a>
+### 4.3. Online Learning to Rank
+
+Similar to Counterfactual Learning to Rank (CLTR), Online Learning to Rank (OLTR) also uses implicit user feedback (e.g. clicks) to train a ranking model. However, unlike CLTR which uses historical data to estimate the click biases and train the ranking model, OLTR uses the click feedback in real-time to update the ranking model, by directly interacting with the users. The main advantage is flexibility &mdash; the online setting allows the learning algorithm to control data acquisition and handle biases and noise through online interventions, by choosing which documents to present to the user and observing the user's feedback. The main disadvantage is that it requires a lot of traffic to be effective, and the infrastructure to support online learning is, in general, more complex than offline learning.
+
+
+<a name="interleaving"></a>
+#### 4.3.1. Comparing rankers by Interleaving
+
+Before we dive into the details of Online Learning to Rank, it is important to first understand how to compare two rankers using **interleaving**. Interleaving is a technique to compare two or more rankers by presenting the results of the rankers in an interleaved list (i.e. a mix of results from the rankers) and observing the user's feedback.
+
+Compared to traditional A/B testing, interleaving is more efficient because it requires fewer user interactions to compare rankers. However, it also comes with a drawback: it is more difficult to estimate the statistical significance of the results and to control for biases.
+
+{% capture imblock_interleaving_intro %}
+    {{ site.url }}/articles/images/2021-08-15-learning-to-rank/interleaving_intro.png
+{% endcapture %}
+{% capture imcaption_interleaving_intro %}
+  The difference between A/B testing and interleaving. In A/B testing, the users are split into two groups and each group is presented with results from one ranker. In interleaving, the user is presented with an interleaved list of results from both rankers.
+{% endcapture %}
+{% include gallery images=imblock_interleaving_intro cols=1 caption=imcaption_interleaving_intro %}
+
+One of the simplest and the most widely used form of interleaving is **Team-Draft Interleaving**.
+
+Here are some cool blog posts and write-ups of how variations of **interleaving** is being used in large-scale recommendation systems:
+* **Netflix**: ["Innovating Faster on Personalization Algorithms at Netflix Using Interleaving." (2017)][netflix_interleaving] Netflix uses a variation of *Team-Draft Interleaving* in a 2-stage process to compare different recommendation algorithms. The best algorithms are then compared in an A/B test, and the winner is deployed to production.
+* **Airbnb**: ["Beyond A/B Test: Speeding up Airbnb Search Ranking Experimentation through Interleaving." (2022)][airbnb_interleaving] Airbnb also uses a variation of *Team-Draft Interleaving* in their 2-stage testing process (first interleaving, then A/B testing). However, they modified the attribution logic to account for their unique search scenario in which a user can issue multiple search requests before booking.
+* **Thumbtack**: ["Accelerating Ranking Experimentation at Thumbtack with Interleaving." (2023)][thumbtack_interleaving] Interestingly, they are using *Team-Draft Interleaving* as well.
+* **Etsy**: ["Faster ML Experimentation at Etsy with Interleaving."][etsy_interleaving] This article is a gem! They described engineering challenges and how they tested their interleaving system to ensure that it is working as expected.
+
+The most fascinating property of interleaving is that, if done properly, it can result in a significant reduction in the number of users needed to compare two rankers.
+
+{% capture imblock_interleaving_100x %}
+    {{ site.url }}/articles/images/2021-08-15-learning-to-rank/interleaving_100x.png
+{% endcapture %}
+{% capture imcaption_interleaving_100x %}
+  Sensitivity of interleaving vs traditional A/B metrics for two rankers of known relative quality. Bootstrap subsampling was used to measure the sensitivity of interleaving compared to traditional engagement metrics. Both Netflix (left chart) and Thumbtack (right chart) found that interleaving can require >100x fewer subscribers to correctly determine ranker preference even compared to the most sensitive A/B metric.
+{% endcapture %}
+{% include gallery images=imblock_interleaving_100x cols=1 caption=imcaption_interleaving_100x %}
+
+[netflix_interleaving]: https://netflixtechblog.com/interleaving-in-online-experiments-at-netflix-a04ee392ec55
+[airbnb_interleaving]: https://medium.com/airbnb-engineering/beyond-a-b-test-speeding-up-airbnb-search-ranking-experimentation-through-interleaving-7087afa09c8e
+[thumbtack_interleaving]: https://medium.com/thumbtack-engineering/accelerating-ranking-experimentation-at-thumbtack-with-interleaving-20cbe7837edf
+[etsy_interleaving]: https://www.etsy.com/codeascraft/faster-ml-experimentation-at-etsy-with-interleaving
 
 
 ---------------------------------------------------------------------------------
