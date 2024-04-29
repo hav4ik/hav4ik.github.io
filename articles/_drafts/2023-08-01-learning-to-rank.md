@@ -1279,6 +1279,10 @@ interpreting clickthrough data as implicit feedback."][joachims_2005] In SIGIR, 
 
 16. A. Agarwal, I. Zaitsev, X. Wang, C. Li, M. Najork, T. Joachims. ["Estimating Position Bias without Intrusive Interventions."][agarwal_2019] In *Proceedings of the Twelfth ACM International Conference on Web Search and Data Mining* (WSDM), 2019.
 
+17. Radlinski, F., Kurup, M., & Joachims, T. ["How does clickthrough data reflect retrieval quality?."][radlinski_2008] In *Proceedings of the ACM conference on Information and knowledge management (CIKM)*, 2008.
+
+
+
 
 [burges-ranknet]: https://www.microsoft.com/en-us/research/publication/learning-to-rank-using-gradient-descent/
 [burges-lambdarank]: https://papers.nips.cc/paper/2006/hash/af44c4c56f385c43f2529f9b1b018f6a-Abstract.html
