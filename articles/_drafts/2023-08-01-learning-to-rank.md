@@ -8,7 +8,7 @@ image:
   display: false
 commits: "#"
 tags: [information retrieval, tutorial, deep dive]
-excerpt: "Learning to Rank is one of the most important component of any recommendation system. This post is just my study notes, where I go through the body of LTR literature over the past decade."
+excerpt: "Learning to Rank is a core component of any recommendation system. It is the algorithm that forms the final list of items to be shown to the user. This blog post is a comprehensive introduction to the landscape of LTR algorithms. Hopefully, it will give you enough context to start reading recent LTR research papers."
 show_excerpt: true
 comments: true
 hidden: false
@@ -61,9 +61,9 @@ No [NDA][nda]s were violated. Only general knowledge is presented. You won't fin
     - [4.2.6. Dual Learning Algorithm (DLA)](#dual-learning-algorithm)
   - [4.3. Online Learning to Rank](#online-ltr)
     - [4.3.1. Comparing rankers by Interleaving](#interleaving)
-    - [4.3.2. OLTR as Dueling Bandits Problem](#)
-    - [4.3.3. Counterfactual Online Learning to Rank (COLTR)](#)
-    - [4.3.4. Pairwise Differentiable Gradient Descent (PDGD)](#)
+    - [4.3.2. Dueling Bandits Gradient Descent (DBGD)](#dbgd)
+    - [4.3.3. Pairwise Differentiable Gradient Descent (PDGD)](#pdgd)
+    - [4.3.4. Counterfactual Online Learning to Rank (COLTR)](#)
   - [4.4. Practical Considerations](#)
 - [5. Advanced Click Models](#)
 - [References](#references)
@@ -229,11 +229,11 @@ where the denominator $\max DCG@T$ is the maximum possible DCG for the given que
   {{ site.url }}/articles/images/2021-08-15-learning-to-rank/ndcg_vis.png
 {% endcapture %}
 {% capture imblock_ndcg_at_10_desc %}
-  Visualization of NDCG@5 metric for different rankings of a collection of retrieved documents, with relevance (to a hypothetical query) scores $\left\[0, 0, 0, 0, 1, 2, 3, 4, 4, 5\right\]$. Left: the best ranking (highest NDCG@5). Right: the worst ranking (lowest NDCG@5). Middle: a random ranking. Notice that the best ranking has the highest possible NDCG@5 of $1.00$, while the worst ranking of the retrieved documents has a non-zero score, because it still has some relevant documents in the list. The only way to get zero NDCG@10 is to have no relevant documents in the list. Feel free to play around with the visualization script: <a href="https://gist.github.com/hav4ik/100aa247eff4d3075db4f8314461f4c2">gist.github.com/hav4ik/100aa247eff4d3075db4f8314461f4c2</a>.
+  Visualization of NDCG@5 metric for different rankings of a collection of retrieved documents, with relevance (to a hypothetical query) scores $\left\[0, 0, 0, 0, 1, 2, 3, 4, 4, 5\right\]$. Left: the best ranking (highest NDCG@5). Right: the worst ranking (lowest NDCG@5). Middle: a random ranking. Notice that the best ranking has the highest possible NDCG@5 of $1.00$, while the worst ranking of the retrieved documents has a non-zero score, because it still has some relevant documents in the list. The only way to get zero NDCG@10 is to have no relevant documents in the list.
 {% endcapture %}
 {% include gallery images=imblock_ndcg_at_10_fig cols=1 caption=imblock_ndcg_at_10_desc %}
 
-
+In [Figure 3](#fig-ndcg-at-10), you can see how the NDCG@5 metric behaves for different rankings. To get a better intuition on the NDCG metric and see how it behaves under different permutations, feel free to play around with the visualization script: [https://gist.github.com/hav4ik/100aa247eff4d3075db4f8314461f4c2](gist.github.com/hav4ik/100aa247eff4d3075db4f8314461f4c2).
 
 <a name="metrics-err"></a>
 **ERR (Expected Reciprocal Rank)** is used when a user is assumed to read down the list of returned search results until they find the one that they like. ERR is defined as:
@@ -326,7 +326,7 @@ The objective of [RankNet](#ranknet) is optimizing for (a smooth, convex approxi
 of pairwise errors, which is fine if that is the desired cost. However, it does not produce desired gradients for minimizing position-sensitive objectives like [NDCG](#metrics-ndcg) or [ERR](#metrics-ERR), as we will illustrate in figure below.
 
 Ideally, we would want to be able to optimize the position-sensitive objectives in a more direct way. However, ranking metrics such as [NDCG](#metrics-ndcg) and [ERR](#metrics-ERR) are not differentiable objectives since sorting is needed
-to obtain ranks based scores. This makes the ranking metrics either discontinuous or flat everywhere and can not be directly used as learning objectives. The **LambdaRank** framework, developed by [Burges et al. (2006)][burges-lambdarank], solves this problem by modifying the gradients during training.
+to obtain ranks based scores. This makes the ranking metrics either discontinuous or flat everywhere and can not be directly used as learning objectives. The **LambdaRank** framework, developed by [Burges, Ragno, and Quoc (2006)][burges-lambdarank] during their time at Microsoft Research, solves this problem by modifying the gradients during training.
 
 Let's start from the RankNet's cost $\mathcal{C}$ defined in $(\ref{eq:ranknet})$. It is easy to see that $\partial \mathcal{C} / \partial s_i = - \partial \mathcal{C} / \partial s_j$ due to the symmetry of the RankNet's cost function. More specifically:
 
@@ -406,6 +406,7 @@ $$
 which takes $O(n^2)$ time to compute for all pair of documents. From first glance, $\Delta ERR_{ij}$ is harder to compute: the naive implementation would require $O(n^3)$ time to compute for all pair of documents. However, we can use the trick described by [Burges (2010)][burges-ranknet-to-lambdamart] to bring the cost down to $O(n^2)$.
 
 **LambdaMART** is basically the same, but uses [Gradient Boosted Decision Trees](#gbdt) instead of Neural Networks (MART stands for Multiple Additive Regression Trees). Basically we perform gradient ascent in the models (function) space instead of the model's weights space.
+
 
 
 [burges-website]: https://chrisburges.net/
@@ -1240,6 +1241,82 @@ The most fascinating property of interleaving is that, if done properly, it can 
 [etsy_interleaving]: https://www.etsy.com/codeascraft/faster-ml-experimentation-at-etsy-with-interleaving
 
 
+
+<a name="dbgd">
+#### 4.3.2. Dueling Bandit Gradient Descent (DBGD)
+
+Having a way to efficiently compare two rankers using interleaving, we can formulate the Online Learning to Rank problem as a **Dueling Bandit** problem and perform weights updates to our ranker. Let's say we have a ranker $$f_\theta$$. We can slightly update its weights and create a new ranker $$f_{\theta + \epsilon}$$. We can then use interleaving to compare the two rankers and determine which one is better, and update the weights $$\theta$$ accordingly afterwards. This is the core idea behind **Dueling Bandit Gradient Descent** (DBGD) proposed by [Yue & Joachims (2009)][yue_dbgd]. Formally, the algorithm looks like this:
+
+<div class="algorithm">
+  <div class="algo-name">Dueling Bandit Gradient Descent</div>
+  <div class="algo-input">
+    Ranker $f_{\theta_0}$ with parameters (weights) $\theta_0 \in \mathbb{R}^d$, learning rate $\eta$, exploration magnitude $\delta$.
+  </div>
+  <div class="algo-output">
+    Updated ranking model $f_{\theta_T}$.
+  </div>
+  <div class="algo-body">
+    <!-- For block -->
+    <div><b>for</b> query $q_t \, (t = 1\ldots T)$ <b>do</b></div>
+    <div class="algo-indent-block">
+      <div>Randomly sample a unit vector $u_t \in \mathbb{R}^d$ from the unit sphere uniformly.</div>
+      <div>Assign $\theta_t' \leftarrow \theta_t + \delta u_t$</div>
+      <div>Compare rankers $f_{\theta_t}$ and $f_{\theta_t'}$ using interleaving</div>
+      <div><b>if</b> $f_{\theta_t'}$ wins <b>then</b></div>
+      <div class="algo-indent-block">
+        <div>Update weights $\theta_{t+1} \leftarrow \theta_t + \eta u_t$</div>
+      </div>
+      <div><b>else</b></div>
+      <div class="algo-indent-block">
+        <div>$\theta_{t+1} \leftarrow \theta_t\,$ (leave the weights the same if there's no improvements)</div>
+      </div>
+      <div><b>end if</b></div>
+    </div>
+    <div><b>end for</b></div>
+  </div> <!-- algo-body -->
+  <div class="algo-end"></div>
+</div>
+
+where the initial weights $\theta_0$ can be trained using any offline learning to rank algorithm (either supervised or counterfactual). The exploration magnitude $\delta$ controls the magnitude of the perturbation, and the learning rate $\eta$ controls the step size of the weight updates.
+
+{% capture imblock_dbgd %}
+    {{ site.url }}/articles/images/2021-08-15-learning-to-rank/dbgd.png
+{% endcapture %}
+{% capture imcaption_dbgd %}
+  Illustration of one iteration of the Dueling Bandits Gradient Descent (DBGD) algorithm. *(Image source: [Oosterhuis et al.](https://ilps.github.io/webconf2020-tutorial-unbiased-ltr/WWW2020handout.pdf))*
+{% endcapture %}
+{% include gallery images=imblock_dbgd cols=1 caption=imcaption_dbgd %}
+
+To speed up the chance of finding the improving weight updates, [Schuth et al. (2016)][multileave_dbgd] proposed a **Multi-leave Dueling Bandit Gradient Descent** algorithm, which samples multiple directions per iteration and uses multiple interleaving lists to compare the rankers. This allows us to explore more diverse perturbations of the weights at every step and find the improving direction faster. Other works have proposed to leverage historical data to reject unpromising directions and focus on the most promising ones, such as [Hofmann et al. (2013)][hofmann_2013], [Zhao and King (2016)][zhao_king_2016], and [Wang et al. (2018)][wang_dbgd_2018].
+
+For this family of algorithms to work, the utility space with respect to $\theta$ should be "smooth" enough &mdash; that is, small perturbations in the weights should result in small changes in the ranking quality and user experience. More formally, if we measure the **regret** of using $f_{\theta'}$ over $f_\theta$ as the fraction of users who would prefer the former over the latter over possible queries:
+
+$$
+\begin{equation*}
+\epsilon(\theta, \theta') \propto \mathbb{E}_{\boldsymbol{q}} \left[ \left( f_{\theta}(\boldsymbol{q}) \succ f_{\theta'}(\boldsymbol{q}) \right) \right]
+\end{equation*}
+$$
+
+Then such regret $\epsilon(\cdot, \cdot)$ should be Lipschitz continuous with respect to the weights $\theta$, i.e. $\exists L > 0$ such that $\forall \theta, \theta'\,\colon \left\| \epsilon(\theta, \theta') \right\| \leq L \left\Vert \theta - \theta' \right\Vert$.
+
+Readers with a good mathematical background will call me out on this, because this is not exactly what Lipschitz continuity means. In the original paper ([Yue & Joachims, 2009][yue_dbgd]), the authors used a more elaborated formulation with intermediate value and link functions to apply the standard definition of Lipschitz continuity. The formulation in this blog post is essentially the same as the rigorous one &mdash; it just simplifies the notation and makes it more intuitive.
+
+The authors also proved that, if we additionally assume that there is a unique optimal weights $$\theta^*$$, then the algorithm will achieve sublinear global regret in $$T$$. In practice, however, none of these assumptions holds for more complex ranking models (like neural networks, gradient boosted trees, etc.), as noted in the paper by [Oosterhuis and Rijke (2019)][oosterhuis_2019]:
+
+- Optimization space of neural networks is highly non-convex, and there can be multiple blobs local minima. There has been plenty of works analyzing this in Machine Learning Literature, such as [(Haeffele & Vidal, 2017)][global_optimality_nn]. A simple example is this: just multiple the last linear projection by $$\alpha$$. The results will be the same, but the weights are different.
+- The Lipschitz continuity assumption can't be true. Take a linear model, for example. Its regret is scale-invariant, i.e. $$\epsilon(\alpha \theta_1, \alpha \theta_2) = \epsilon(\theta_1, \theta_2)$$ for any $$\alpha \neq 0$$ because the ranking of the documents are going to be the same. But the Lipschitz constant is not scale-invariant, so we will have a contradiction statement that $$\epsilon(\theta_1, \theta_2) \leq L \Vert \alpha \theta_1 - \alpha \theta_2 \Vert = \alpha L \Vert \theta_1 - \theta_2 \Vert$$ for any $$\alpha \neq 0$$.
+
+*Personal note: you know the research is slow and kind of disconnected from the industry when people spent a decade publishing papers on unfruitful direction...*
+
+
+
+<a href="#pdgd"></a>
+#### 4.3.3. Pairwise Differentiable Gradient Descent (PDGD)
+
+
+
+
+
 ---------------------------------------------------------------------------------
 
 
@@ -1281,6 +1358,19 @@ interpreting clickthrough data as implicit feedback."][joachims_2005] In SIGIR, 
 
 17. Radlinski, F., Kurup, M., & Joachims, T. ["How does clickthrough data reflect retrieval quality?."][radlinski_2008] In *Proceedings of the ACM conference on Information and knowledge management (CIKM)*, 2008.
 
+18. Yue Yisong, Joachims Thorsten. ["Interactively optimizing information retrieval systems as a dueling bandits problem."][yue_dbgd] In *Proceedings of the 26th Annual International Conference on Machine Learning* (ICML), 2009.
+
+19. Benjamin D. Haeffele and Rene Vidal. ["Global Optimality in Neural Network Training."][global_optimality_nn] In *2017 IEEE Conference on Computer Vision and Pattern Recognition* (CVPR), 2017.
+
+20. Schuth A., Oosterhuis H., Whiteson S., de Rijke M. ["Multileave Gradient Descent for Fast Online Learning to Rank."][multileave_dbgd] In *WSDM '16: Proceedings of the Ninth ACM International Conference on Web Search and Data Mining*, 2016.
+
+21. Zhao T., King I. ["Constructing Reliable Gradient Exploration for Online Learning to Rank."][zhao_king_2016] In *Proceedings of the 25th ACM International on Conference on Information and Knowledge Management* (CIKM), 2016.
+
+22. Hofmann K., Whiteson S., de Rijke M. ["Reusing historical interaction data for faster online learning to rank for IR."][hofmann_2013] In *Proceedings of the sixth ACM international conference on Web search and data minin* (WSDM), 2013.
+
+23. Huazheng Wang, Ramsey Langley, Sonwoo Kim, Eric McCord-Snook, Hongning Wang. ["Efficient Exploration of Gradient Space for Online Learning to Rank."][wang_dbgd_2018] In *The 41st International ACM SIGIR Conference on Research & Development in Information Retrieval* (SIGIR), 2018.
+
+24. Harrie Oosterhuis, Maarten de Rijke. ["Optimizing Ranking Models in an Online Setting."][oosterhuis_2019] In *European Conference on Information Retrieval* (ECIR), 2019.
 
 
 
@@ -1302,3 +1392,10 @@ interpreting clickthrough data as implicit feedback."][joachims_2005] In SIGIR, 
 [softrank_2008]: https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/SoftRankWsdm08Submitted.pdf
 [agarwal_2019]: https://arxiv.org/abs/1812.05161
 [radlinski_2008]: https://www.cs.cornell.edu/people/tj/publications/radlinski_etal_08b.pdf
+[yue_dbgd]: https://www.cs.cornell.edu/people/tj/publications/yue_joachims_09a.pdf
+[global_optimality_nn]: https://openaccess.thecvf.com/content_cvpr_2017/papers/Haeffele_Global_Optimality_in_CVPR_2017_paper.pdf
+[multileave_dbgd]: https://irlab.science.uva.nl/wp-content/papercite-data/pdf/schuth-multileave-2016.pdf
+[zhao_king_2016]: https://dl.acm.org/doi/abs/10.1145/2983323.2983774
+[hofmann_2013]: https://dl.acm.org/doi/abs/10.1145/2433396.2433419
+[wang_dbgd_2018]: https://arxiv.org/abs/1805.07317
+[oosterhuis_2019]: https://arxiv.org/abs/1901.10262
