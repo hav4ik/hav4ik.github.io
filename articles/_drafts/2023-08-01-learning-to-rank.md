@@ -53,9 +53,9 @@ No [NDA][nda]s were violated. Only general knowledge is presented. You won't fin
 - [4. Introduction to Unbiased Learning to Rank](#unbiased-ltr)
   - [4.1. Click signal biases](#click-biases)
   - [4.2. Counterfactual Learning to Rank](#counterfactual-ltr)
-    - [4.2.1. Full information Learning to Rank](#)
-    - [4.2.2. Partial information Learning to Rank](#)
-    - [4.2.3. What's wrong with naive estimator?](#)
+    - [4.2.1. Full information Learning to Rank](#fullinfo-ltr)
+    - [4.2.2. Partial information Learning to Rank](#partialinfo-ltr)
+    - [4.2.3. What's wrong with naive estimator?](#naiveestimator)
     - [4.2.4. Inverse Propensity Weighting (IPW)](#inverse-propensity-weighting)
     - [4.2.5. Estimating Position Bias by Randomization](#bias-estimation-randomization)
     - [4.2.6. Dual Learning Algorithm (DLA)](#dual-learning-algorithm)
@@ -63,7 +63,6 @@ No [NDA][nda]s were violated. Only general knowledge is presented. You won't fin
     - [4.3.1. Comparing rankers by Interleaving](#interleaving)
     - [4.3.2. Dueling Bandits Gradient Descent (DBGD)](#dbgd)
     - [4.3.3. Pairwise Differentiable Gradient Descent (PDGD)](#pdgd)
-    - [4.3.4. Counterfactual Online Learning to Rank (COLTR)](#)
   - [4.4. Practical Considerations](#)
 - [5. Advanced Click Models](#)
 - [References](#references)
@@ -1293,7 +1292,7 @@ For this family of algorithms to work, the utility space with respect to $\theta
 
 $$
 \begin{equation*}
-\epsilon(\theta, \theta') \propto \mathbb{E}_{\boldsymbol{q}} \left[ \left( f_{\theta}(\boldsymbol{q}) \succ f_{\theta'}(\boldsymbol{q}) \right) \right]
+\epsilon(\theta, \theta') \propto \mathbb{E}_{\boldsymbol{q}} \left[ f_{\theta}(\boldsymbol{q}) \succ f_{\theta'}(\boldsymbol{q}) \right]
 \end{equation*}
 $$
 
@@ -1306,14 +1305,139 @@ The authors also proved that, if we additionally assume that there is a unique o
 - Optimization space of neural networks is highly non-convex, and there can be multiple blobs local minima. There has been plenty of works analyzing this in Machine Learning Literature, such as [(Haeffele & Vidal, 2017)][global_optimality_nn]. A simple example is this: just multiple the last linear projection by $$\alpha$$. The results will be the same, but the weights are different.
 - The Lipschitz continuity assumption can't be true. Take a linear model, for example. Its regret is scale-invariant, i.e. $$\epsilon(\alpha \theta_1, \alpha \theta_2) = \epsilon(\theta_1, \theta_2)$$ for any $$\alpha \neq 0$$ because the ranking of the documents are going to be the same. But the Lipschitz constant is not scale-invariant, so we will have a contradiction statement that $$\epsilon(\theta_1, \theta_2) \leq L \Vert \alpha \theta_1 - \alpha \theta_2 \Vert = \alpha L \Vert \theta_1 - \theta_2 \Vert$$ for any $$\alpha \neq 0$$.
 
-*Personal note: you know the research is slow and kind of disconnected from the industry when people spent a decade publishing papers on unfruitful direction...*
 
 
 
 <a href="#pdgd"></a>
 #### 4.3.3. Pairwise Differentiable Gradient Descent (PDGD)
 
+Unlike the DBDG family of algorithms, the **Pairwise Differentiable Gradient Descent** (PDGD) algorithm proposed by [Oosterhuis et al. (2019)][oosterhuis_2019] does not require the Lipschitz continuity assumption, nor relying on any online evaluation methods. Let's look at the ranking function $$f_\theta(\cdot)$$ as a probability distribution over documents $$d \in \boldsymbol{\mathcal{D}}$$ by applying a Plackett-Luce (PL) model (essentially a softmax function) over the scores:
 
+$$
+\begin{equation*}
+P(d \vert \boldsymbol{\mathcal{D}}, \theta) = \frac{\exp(f_\theta(d))}{\sum_{d' \in \boldsymbol{\mathcal{D}}} \exp(f_\theta(d'))}
+\end{equation*}
+$$
+
+A ranking $$\boldsymbol{\mathcal{\pi}} = \{ \boldsymbol{\mathcal{\pi}}_1, \ldots, \boldsymbol{\mathcal{\pi}}_k \}$$, where $$\boldsymbol{\mathcal{\pi}}_i$$ is the $$i$$-th document in the ranking, is then presented to the user by sampling from this distribution $$k$$ times, where after each sample the document is removed from the set of available documents before the next sample to prevent duplicates. Formally, the probability of ranking $$\boldsymbol{\mathcal{\pi}}$$ is then the product of the probabilities of the documents in the ranking:
+
+$$
+\begin{equation*}
+P\left(\boldsymbol{\mathcal{\pi}} \vert \boldsymbol{\mathcal{D}}, \theta\right) = \prod_{i=1}^{k} P\left(\boldsymbol{\mathcal{\pi}}_i \vert \boldsymbol{\mathcal{D}} \setminus \{ \boldsymbol{\mathcal{\pi}}_1, \ldots, \boldsymbol{\mathcal{\pi}}_{i-1} \}, \theta\right)\,.
+\end{equation*}
+$$
+
+After the ranking is presented to the user, the user's feedback (in the form of clicks) is then used to infer preferences between the documents in the ranking. However, we can't know which documents were examined (considered) by the user during the session, so a reasonable assumption is that the user has examined all documents before the last clicked one, and one document after that, as illustrated in the figure below (documents considered by PDGD are colored).
+
+Let's denote the user preference between documents $$d_k$$ and $$d_l$$ inferred from clicks as $$d_k >_c d_l$$ (i.e. $$d_k$$ is preferred over $$d_l$$). The objective on each step of PDGD is to increase the probability of the preferred document being ranked higher than the non-preferred one, which looks like follows in the PL model:
+
+$$
+\begin{align*}
+P\left( d_k \succ d_l \vert \boldsymbol{\mathcal{D}}, \theta\right) &=
+\frac{P(d_k \vert \boldsymbol{\mathcal{D}})}{P\left(d_k \vert \boldsymbol{\mathcal{D}}, \theta\right) + P\left(d_l \vert \boldsymbol{\mathcal{D}}, \theta\right)} \\ &=
+\frac{\exp(f_\theta(d_k))}{\exp(f_\theta(d_k)) + \exp(f_\theta(d_l))}\,.
+\end{align*}
+$$
+
+A naive approach would be to directly maximize the above probability for all observed preferences $$d_k >_c d_l$$ in the training data by gradient ascent:
+
+$$
+\begin{align*}
+\nabla_\theta
+&\approx
+\sum_{d_k >_c d_l} \nabla_\theta P\left( d_k \succ d_l \vert \boldsymbol{\mathcal{D}}, \theta\right)
+\\ &=
+\sum_{d_k >_c d_l}
+\frac{
+  \exp[f_\theta(d_k)]\exp[f_\theta(d_l)]
+}{
+  \left( \exp[f_\theta(d_k)] + \exp[f_\theta(d_l)] \right)^2
+} \left( f'_\theta(d_k) - f'_\theta(d_l) \right)\,.
+\end{align*}
+$$
+
+However, we can't directly maximize this probability because it is **biased** &mdash; some preferences are more likely to be observed than others due to position and selection biases. More specifically, if documents $$d_k$$ and $$d_l$$ are equally relevant, but $$d_k$$ is ranked higher than $$d_l$$, then the probability of observing user preference $$d_k >_c d_l$$ is higher than the probability of observing user preference $$d_l >_c d_k$$ because of the position bias. PDGD resolves this issue by re-weighting the preferences as follows:
+
+- Let $$\boldsymbol{\mathcal{\pi}}^*(d_k, d_l, \boldsymbol{\mathcal{\pi}})$$ be the same ranking as $$\boldsymbol{\mathcal{\pi}}$$, but the positions of documents $$d_k$$ and $$d_l$$ are swapped (as illustrated in the figure below).
+- If $$d_k$$ and $$d_l$$ are equally relevant and a preference $$d_k >_c d_l$$ is observed in the ranking $$\boldsymbol{\mathcal{\pi}}$$, then the reverse preference $$d_l >_c d_k$$ is equally likely to be observed in the ranking $$\boldsymbol{\mathcal{\pi}}^*(d_k, d_l, \boldsymbol{\mathcal{\pi}})$$.
+- Then, scoring **as if** the rankings $$\boldsymbol{\mathcal{\pi}}$$ and $$\boldsymbol{\mathcal{\pi}}^*(d_k, d_l, \boldsymbol{\mathcal{\pi}})$$ are **equally likely to occur** will result in an unbiased estimator of the gradient.
+
+{% capture imblock_pdgd_selection %}
+    {{ site.url }}/articles/images/2021-08-15-learning-to-rank/pdgd.png
+{% endcapture %}
+{% capture imcaption_pdgd_selection %}
+  **Left:** All documents preceeding the clicked document, and one document after the last clicked is considered. Arrows shows inferred preferences of $$d_3$$ over $$\{d_1, d_2, d_4\}$$. $$d_5$$ is not considered in the algorithm. **Right:** Original ranking $$\boldsymbol{\mathcal{\pi}}$$ and the ranking $$\boldsymbol{\mathcal{\pi}}^*(d_3, d_1, \boldsymbol{\mathcal{\pi}})$$ where the positions of $$d_3$$ and $$d_1$$ are swapped.
+  *(Image source: [Oosterhuis et al.](https://ilps.github.io/webconf2020-tutorial-unbiased-ltr/WWW2020handout.pdf))*
+{% endcapture %}
+{% include gallery images=imblock_pdgd_selection cols=1 caption=imcaption_pdgd_selection %}
+
+The ratio between the probability of ranking $$\boldsymbol{\mathcal{\pi}}$$ and the reversed ranking $$\boldsymbol{\mathcal{\pi}}^*(d_k, d_l, \boldsymbol{\mathcal{\pi}})$$ indicates the bias between two directions:
+
+$$
+\begin{equation*}
+\rho \left( d_k, d_l, \boldsymbol{\mathcal{\pi}} \vert \boldsymbol{\mathcal{D}}, \theta \right) =
+\frac{
+  P\left( \boldsymbol{\mathcal{\pi}}^*(d_k, d_l, \boldsymbol{\mathcal{\pi}}) \vert \boldsymbol{\mathcal{D}}, \theta \right)
+}{
+  P\left( \boldsymbol{\mathcal{\pi}}) \vert \boldsymbol{\mathcal{D}}, \theta \right) +
+  P\left( \boldsymbol{\mathcal{\pi}}^*(d_k, d_l, \boldsymbol{\mathcal{\pi}}) \vert \boldsymbol{\mathcal{D}}, \theta \right)
+}
+\end{equation*}
+$$
+
+This ratio is then used to unbias the gradient estimator:
+
+$$
+\begin{equation}\tag{PDGD}
+\nabla_\theta \approx
+\sum_{d_k >_c d_l} \rho \left( d_k, d_l, \boldsymbol{\mathcal{\pi}} \vert \boldsymbol{\mathcal{D}}, \theta \right) \nabla_\theta P\left( d_k \succ d_l \vert \boldsymbol{\mathcal{D}}, \theta \right)
+\end{equation}
+$$
+
+In the paper, the authors also provided a rigorous proof that the PDGD gradient is unbiased. More specifically, they proved that the PDGD gradient can be expressed in the weighted sum form:
+
+$$
+\begin{equation*}
+\mathbb{E}_{\boldsymbol{\mathcal{D}}} \left[ \nabla_\theta \right] =
+\sum_{d_i, d_j \in \boldsymbol{\mathcal{D}}}
+\alpha_{ij} \left( f'_\theta (d_i) - f'_\theta(d_j)\right)
+\end{equation*}
+$$
+
+where the signs of the weights $$\alpha_{ij}$$ adhere to the user preferences $$d_i >_c d_j$$ between documents:
+- If documents are equally relevant $$d_k =_{\text{rel}} d_l$$, then $$\alpha_{kl} = \alpha_{lk} = 0$$.
+- If the user prefers $$d_k >_c d_l$$, i.e. $$d_k$$ is more relevant, then $$\alpha_{kl} > 0$$.
+- If the user prefers $$d_l >_c d_k$$, i.e. $$d_k$$ is less relevant, then $$\alpha_{kl} < 0$$.
+
+The full **Pairwise Differentiable Gradient Descent** algorithm looks like this:
+
+<div class="algorithm">
+  <div class="algo-name">Dueling Bandit Gradient Descent</div>
+  <div class="algo-input">
+    Ranker $f_{\theta_0}$ with parameters (weights) $\theta_0 \in \mathbb{R}^d$, learning rate $\eta$.
+  </div>
+  <div class="algo-output">
+    Updated ranking model $f_{\theta_T}$.
+  </div>
+  <div class="algo-body">
+    <!-- For block -->
+    <div><b>for</b> query $q_t \, (t = 1\ldots T)$ <b>do</b></div>
+    <div class="algo-indent-block">
+      <div>Retrieve list of documents $\boldsymbol{\mathcal{D}}$ for query $q_t$</div>
+      <div>Sample ranked list $\boldsymbol{\mathcal{\pi}}$ from documents $\boldsymbol{\mathcal{D}}$ using $f_{\theta_{t-1}}$</div>
+      <div>Receive clicks $\boldsymbol{c}^{\boldsymbol{q}}$ from the user</div>
+      <div>Initialize gradient $\nabla_\theta \leftarrow 0$</div>
+      <div><b>for all</b> preference pairs $d_k >_c d_l$ in $\boldsymbol{c}^{\boldsymbol{q}}$ <b>do</b></div>
+      <div class="algo-indent-block">
+        <div>Accumulate gradient $\nabla_\theta \leftarrow \nabla_\theta + \rho \left( d_k, d_l, \boldsymbol{\mathcal{\pi}} \vert \boldsymbol{\mathcal{D}}, \theta_{t-1} \right) \nabla_\theta P\left( d_k \succ d_l \vert \boldsymbol{\mathcal{D}}, \theta_{t-1} \right)$</div>
+      </div>
+      <div><b>end for</b></div>
+      <div>Update weights $\theta_t \leftarrow \theta_{t-1} + \eta \nabla_\theta$</div>
+    </div>
+    <div><b>end for</b></div>
+  </div> <!-- algo-body -->
+  <div class="algo-end"></div>
+</div>
 
 
 
@@ -1372,6 +1496,7 @@ interpreting clickthrough data as implicit feedback."][joachims_2005] In SIGIR, 
 
 24. Harrie Oosterhuis, Maarten de Rijke. ["Optimizing Ranking Models in an Online Setting."][oosterhuis_2019] In *European Conference on Information Retrieval* (ECIR), 2019.
 
+25. Harrie Oosterhuis, Maarten de Rijke. ["Differentiable Unbiased Online Learning to Rank."][oosterhuis_2019] In *CIKM '18: Proceedings of the 27th ACM International Conference on Information and Knowledge Management* (SIGIR), 2019.
 
 
 [burges-ranknet]: https://www.microsoft.com/en-us/research/publication/learning-to-rank-using-gradient-descent/
