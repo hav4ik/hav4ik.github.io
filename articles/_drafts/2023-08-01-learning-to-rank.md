@@ -8,7 +8,7 @@ image:
   display: false
 commits: "#"
 tags: [information retrieval, tutorial, deep dive]
-excerpt: "Learning to Rank is a core component of any recommendation system. It is the algorithm that forms the final list of items to be shown to the user. This blog post is a comprehensive introduction to the landscape of LTR algorithms. Hopefully, it will give you enough context to start reading recent LTR research papers."
+excerpt: "Learning to Rank is a core component of any recommendation system. It is the algorithm that forms the final list of items to be shown to the user. This blog post is an introduction to the landscape of LTR algorithms. Hopefully, it will give you enough context to start reading recent LTR research papers."
 show_excerpt: true
 comments: true
 hidden: false
@@ -22,7 +22,7 @@ allow us to access thousands of years of humanity's accumulated knowledge are tr
 
 Back then, even in my wildest dreams, I couldn't have imagined that 25 years old me will have the privilege to move across the globe to work on a search engine called [Bing][bing] &mdash; an ambitious project with enough guts to compete with Google in the search market! Now that I can see how it works from the inside, the "magic" behind that little search box became even more  impressive to me. The search engine is a truly gigantic marvel of modern technology, built and maintained by hundreds of engineers.
 
-In this blog post, I'll walk you through the basic body of literature of [Learning to Rank (LTR)][ltr] algorithms, starting from the core metrics and supervised methods to the more recent paradigm of learning from user behavior. The list of papers that I'm going to cover is by no means exhaustive, but I hope it will give you a good starting point to dive deeper into the field.
+In this blog post, I'll walk you through the basic body of literature of [Learning to Rank (LTR)][ltr] algorithms, starting from the core metrics and supervised methods to the more recent paradigm of learning from user behavior. The list of papers that I'm going to cover is based on my learning notes and by no means exhaustive, but I hope it will give you a good starting point to dive deeper into the field.
 
 I'm by no means an expert in this field (literally all my team mates are more knowledgeable than me), so this post likely contains inaccuracies. If you spotted any mistakes in this post or if I'm completely wrong somewhere, please let me know.
 
@@ -44,27 +44,35 @@ No [NDA][nda]s were violated. Only general knowledge is presented. You won't fin
   - [2.1. Search Relevance](#search-relevance)
   - [2.2. Flavors of LTR methods](#ltr-flavors)
   - [2.3. Relevance Ranking Metrics](#ltr-metrics)
-- [3. Supervised Learning to Rank methods](#supervised-ltr)
-  - [3.1. RankNet](#ranknet)
-  - [3.2. LambdaRank and LambdaMART](#lambdarank-and-lambdamart)
-    - [3.2.1. Train $\lambda$MART using LightGBM](#train-lambdamart-using-lgbm)
-    - [3.2.2. Theoretical justification of $\lambda$Rank](#theoretical-justification-of-lambrank)
-  - [3.3. LambdaLoss Framework](#lambdaloss)
-- [4. Introduction to Unbiased Learning to Rank](#unbiased-ltr)
+- [3. Supervised Learning to Rank](#supervised-ltr)
+  - [3.1. RankNet objective](#ranknet)
+  - [3.2. ListNet objective](#listnet)
+  - [3.3. LambdaRank and LambdaMART](#lambdarank-and-lambdamart)
+    - [3.3.1. Train $\lambda$MART using LightGBM](#train-lambdamart-using-lgbm)
+    - [3.3.2. Theoretical justification of $\lambda$Rank](#theoretical-justification-of-lambrank)
+  - [3.4. LambdaLoss Framework](#lambdaloss)
+- [4. Unbiased Learning to Rank](#unbiased-ltr)
   - [4.1. Click signal biases](#click-biases)
   - [4.2. Counterfactual Learning to Rank](#counterfactual-ltr)
-    - [4.2.1. Full information Learning to Rank](#fullinfo-ltr)
-    - [4.2.2. Partial information Learning to Rank](#partialinfo-ltr)
-    - [4.2.3. What's wrong with naive estimator?](#naiveestimator)
-    - [4.2.4. Inverse Propensity Weighting (IPW)](#inverse-propensity-weighting)
-    - [4.2.5. Estimating Position Bias by Randomization](#bias-estimation-randomization)
-    - [4.2.6. Dual Learning Algorithm (DLA)](#dual-learning-algorithm)
+    - [4.2.1. Full vs Partial information Learning to Rank](#full-partial-info-ltr)
+    - [4.2.2. What's wrong with naive estimator?](#naiveestimator)
+    - [4.2.3. Inverse Propensity Weighting (IPW)](#inverse-propensity-weighting)
+    - [4.2.4. Estimating Position Bias by Randomization](#bias-estimation-randomization)
+    - [4.2.5. Dual Learning Algorithm (DLA)](#dual-learning-algorithm)
   - [4.3. Online Learning to Rank](#online-ltr)
     - [4.3.1. Comparing rankers by Interleaving](#interleaving)
     - [4.3.2. Dueling Bandits Gradient Descent (DBGD)](#dbgd)
     - [4.3.3. Pairwise Differentiable Gradient Descent (PDGD)](#pdgd)
-  - [4.4. Practical Considerations](#)
-- [5. Advanced Click Models](#)
+  - [4.4. Comparing different ULTR methods](#)
+  - [4.5. Advanced Click Models](#)
+    - [4.5.1. Cascading Position Bias](#)
+    - [4.5.2. Trust bias](#)
+    - [4.5.3. Item selection bias](#)
+    - [4.5.4. Surrounding items bias](#)
+- [5. Practical considerations](#)
+  - [5.1. Design your NDCG labels carefully](#)
+  - [5.2. Know when can you use Interleaving](#)
+  - [5.3. Neural Nets or GBDT?](#)
 - [References](#references)
 
 
@@ -258,7 +266,7 @@ where $R_{i}$ models the probability that the user finds the document at $i$-th 
 
 
 <a name="supervised-ltr"></a>
-## 3. Supervised Learning to Rank methods
+## 3. Supervised Learning to Rank
 
 From 2005 to 2006, a series of incredibly important papers in Learning to Rank research were published by [Christopher Burges][burges-website], a researcher at [Microsoft][microsoft-research]. With **RankNet** [(Burges et al. 2005)][burges-ranknet], the LTR problem is re-defined as an optimization problem that can be solved using gradient descent. In **LambdaRank** and **LambdaMART** [(Burges et al. 2006)][burges-lambdarank], a method for directly optimizing NDCG was proposed. At the time of writing this blog post, LamdaMART is still being used as a strong baseline model, and can even out-perform newer methods on various benchmarks. If you want to know more about the story behind these methods, I highly recomment [this blog post by Microsoft][ranknet-retrospect].
 
@@ -295,7 +303,7 @@ In this section, I will closely follow the survey by [Burges (2010)][burges-rank
 
 
 <a name="ranknet"></a>
-### 3.1. RankNet
+### 3.1. RankNet objective
 
 [Burges et al. (2005)][burges-ranknet] proposed an optimization objective for the Learning-to-Rank problem so that a model can be trained using gradient descent. Let's model the learned probability $P_{ij}$ that $i$-th document should rank higher than $j$-th document as a sigmoid function:
 
@@ -318,8 +326,48 @@ Obviously, this cost function is symmetric: swapping $i$ and $j$ and flipping th
 RankNet opened a new direction in LTR research, and is the precursor to LambdaRank and LambdaMART. In 2015, the RankNet paper won the ICML Test of Time Best Paper Award, which honors “a paper from ICML ten years ago that has had substantial impact on the field of machine learning, including both research and practice.”
 
 
+<a name="listnet"></a>
+### 3.2. ListNet objective
+
+The **ListNet** algorithm [(Cao et al. 2007)][listnet] is another important paper in the LTR literature. It is often referred to as the listwise approach to Learning To Rank, as the loss function is defined over the entire list of documents.
+
+Given query $$\boldsymbol{q} \in \boldsymbol{\mathcal{Q}}$$ and a list of documents $$\boldsymbol{\mathcal{D}}^\boldsymbol{q} = \{d_1^\boldsymbol{q}, d_2^\boldsymbol{q}, \ldots, d_n^\boldsymbol{q}\}$$ retrieved for that query, together with their labeled relevance scores $$\boldsymbol{y} = \{y_1^\boldsymbol{q}, y_2^\boldsymbol{q}, \ldots, y_n^\boldsymbol{q}\}$$ (the score can be binary, or it can have relevance gradation). Let's say that the model $$f_{\theta}(\cdot)$$ outputs a score for each document, and let's denote the score for the $$i$$-th document as $$\boldsymbol{s}^{\boldsymbol{q}} = \{ f_{\theta}(d_i) \}_{i = 1\ldots n}$$. In the Plackett-Luce model, the probability of a document $$d_i$$ being ranked at the top of the list is defined as:
+
+$$
+\begin{equation*}
+P_{\theta}\left( d_i^\boldsymbol{q} \vert \boldsymbol{\mathcal{D}}^\boldsymbol{q} \right) =
+\frac{\exp[f_\theta(d_i^\boldsymbol{q})]}{\sum_{j=1}^n \exp[f_\theta(d_j^\boldsymbol{q})]}
+\end{equation*}
+$$
+
+In this setting, the probability of sampling a specific ranked list of documents $$\boldsymbol{\mathcal{\pi}}^\boldsymbol{q} = \{d_{\pi_1}^\boldsymbol{q}, d_{\pi_2}^\boldsymbol{q}, \ldots, d_{\pi_n}^\boldsymbol{q}\}$$ (with replacement) is defined as the product of the probabilities of each document being ranked at the top of the remaining list:
+
+$$
+\begin{equation*}
+P_{\theta}\left( \boldsymbol{\mathcal{\pi}}^\boldsymbol{q} \vert \boldsymbol{\mathcal{D}}^\boldsymbol{q} \right) =
+\prod_{i=1}^n P_{\theta}\left( d_{\pi_i}^\boldsymbol{q} \vert \boldsymbol{\mathcal{D}}^\boldsymbol{q} \setminus \{d_{\pi_1}^\boldsymbol{q}, \ldots, d_{\pi_{i-1}}^\boldsymbol{q}\} \right)
+\end{equation*}
+$$
+
+We then can use the all familiar Cross Entropy loss to define the ListNet's cost function:
+
+$$
+\begin{align*}
+\mathcal{L}_{\text{ListNet}}(\boldsymbol{s}^\boldsymbol{q}, \boldsymbol{y}^\boldsymbol{q})
+&=
+- \sum_{i=1}^n P_{\boldsymbol{y}^\boldsymbol{q}}(d_i^\boldsymbol{q} \vert \boldsymbol{\mathcal{D}}^\boldsymbol{q}) \log P_{\theta}(d_i^\boldsymbol{q} \vert \boldsymbol{\mathcal{D}}^\boldsymbol{q})
+\\ &=
+- \sum_{i=1}^n
+  \frac{\exp[y_i^\boldsymbol{q}]}{\sum_{j=1}^n \exp[y_j^\boldsymbol{q}]}
+  \log \left[
+    \frac{\exp[f_\theta(d_i^\boldsymbol{q})]}{\sum_{j=1}^n \exp[f_\theta(d_j^\boldsymbol{q})]}
+  \right]\,.
+\end{align*}
+$$
+
+
 <a name="lambdarank-and-lambdamart"></a>
-### 3.2. LambdaRank and LambdaMART
+### 3.3. LambdaRank and LambdaMART
 
 The objective of [RankNet](#ranknet) is optimizing for (a smooth, convex approximation to) the number
 of pairwise errors, which is fine if that is the desired cost. However, it does not produce desired gradients for minimizing position-sensitive objectives like [NDCG](#metrics-ndcg) or [ERR](#metrics-ERR), as we will illustrate in figure below.
@@ -417,7 +465,7 @@ which takes $O(n^2)$ time to compute for all pair of documents. From first glanc
 
 
 <a name="train-lambdamart-using-lgbm"></a>
-#### 3.2.1. Train $\lambda$MART using LightGBM
+#### 3.3.1. Train $\lambda$MART using LightGBM
 
 <a href="#"><img src="https://img.shields.io/badge/open_in_colab-F9AB00?style=for-the-badge&logo=googlecolab&logoColor=white" alt="Open in Colab"></a>
 <a href="#"><img src="https://img.shields.io/badge/github-000000?style=for-the-badge&logo=github&logoColor=white" alt="Github"></a>
@@ -532,7 +580,7 @@ If we instead sort the features by their gains (i.e. `feature_importance='gain'`
 
 
 <a name="theoretical-justification-of-lambrank"></a>
-#### 3.2.2. Theoretical justification of $\lambda$Rank
+#### 3.3.2. Theoretical justification of $\lambda$Rank
 
 Despite experimental success and promising results of $\lambda$Rank and $\lambda$MART in optimizing the ranking metrics like NDCG and ERR, there are few questions that has bothered researcher for a long time:
 
@@ -566,7 +614,7 @@ Finally, [Wang et al. (2019)][lambdaloss] developed a probabilistic framework, w
 
 
 <a name="lambdaloss"></a>
-### 3.3. LambdaLoss Framework
+### 3.4. LambdaLoss Framework
 
 [Wang et al. (2019)][lambdaloss] proposed a general probabilistic framework called **LambdaLoss**, in which Information Retrieval metrics (like NDCG and ARR) can be optimized directly using gradient descend.
 
@@ -643,7 +691,7 @@ $$
 
 
 <a name="unbiased-ltr"></a>
-## 4. Introduction to Unbiased Learning to Rank
+## 4. Unbiased Learning to Rank
 
 In the previous section, we have learned how to train a ranker on labeled data, where each document-query pair is annotated with a score (from 1 to 5) that shows how relevant that document is to the given query. This process is very expensive: to ensure the objectivity of labeled score, the human labeler would have to go through a strict checklist with multiple questions, then the document's relevance score will be calculated from the given answers. [Google's guidelines for search quality rating][google_sqe_guidelines] is a clear example of how complicated that process is (167 pages of guideline).
 
@@ -739,10 +787,10 @@ Counterfactual Learning to Rank is a family of LTR methods that learns from hist
 In Unbiased Learning-to-Rank literature, the ranking function $f_\text{deploy}$ is often referred to as **"policy"** (or **"behavior policy"**), and the new ranking function $f_\theta$ (parametrized by $$\theta$$) is referred to as **"evaluation policy"**. The goal of counterfactual evaluation is to estimate the performance of the new ranking function $f_\theta$ without deploying it in production, which is often expensive and risky. The evaluation policy $f_\theta$ is trained on a dataset of historical interactions between users and the deployed ranking function $f_\text{deploy}$, and the performance of the evaluation policy $f_\theta$ is estimated by comparing the ranking of the evaluation policy $f_\theta$ to the ranking of the deployed ranking function $f_\text{deploy}$.
 
 
-<a name="fullinfo-ltr">
-#### 4.2.1. Full Information LTR
+<a name="full-partial-info-ltr">
+#### 4.2.1. Full vs Partial Information LTR
 
-Before talking about approaches for Learning-to-Rank from biased implicit feedback (e.g. user clicks), let's review what we know so far about LTR from a curated & notoriously annotated dataset, where true relevance labels are known for each query-document pairs (i.e. we have full information about the data we're evaluating the model $$f_\theta$$ on). Given a sample $$\boldsymbol{\mathcal{Q}}$$ of queries $$\boldsymbol{\mathcal{q}} \sim P(\boldsymbol{\mathcal{q}})$$ for which we assume the user-specific binary relevances $$\boldsymbol{\mathcal{y}}^{\boldsymbol{\mathcal{q}}} = \{y^{\boldsymbol{\mathcal{q}}}_d\}_{d \in \boldsymbol{\mathcal{D}}}$$ of all documents $$d \in \boldsymbol{\mathcal{D}}$$ are known (assuming $\boldsymbol{\mathcal{q}}$ already captures user context), we can define overall empirical risk of a ranking system $$f_\theta$$ as follows:
+**Full Information Learning to Rank.** Before talking about approaches for Learning-to-Rank from biased implicit feedback (e.g. user clicks), let's review what we know so far about LTR from a curated & notoriously annotated dataset, where true relevance labels are known for each query-document pairs (i.e. we have **full information** about the data we're evaluating the model $$f_\theta$$ on). Given a sample $$\boldsymbol{\mathcal{Q}}$$ of queries $$\boldsymbol{\mathcal{q}} \sim P(\boldsymbol{\mathcal{q}})$$ for which we assume the user-specific binary relevances $$\boldsymbol{\mathcal{y}}^{\boldsymbol{\mathcal{q}}} = \{y^{\boldsymbol{\mathcal{q}}}_d\}_{d \in \boldsymbol{\mathcal{D}}}$$ of all documents $$d \in \boldsymbol{\mathcal{D}}$$ are known (assuming $\boldsymbol{\mathcal{q}}$ already captures user context), we can define overall empirical risk of a ranking system $$f_\theta$$ as follows:
 
 $$
 \begin{equation*}
@@ -790,10 +838,7 @@ Having so many variables and functions to keep in mind can be confusing and make
 > Since we treat each query similarly (up to a weighting factor), from now on we can omit the query $\boldsymbol{\mathcal{q}}$ altogether in our notations when we're working with a single query.
 
 
-<a name="partialinfo-ltr">
-#### 4.2.2. Partial Information LTR
-
-Since we don't know the true relevance $\boldsymbol{\mathcal{y}}_d$ of each document and rely on user clicks, we need to understand how the click biases plays out in practice. Let's take a look at toy example of a typical user session (also called "impression" in search and recommendation sysmtes) illustrated below:
+**Partial Information Learning to Rank.** In this setup, we don't know the true relevance $\boldsymbol{\mathcal{y}}_d$ of each document and have to rely on user clicks, so we need to understand how the click biases plays out in practice. Let's take a look at toy example of a typical user session (also called "impression" in search and recommendation sysmtes) illustrated below:
 
 <a name="fig-fullinfo-vs-clickinfo"></a>
 {% capture imblock_fullinfo_vs_clickinfo %}
@@ -813,7 +858,7 @@ The above observation is very primitive and does not include other kinds of deep
 
 
 <a name="naiveestimator">
-#### 4.2.3. What's wrong with Naive Estimator?
+#### 4.2.2. What's wrong with Naive Estimator?
 
 Let $$\boldsymbol{o} = \{ o_d \}_{d \in \boldsymbol{\mathcal{D}}}$$ denote the indicator of which relevance values are being revealed (think of it as "the user saw the document and decided that it is relevant enough"). For each document $$d$$, denote $$P(o_d = 1 \vert \boldsymbol{\mathcal{\pi}})$$ as the marginal probability of observing the relevance $$y_d$$ of result $$d$$ for the given user query $$\boldsymbol{\mathcal{q}}$$, if the user was presented a ranking $$\boldsymbol{\mathcal{\pi}}$$. This probability value is called *propensity* of the observation. Later, we will discuss how this propensity can be estimated from different click models.
 
@@ -887,7 +932,7 @@ The biased estimator $$\Delta_{\text{naive}}$$ weights documents according to th
 
 
 <a name="inverse-propensity-weighting">
-#### 4.2.4. Inverse Propensity Weighting
+#### 4.2.3. Inverse Propensity Weighting
 
 The naive estimator above can be easily de-biased by dividing each term by its bias factor. That's the basic idea of **Inverse Propensity Weighting** Estimator, first applied to the Learning to Rank problem in the works of [Joachims et al. (2016)][joachims_2016] and [Wang et al. (2016)][wang_2016]. For any new ranking $$\boldsymbol{\pi}_{\phi}$$ (different from the ranking $$\boldsymbol{\mathcal{\pi}}_{\theta}$$ presented to the user), the IPS estimator is defined as:
 
@@ -983,7 +1028,7 @@ Note that this estimator sums only over the results where the relevance feedback
 
 
 <a name="bias-estimation-randomization">
-#### 4.2.5. Estimating Position Bias by Randomization
+#### 4.2.4. Estimating Position Bias by Randomization
 
 Now that we have a way to estimate unbiased relevances through Inverse Propensity Weighting, the next step is to address the challenge of accurately estimating propensities $$P\left(o_d = 1 \vert \boldsymbol{\mathcal{\pi}}\right)$$. Here, we will consider only the position bias, which is the most common bias in search and recommendation systems. According to the Position-based Model, or **PBM** ([Craswell & Taylor, 2008][experimental_comparison_of_click_models]):
 
@@ -1054,7 +1099,7 @@ TODO: write more detailed explanation of Intervention Harvesting, as this is a v
 
 
 <a name="dual-learning-algorithm">
-#### 4.2.6. Dual Learning Algorithm (DLA)
+#### 4.2.5. Dual Learning Algorithm (DLA)
 
 The most crucial part of Inverse Propensity Weighting (IPW) is to accurately model the click propensities. Most of such click bias estimation methods (that were described in [Section 4.1](#click-biases)) either conduct randomization of the search results ordering in online setting (which negatively affects user experience) or offline estimation which often has special assumptions and requirements for click data and is optimized for objectives that are not directly related to the main ranking metric.
 
@@ -1311,7 +1356,7 @@ The authors also proved that, if we additionally assume that there is a unique o
 <a href="#pdgd"></a>
 #### 4.3.3. Pairwise Differentiable Gradient Descent (PDGD)
 
-Unlike the DBDG family of algorithms, the **Pairwise Differentiable Gradient Descent** (PDGD) algorithm proposed by [Oosterhuis et al. (2019)][oosterhuis_2019] does not require the Lipschitz continuity assumption, nor relying on any online evaluation methods. Let's look at the ranking function $$f_\theta(\cdot)$$ as a probability distribution over documents $$d \in \boldsymbol{\mathcal{D}}$$ by applying a Plackett-Luce (PL) model (essentially a softmax function) over the scores:
+Unlike the DBDG family of algorithms, the **Pairwise Differentiable Gradient Descent** (PDGD) algorithm proposed by [Oosterhuis et al. (2019)][oosterhuis_2019] does not require the Lipschitz continuity assumption, nor relying on any online evaluation methods. Similar to ListNet, let's look at the ranking function $$f_\theta(\cdot)$$ as a probability distribution over documents $$d \in \boldsymbol{\mathcal{D}}$$ by applying a Plackett-Luce (PL) model (essentially a softmax function) over the scores:
 
 $$
 \begin{equation*}
@@ -1444,10 +1489,62 @@ The full **Pairwise Differentiable Gradient Descent** algorithm looks like this:
 ---------------------------------------------------------------------------------
 
 
+
+<a name="practical-considerations"></a>
+## 6. Practical Considerations
+
+In this section, I’ll share some of the lessons I’ve learned from hands-on experience. These are practical tips that usually are not mentioned in the published literature, things that make data science as much an art as it is a science. I hope these insights will help you navigate the complexities while building your own Learning to Rank projects in a real-world setting.
+
+
+<a name="design-ndcg-labels"></a>
+### 6.1. Design your NDCG labels carefully.
+
+The first version of your ranking model, if you ever need one, will likely be trained in a supervised manner. It is just so much simpler than all the fancy Unbiased LTR stuff. Depending on your business case and user interface (UX), it is likely that you will find NDCG to be a good metric to optimize. Users care most about top results. Even if you are building a RAG pipeline, your LLM will likely appreciate having more relevant results in top-K positions as well. In this case, if NDCG is your choice of quality metric, you will likely use LambdaMART or LambdaRank as your learning algorithm, as they are widely implemented in libraries like LightGBM and XGBoost.
+
+When it comes to designing labels for NDCG measurement, the obvious choise is to just ask labelers to directly provide the relevance scores (e.g. from 0 to 5) for query-document pairs. However, this is **the worst** way to do it. The reason is that the relevance scores are subjective and can vary greatly between labelers. Here are some better ways to do it:
+
+- **Use checklist with points.** Instead of asking for relevance scores, ask labelers to check a list of points that make a document relevant. This way, you can ensure that the labels are consistent across labelers. Google has a huge check list for search quality evaluation, just check out their guidelines: [Search Quality Evaluator Guidelines][google_sqe_guidelines]. The final list of question depends on your business case. A few examples of points that can be included in the checklist (+1 point if the document satisfies the point, 0 otherwise):
+  - Is the document relevant to the query?
+  - Does the document provide a direct answer to the query?
+  - Is the document from a reputable source?
+  - Is the document up-to-date?
+  - Does the document match the user's intent, based on user's search history (if available)?
+  - ... and so on.
+
+- **Use pairwise comparison.** Instead of asking for relevance scores, ask labelers to compare two documents and choose the one that is more relevant to the query. This way, you can ensure that the labels are more consistent across labelers. The final relevance score can be calculated as the fraction of times a document is chosen over another document. This is the approach used in many of the LETOR datasets. This approach does **not** guarantee the lack of biases, but it is cheaper and faster than the checklist approach. You can actually combine the scores from both checklist and pairwise comparison approaches.
+
+You will need a few iterations to get the labels and metrics design right. [Bing][bing], for example, has iterated on their labels design for years.
+
+
+
+<a name="when-to-interleave"></a>
+### 6.2. Know when can you use Interleaving.
+
+Interleaving is a powerful technique to compare two rankers, but it is not always applicable. It is very important to understand **when** you can use interleaving and you can't. I've seen data scientists more experienced than me accidentally using interleaving instead of A/B testing in cases where it is not applicable, and then they spent weeks trying to figure out why they did not get the expected improvements.
+
+Generally, interleaving works well when the quantity you're evaluating directly depends on per-document interactions, thus can be attributed to the specific ranker. More on attribution can be found in this paper by [Radlinski and Craswell (2013)][optimized_interleaving]. A good rule of thumb is, if the quality metric you're trying to infer is an accumulated sum of per-document scores (like NDCG, or relevance in general), then interleaving is likely applicable. If the quality metric is a more global, per-session metric (like session time, ads revenue, or conversion rate), then interleaving is likely not applicable. A few examples to build up your intuition:
+
+- Products sales in an e-commerce platform: interleaving is likely **applicable**, as the sales ultimately depend on the relevance of the products shown to the user, i.e. can be attributed to specific items, hence to the specific ranker's results.
+- Ads revenue of a SERP (Search Engine Results Page), it the ads is displayed on the side: interleaving is likely **not applicable**, as the revenue depends on the ads shown to the user, not the relevance of the ranker's results. We can't attribute the revenue to the results of a specific ranker, but rather to the combined ranking of all rankers (i.e. to overall user experience).
+- User retention in a news recommendation system: interleaving is likely **not applicable**, as the retention depends on the user's overall experience, not the relevance of the ranker's results.
+- Dwell time per session in a news recommendation system: interleaving is likely **applicable**, as the dwell time can be attributed to the relevance of the documents shown to the user.
+
+When in doubt of whether interleaving is applicable to the thing you want to evaluate, it is always a good idea to run a small-scale experiment to see if the interleaving results align with A/B testing results. If they don't, then interleaving is likely not applicable to your case. AirBnB has a great write-up on how they used interleaving to compare search ranking algorithms and made sure that it is well-aligned with A/B testing: ["Beyond A/B Test: Speeding up Airbnb Search Ranking Experimentation through Interleaving." (2022)][airbnb_interleaving].
+
+
+<a name="modelling"></a>
+### 6.3. Modelling
+
+The first version of your ranking model will likely be supervised one. There's just too much complexity in the unbiased learning to rank algorithms to start with them. Moreover, if you don't have a huge user base and a good spam filter, you will likely have a lot of noise in your click data.
+
+---------------------------------------------------------------------------------
+
+
+
 <a name="references"></a>
 ## References
 
-1. Huang et al. ["Embedding-based Retrieval in Facebook Search."][fb-search-engine] In *Proceedings of the 26th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining*, 2020.
+1. Jui-Ting Huang, Ashish Sharma, Shuying Sun, Li Xia, David Zhang, Philip Pronin, Janani Padmanabhan, Giuseppe Ottaviano, Linjun Yang. ["Embedding-based Retrieval in Facebook Search."][fb-search-engine] In *Proceedings of the 26th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining*, 2020.
 
 2. C.J.C. Burges, T. Shaked, E. Renshaw, A. Lazier, M. Deeds, N. Hamilton, G. Hullender. ["Learning to Rank using Gradient Descent."][burges-ranknet] In *ICML*, 2005.
 
@@ -1498,6 +1595,12 @@ interpreting clickthrough data as implicit feedback."][joachims_2005] In SIGIR, 
 
 25. Harrie Oosterhuis, Maarten de Rijke. ["Differentiable Unbiased Online Learning to Rank."][oosterhuis_2019] In *CIKM '18: Proceedings of the 27th ACM International Conference on Information and Knowledge Management* (SIGIR), 2019.
 
+26. Filip Radlinski, Nick Craswell. ["Optimized Interleaving for Online Retrieval Evaluation."][optimized_interleaving] In 
+*Proceedings of the sixth ACM international conference on Web search and data mining* (WSDM), 2013.
+
+27. Zhe Cao, Tao Qin, Tie-Yan Liu, Ming-Feng Tsai, Hang Li. ["Learning to Rank: From Pairwise Approach to Listwise Approach."][listnet] In *Proceedings of the 24th international conference on Machine learning* (ICML), 2007.
+
+
 
 [burges-ranknet]: https://www.microsoft.com/en-us/research/publication/learning-to-rank-using-gradient-descent/
 [burges-lambdarank]: https://papers.nips.cc/paper/2006/hash/af44c4c56f385c43f2529f9b1b018f6a-Abstract.html
@@ -1524,3 +1627,5 @@ interpreting clickthrough data as implicit feedback."][joachims_2005] In SIGIR, 
 [hofmann_2013]: https://dl.acm.org/doi/abs/10.1145/2433396.2433419
 [wang_dbgd_2018]: https://arxiv.org/abs/1805.07317
 [oosterhuis_2019]: https://arxiv.org/abs/1901.10262
+[optimized_interleaving]: https://www.microsoft.com/en-us/research/wp-content/uploads/2013/02/Radlinski_Optimized_WSDM2013.pdf.pdf
+[listnet]: https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-2007-40.pdf
