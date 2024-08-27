@@ -24,7 +24,7 @@ Back then, even in my wildest dreams, I couldn't have imagined that 25 years old
 
 In this blog post, I'll walk you through the basic body of literature of [Learning to Rank (LTR)][ltr] algorithms, starting from the core metrics and supervised methods to the more recent paradigm of learning from user behavior. The list of papers that I'm going to cover is based on my learning notes and by no means exhaustive, but I hope it will give you a good starting point to dive deeper into the field.
 
-I'm by no means an expert in this field (literally all my team mates are more knowledgeable than me), so this post likely contains inaccuracies. If you spotted any mistakes in this post or if I'm completely wrong somewhere, please let me know.
+I'm far from an expert in this field (literally all my team members are more knowledgeable than me), so this post likely contains inaccuracies. If you spotted any mistakes in this post or if I'm completely wrong somewhere, please let me know.
 
 ***Disclaimer:** all information in this blog post is taken from published research papers or publically available online articles. 
 No [NDA][nda]s were violated. Only general knowledge is presented. You won't find any details specific to the inner working of [Bing]
@@ -59,20 +59,24 @@ No [NDA][nda]s were violated. Only general knowledge is presented. You won't fin
     - [4.2.3. Inverse Propensity Weighting (IPW)](#inverse-propensity-weighting)
     - [4.2.4. Estimating Position Bias by Randomization](#bias-estimation-randomization)
     - [4.2.5. Dual Learning Algorithm (DLA)](#dual-learning-algorithm)
+    - [4.2.6. Regression EM](#regression-em)
   - [4.3. Online Learning to Rank](#online-ltr)
     - [4.3.1. Comparing rankers by Interleaving](#interleaving)
     - [4.3.2. Dueling Bandits Gradient Descent (DBGD)](#dbgd)
     - [4.3.3. Pairwise Differentiable Gradient Descent (PDGD)](#pdgd)
   - [4.4. Comparing different ULTR methods](#)
-  - [4.5. Advanced Click Models](#)
-    - [4.5.1. Cascading Position Bias](#)
-    - [4.5.2. Trust bias](#)
+  - [4.5. Advanced Click Models](#advanced-click-models)
+    - [4.5.1. Cascading Position Bias](#cascading-position-bias)
+    - [4.5.2. Trust bias](#trust-bias)
     - [4.5.3. Item selection bias](#)
     - [4.5.4. Surrounding items bias](#)
+  - [4.6. Two-tower models](#)
 - [5. Practical considerations](#)
   - [5.1. Design your NDCG labels carefully](#)
   - [5.2. Know when can you use Interleaving](#)
-  - [5.3. Neural Nets or GBDT?](#)
+  - [5.3. Modelling tips for LTR](#)
+  - [5.4. Always ablate, don't trust academic benchmarks](#)
+- [6. Conclusion](#conclusion)
 - [References](#references)
 
 
@@ -1486,18 +1490,182 @@ The full **Pairwise Differentiable Gradient Descent** algorithm looks like this:
 
 
 
+<a name="advanced-click-models"></a>
+### 4.5. Advanced Click Models
+
+So far, we've only discussed the simplest bias &mdash; the position bias. A kind reminder for the fellow scholars (in the voice of [Karoly Zsolnai-Feher](https://www.youtube.com/channel/UCbfYPyITQ-7l4upoX8nvctg)) who already forgot: the position bias is the bias that the user is more likely to click on the documents that are ranked higher. This bias can be modelled using Position-based Model, or PBM ([Craswell & Taylor, 2008][experimental_comparison_of_click_models]):
+
+$$
+\underbrace{
+  P \left(c_d = 1 \vert \boldsymbol{\mathcal{\pi}} \right)
+}_{
+  \substack{
+    \text{Probability of click} \\
+    \text{on document } d
+  }
+}
+=
+\underbrace{
+  P \left(o_d = 1 \vert \boldsymbol{\mathcal{\pi}} \right)
+}_{
+  \substack{
+    \text{Probability of document } d \\
+    \text{being observed}
+  }
+}
+\cdot
+\underbrace{
+  P \left(y_d = 1 \vert \boldsymbol{\mathcal{\pi}} \right)
+}_{
+  \substack{
+    \text{Probability of document } d \\
+    \text{being relevant to query}
+  }
+}
+$$
+
+which basically says "user clicks on a document if the user observes it and perceives it as relevant". The core assumption of the PBM is that the act of observing an item is independent of its relevance or other items in the ranking.
+
+This assumption does not always hold true. Moreover, there are many other biases that can affect the user's click behavior. Again, $$c_d$$ denotes the click on document $$d$$, $$o_d$$ denotes the observation of document $$d$$, $$y_d$$ denotes the relevance of document $$d$$, and $$\boldsymbol{\mathcal{\pi}}$$ denotes the displayed ranking of documents. Correcting these biases can be more tricky than just re-weighting the clicks. [Chulkin et al. (2015)][clickmodelsforwebsearch] and [Grotov et al. (2015)][clickmodelsforwebsearch2] have quite a comprehensive overview of the most common biases and how to model them.
+
+
+<a name="cascading-position-bias"></a>
+#### 4.5.1. Cascading Position Bias
+
+Unlike PBM, the Cascading Model, first analyzed in the works of [Craswell & Taylor (2008)][experimental_comparison_of_click_models], does not assume that the act of observing an item is independent from other items. Instead, it assumes that the user will scan documents on the SERP page from top to bottom **until they find a relevant document.** Hence, observation (or examination) depends not only on the position of the document but also on the relevance of previously seen items.
+
+Given the displayed ranking $$\boldsymbol{\mathcal{\pi}} = \{ \boldsymbol{\mathcal{\pi}}_1, \ldots, \boldsymbol{\mathcal{\pi}}_k \}$$ for the user query $$\boldsymbol{\mathcal{q}}$$, the probability of the user clicking on a document $$d$$ at position $$\mathrm{rank}(d \vert \boldsymbol{\mathcal{\pi}})$$ can be expressed as:
+
+$$
+\begin{equation*}
+\underbrace{
+  P \left(c_d = 1 \vert \boldsymbol{\mathcal{\pi}} \right)
+}_{
+  \substack{
+    \text{Probability of click} \\
+    \text{on document } d
+  }
+}
+=
+{\underbrace{
+  P \left(y_d = 1 \vert \boldsymbol{\mathcal{\pi}} \right)
+}_{
+  \substack{
+    \text{Probability of document } d \\
+    \text{being relevant to query}
+  }
+}}
+\cdot
+{\underbrace{
+  \prod_{i=1}^{\mathrm{rank}(d\vert \boldsymbol{\mathcal{\pi}})-1}
+  \left( 1 - P \left(y_{\boldsymbol{\mathcal{\pi}}_i} = 1 \vert \boldsymbol{\mathcal{\pi}} \right) \right)
+}_{
+  \substack{
+    \text{Probability of documents displayed} \\
+    \text{before document} d \text{ being irrelevant}
+  }
+}}
+\end{equation*}
+$$
+
+Have you noticed a problem? The examination term depends on the **relevance of other items,** but relevance is unknown and yet to be learned.
+
+One way to estimate that is to treat is as a black-box propensities and use RegressionEM or DLA ([Ai et al. 2018][ai_2018]), but they still contain a major flaw &mdash; the estimated examination propensities will be session-independent. [Vardasbi et al. (2020)][vardasbi2020] proposed a more efficient method &mdash; treat the examination term as a **session-dependent** probability term! The cascade model becomes:
+
+$$
+\begin{equation*}
+P \left(c_d = 1 \vert \boldsymbol{\mathcal{\pi}} \right)
+=
+P \left(y_d = 1 \vert \boldsymbol{\mathcal{\pi}} \right)
+\cdot
+{\underbrace{
+  P \left(e_d = 1 \vert c_1, \ldots, c_{\mathrm{rank}(d\vert \boldsymbol{\mathcal{\pi}})-1} \right)
+}_{
+  \substack{
+    \text{Probability examination of document } d \\
+    \text{given clicks on previous ranks}
+  }
+}}
+\end{equation*}
+$$
+
+Instead of global propensities like in PBM, this formulation of cascade model requires different propensities per query! [Vardasbi et al. (2020)][vardasbi2020] leverages clicks in the current user session to estimate per-query propensities. In particular, two extensions of the cascade model are analyzed:
+- Dependent Click Model (DCM) &mdash; a session can have multiple clicks, i.e. if a user clicks on a document, they may still examine other documents. In this case, the examination probability of document $$r$$ is conditioned on the clicks on previous rank $$r - 1$$:
+
+  $$
+  \begin{equation*}
+  P \left(e_r = 1 \vert c_{r - 1} = 1, \boldsymbol{\mathcal{\pi}} \right) = \lambda_r
+  \end{equation*}
+  $$
+
+  where $$\lambda_r$$ is the continuation parameter, which depends only on the rank of the document. I tend to think of it as "fatigue" parameter &mdash; the lower the rank, the less likely the user is to continue examining the documents. Therefore:
+
+  $$
+  \begin{equation*}
+  P_{\text{DCM}} \left(e_d = 1 \vert \{ c_i \}_{i < \mathrm{rank}(d\vert \boldsymbol{\mathcal{\pi}})-1} \right)
+  =
+  \prod_{i=1}^{\mathrm{rank}(d\vert \boldsymbol{\mathcal{\pi}})-1}
+  \left( c_i \cdot \lambda_i \right) + \left( 1 - c_i \right)
+  \end{equation*}
+  $$
+
+- Dynamic Bayesian Network (DBN) &mdash; a more complex model where an event $$s_i = 1$$ that represents satisfaction is introduced. A satisfied user abandons the session. An unsatisfied user might also abandon the session with a constant probability $$\gamma$$. After a click, the satisfaction probability depends on the document: $$P(s_i = 1 \vert c_i = 1) = s_{\boldsymbol{\mathcal{\pi}}_i}$$. Therefore:
+
+  $$
+  \begin{equation*}
+  P_{\text{DBN}} \left(e_d = 1 \vert \{ c_i \}_{i < \mathrm{rank}(d\vert \boldsymbol{\mathcal{\pi}})-1} \right)
+  =
+  \prod_{i=1}^{\mathrm{rank}(d\vert \boldsymbol{\mathcal{\pi}})-1}
+  \gamma \cdot \left (1 - c_i \cdot s_{\boldsymbol{\mathcal{\pi}}_i} \right)
+  \end{equation*}
+  $$
+
+These examination probabilities can be easily plugged back into the IPS framework as follows (proof of unbiasedness is left as an exercise to the reader):
+
+$$
+\begin{equation*} \tag{IPS-CM}
+  \Delta_{\text{IPS-CM}} \left(
+    \boldsymbol{\mathcal{\pi}}_\phi, \boldsymbol{\mathcal{y}} \vert
+    \boldsymbol{\pi}_\theta
+  \right)
+  =
+  \sum_{d \colon o_d = 1} {
+    \frac{
+      \mu \big[
+        \boldsymbol{\pi}_\phi(d)
+      \big]
+      \cdot y_d
+    }{
+      P \left(e_d = 1 \vert \{ c_i \}_{i < \mathrm{rank}(d\vert \boldsymbol{\mathcal{\pi}}_\phi)-1} \right)
+    }
+  }
+\end{equation*}
+$$
+
+Some other extensions of the Cascading Model are described in [Chulkin et al. (2015)][clickmodelsforwebsearch], including multiple clicks per session (impression) and abandoning a session without clicking. Deriving a bias term for them should not pose any difficulties for the reader after understanding the DCM and DBN models.
+
+
+<a name="trust-bias"></a>
+#### 4.5.2. Trust Bias
+
+
+When your search engine become good enough, users will start to trust it. They are more likely to perceive the top documents on the SERP page to be relevant, even when the displayed information about the item suggests otherwise. This is called the **trust bias**.
+
+The trust bias can be modelled by distinguishing **real relevance** $$y_d$$ of a document $$d$$ (as proposed by [Agarwal et al. 2019][agarwal_trust_2019]) and **perceived relevance** $$\hat{y}_d$$. The perceived relevance is a function of the real relevance and the rank of the document:
+
+
 ---------------------------------------------------------------------------------
 
 
 
 <a name="practical-considerations"></a>
-## 6. Practical Considerations
+## 5. Practical Considerations
 
 In this section, I’ll share some of the lessons I’ve learned from hands-on experience. These are practical tips that usually are not mentioned in the published literature, things that make data science as much an art as it is a science. I hope these insights will help you navigate the complexities while building your own Learning to Rank projects in a real-world setting.
 
 
 <a name="design-ndcg-labels"></a>
-### 6.1. Design your NDCG labels carefully.
+### 5.1. Design your NDCG labels carefully.
 
 The first version of your ranking model, if you ever need one, will likely be trained in a supervised manner. It is just so much simpler than all the fancy Unbiased LTR stuff. Depending on your business case and user interface (UX), it is likely that you will find NDCG to be a good metric to optimize. Users care most about top results. Even if you are building a RAG pipeline, your LLM will likely appreciate having more relevant results in top-K positions as well. In this case, if NDCG is your choice of quality metric, you will likely use LambdaMART or LambdaRank as your learning algorithm, as they are widely implemented in libraries like LightGBM and XGBoost.
 
@@ -1518,7 +1686,7 @@ You will need a few iterations to get the labels and metrics design right. [Bing
 
 
 <a name="when-to-interleave"></a>
-### 6.2. Know when can you use Interleaving.
+### 5.2. Know when can you use Interleaving.
 
 Interleaving is a powerful technique to compare two rankers, but it is not always applicable. It is very important to understand **when** you can use interleaving and you can't. I've seen data scientists more experienced than me accidentally using interleaving instead of A/B testing in cases where it is not applicable, and then they spent weeks trying to figure out why they did not get the expected improvements.
 
@@ -1531,11 +1699,42 @@ Generally, interleaving works well when the quantity you're evaluating directly 
 
 When in doubt of whether interleaving is applicable to the thing you want to evaluate, it is always a good idea to run a small-scale experiment to see if the interleaving results align with A/B testing results. If they don't, then interleaving is likely not applicable to your case. AirBnB has a great write-up on how they used interleaving to compare search ranking algorithms and made sure that it is well-aligned with A/B testing: ["Beyond A/B Test: Speeding up Airbnb Search Ranking Experimentation through Interleaving." (2022)][airbnb_interleaving].
 
+{% capture imblock_interleaving_airbnb %}
+    {{ site.url }}/articles/images/2021-08-15-learning-to-rank/interleaving_airbnb.png
+{% endcapture %}
+{% capture imcaption_interleaving_airbnb %}
+  Interleaving and A/B consistency at AirBnB. They tracked eligible interleaving and A/B ranker pairs and the results demonstrate that the two are consistent with each other 82% of the time. *(Image source: [AirBnB Engineering](https://medium.com/airbnb-engineering/beyond-a-b-test-speeding-up-airbnb-search-ranking-experimentation-through-interleaving-7087afa09c8e))*
+{% endcapture %}
+{% include gallery images=imblock_interleaving_airbnb cols=1 caption=imcaption_interleaving_airbnb %}
 
-<a name="modelling"></a>
-### 6.3. Modelling
 
-The first version of your ranking model will likely be supervised one. There's just too much complexity in the unbiased learning to rank algorithms to start with them. Moreover, if you don't have a huge user base and a good spam filter, you will likely have a lot of noise in your click data.
+
+<a name="modelling-tips"></a>
+### 5.3. Modelling tips for LTR
+
+It is very tempting to jump to latest and shiniest methods, but the first version of your ranking model will should be a supervised one. There's just too much complexity in the unbiased learning to rank algorithms to start with them. Moreover, if you don't have a large enough user base and a good spam/bots filter, you will likely have a lot of noise in your click data.
+
+
+{% comment %}
+<a name="always-ablate"></a>
+### 5.4. Always ablate, don't trust academic benchmarks
+{% endcomment %}
+
+
+
+---------------------------------------------------------------------------------
+
+<a name="conclusion"></a>
+## 6. Conclusion
+
+If you are interested in Recommendation Systems (RecSys), I highly recommend the following incredible blogs (I personally learned a lot from them):
+
+- **[https://eugeneyan.com](https://eugeneyan.com)** &mdash; Eugene Yan has one of the most amazing data science blogs out there. He has a lot of great posts on recommendation systems, machine learning, and data science in general. Although he lately pivoted to LLMs, his old posts on RecSys are still very relevant.
+- **[https://blog.reachsumit.com](https://blog.reachsumit.com)** &mdash; Sumit is an incredibly knowledgeable machine learning engineer who worked at some of the most amazing RecSys teams in the industry (Amazon, TikTok, Meta). You need to be fluent in various ML areas to fully understand his posts though.
+
+
+
+
 
 ---------------------------------------------------------------------------------
 
@@ -1600,6 +1799,16 @@ interpreting clickthrough data as implicit feedback."][joachims_2005] In SIGIR, 
 
 27. Zhe Cao, Tao Qin, Tie-Yan Liu, Ming-Feng Tsai, Hang Li. ["Learning to Rank: From Pairwise Approach to Listwise Approach."][listnet] In *Proceedings of the 24th international conference on Machine learning* (ICML), 2007.
 
+28. Alexandr Chulkin, Ilya Markov, Maarten de Rijke. ["Click Models for Web Search."][clickmodelsforwebsearch] In *Synthesis Lectures on Information Concepts, Retrieval, and Services*, 2015.
+
+29. Grotov A., Chulkin A., Markov I., Stout L., Xumara F., Rijke M. ["A Comparative Study of Click Models for Web Search."][clickmodelsforwebsearch2] In *Proceedings of the 6th International Conference on Experimental IR Meets Multilinguality, Multimodality, and Interaction* (CLEF), 2015.
+
+30. Ali Vardasbi, Maarten de Rijke, Ilya Markov. ["Cascade Model-based Propensity Estimation for Counterfactual Learning to Rank."][vardasbi2020] In *Proceedings of the 43rd International ACM SIGIR Conference on Research and Development in Information Retrieval* (SIGIR), 2020.
+
+31. Xuanhui Wang, Nadav Golbandi, Michael Bendersky, Donald Metzler, Marc Najork. ["Position Bias Estimation for Unbiased Learning to Rank in Personal Search."][regressionem] In *Proceedings of the Eleventh ACM International Conference on Web Search and Data Mining* (WSDM), 2018.
+
+32. Aman Agarwal, Xuanhui Wang, Cheng Li, Mike Bendersky, Marc Najork. ["Addressing Trust Bias for Unbiased Learning-to-Rank."][agarwal_trust_2019] In *Proceedings of the 2019 World Wide Web Conference* (WWW'19).
+
 
 
 [burges-ranknet]: https://www.microsoft.com/en-us/research/publication/learning-to-rank-using-gradient-descent/
@@ -1629,3 +1838,8 @@ interpreting clickthrough data as implicit feedback."][joachims_2005] In SIGIR, 
 [oosterhuis_2019]: https://arxiv.org/abs/1901.10262
 [optimized_interleaving]: https://www.microsoft.com/en-us/research/wp-content/uploads/2013/02/Radlinski_Optimized_WSDM2013.pdf.pdf
 [listnet]: https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/tr-2007-40.pdf
+[clickmodelsforwebsearch]: https://clickmodels.weebly.com/uploads/5/2/2/5/52257029/mc2015-clickmodels.pdf
+[clickmodelsforwebsearch2]: https://irlab.science.uva.nl/wp-content/papercite-data/pdf/grotov-comparative-2015.pdf
+[vardasbi2020]: https://arxiv.org/abs/2005.11938
+[regressionem]: https://dl.acm.org/doi/10.1145/3159652.3159732
+[agarwal_trust_2019]: https://research.google/pubs/addressing-trust-bias-for-unbiased-learning-to-rank/
