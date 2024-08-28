@@ -1651,7 +1651,22 @@ Some other extensions of the Cascading Model are described in [Chulkin et al. (2
 
 When your search engine become good enough, users will start to trust it. They are more likely to perceive the top documents on the SERP page to be relevant, even when the displayed information about the item suggests otherwise. This is called the **trust bias**.
 
-The trust bias can be modelled by distinguishing **real relevance** $$y_d$$ of a document $$d$$ (as proposed by [Agarwal et al. 2019][agarwal_trust_2019]) and **perceived relevance** $$\hat{y}_d$$. The perceived relevance is a function of the real relevance and the rank of the document:
+The trust bias can be modelled by distinguishing **real relevance** $$y_d$$ of a document $$d$$ (as proposed by [Agarwal et al. 2019][agarwal_trust_2019]) and **perceived relevance** $$\hat{y}_d$$. Trust bias occurs because users are more likely to perceive top items as relevant $$\hat{y}_d = 1$$. In this model, a click happens when the user observes and perceives an item to be relevant, thus the click probability of document $$d$$ at position $$k = \mathrm{rank}(d \vert \boldsymbol{\mathcal{\pi}})$$ can be expressed as:
+
+$$
+\begin{equation*}
+P \left(c_d = 1 \vert \boldsymbol{\mathcal{\pi}} \right)
+=
+P \left(e_d = 1 \vert k \right)
+\cdot
+P \left(\hat{y}_d = 1 \vert e_d = 1, y_d, k \right)
+\end{equation*}
+$$
+
+Notice the symmetry with PBM and CM models. In CM, the static observation probability term of PBM is replaced with a dynamic term. In Trust Bias, the relevance term is replaced with a perceived relevance term. Since these terms are independent from each other, the Trust Bias model can be easily combined with the Cascade Model.
+
+[Vardasbi et al. (2020)][affine_correction] provided a rigorous proof that **no IPS estimator is unbiased w.r.t. trust bias.**
+
 
 
 ---------------------------------------------------------------------------------
@@ -1809,6 +1824,8 @@ interpreting clickthrough data as implicit feedback."][joachims_2005] In SIGIR, 
 
 32. Aman Agarwal, Xuanhui Wang, Cheng Li, Mike Bendersky, Marc Najork. ["Addressing Trust Bias for Unbiased Learning-to-Rank."][agarwal_trust_2019] In *Proceedings of the 2019 World Wide Web Conference* (WWW'19).
 
+33. Ali Vardasbi, Harrie Oosterhuis, and Maarten de Rijke. ["When Inverse Propensity Scoring does not Work: Affine Corrections for Unbiased Learning to Rank."][affine_correction] In *Proceedings of the 29th ACM International Conference on Information and Knowledge Management* (CIKM), 2020.
+
 
 
 [burges-ranknet]: https://www.microsoft.com/en-us/research/publication/learning-to-rank-using-gradient-descent/
@@ -1843,3 +1860,4 @@ interpreting clickthrough data as implicit feedback."][joachims_2005] In SIGIR, 
 [vardasbi2020]: https://arxiv.org/abs/2005.11938
 [regressionem]: https://dl.acm.org/doi/10.1145/3159652.3159732
 [agarwal_trust_2019]: https://research.google/pubs/addressing-trust-bias-for-unbiased-learning-to-rank/
+[affine_correction]: https://irlab.science.uva.nl/wp-content/papercite-data/pdf/vardasbi-2020-inverse.pdf

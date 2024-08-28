@@ -36,15 +36,21 @@
       <div class="content">
         {% include donations.html %}
   
-        <div class="post-title {% if page.image.display and page.image.feature %} feature {% endif %}">
+        <div class="{% if page.image.display and page.image.feature %} feature post-title-center {% else %} post-title {% endif %}">
           <h1>{{ page.title }}</h1>
-          {% if page.type == 'article' %}
-          <h4>
-            <i class="fa fa-history"></i>&ensp;
-            <a href={{ page.commits }}>{{ page.date | date_to_string }}</a>
-          </h4>
-          {% endif %}
         </div>
+
+        {% if page.type == 'article' %}
+        <div class="post-info">
+          {{ page.date | date_to_string }} |
+          {{ content | number_of_words | divided_by: 200 }} min read |
+          Tags: 
+          {% for tag in page.tags %}
+            {% capture tag_name %}{{ tag }}{% endcapture %}
+            <a class="post-tag" href="{{ site.url }}/tag/{{ tag_name }}">[ {{ tag_name }} ]</a>
+          {% endfor %}
+        </div>
+        {% endif %}
 
         {% if page.hidden %}
         <blockquote><p style="color: #fc0303;">

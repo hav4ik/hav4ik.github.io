@@ -165,6 +165,21 @@
     margin-top: 2em;
     margin-bottom: 2em;
   }
+
+  .post-title {
+    font-weight: bold;
+  }
+  
+  .post-title-center {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 3rem;
+  }
+  
+  .post-info {
+      text-align: left;
+      margin-bottom: 1rem;
+  }  
 }
 
 .comments {
@@ -199,10 +214,4 @@
         background-blend-mode: multiply;
         background-position: center center;
     }
-}
-
-.post-title {
-	text-align: center;
-	font-weight: bold;
-	margin-bottom: 3rem;
 }
