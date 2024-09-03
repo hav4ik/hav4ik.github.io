@@ -1221,6 +1221,65 @@ In this paper, [Ai et al. (2018)][ai_2018] also provided a rigorous proof that t
 
 
 
+<a name="regression-em"></a>
+### 4.2.6. Regression EM
+
+[Wang et al. (2018)][regressionem] proposed a different approach called **Regression EM** to estimate the position bias without having to randomize the search results ordering in online setting. The idea is to use the Expectation-Maximization (EM) algorithm to estimate the position bias. The key idea is to treat the position bias as a latent variable and estimate it using the EM algorithm.
+
+Why do we need this? Is it more effective? Does it converge faster than DLA? No, but turns out that this algorithm can estimate not only position bias but some other types of biases as well, which will be handy in the next section where we will discuss trust bias and other types of biases.
+
+Let's define some shorthand notations for the examination $$P(e = 1)$$ and relevance $$P(y = 1)$$ probabilities for document $$d$$ at position $$k = \mathrm{rank}(d \vert \boldsymbol{\mathcal{\pi}})$$:
+
+$$
+\begin{equation*}
+\alpha_k = P\left( e = 1 \vert k \right) \,, \quad
+\beta_{q,d} = P\left( y = 1 \vert \boldsymbol{q}, d \right)
+\end{equation*}
+$$
+
+Note that, in the PBM model, the examination probability $$\alpha_k$$ only depends on the rank $$k$$, and the relevance probability $$\beta_{\boldsymbol{q},d}$$ only depends on the query $$q$$ and the document $$d$$. We are using the terms *examination* and *observation* interchangeably here. This is because in the PBM model, these two events are the same. Given a regular click log $$\boldsymbol{\mathcal{L}} = \{ c, \boldsymbol{\mathcal{q}}, d, k \}$$, the likelihood of getting this log data is:
+
+$$
+\begin{equation*}
+\log P\left( \boldsymbol{\mathcal{L}} \right) = \sum_{c, \boldsymbol{q}, d, k} {
+  c \cdot \log \left( \alpha_k \cdot \beta_{\boldsymbol{q},d} \right)
+  + (1 - c) \cdot \log \left( 1 - \alpha_k \cdot \beta_{\boldsymbol{q},d} \right)
+}
+\end{equation*}
+$$
+
+The **Regression EM** then finds the parameters $$\alpha_k$$ and $$\beta_{\boldsymbol{q},d}$$ that maximize the likelihood of the click log data. Similar to the standard EM process, the *Regression EM* process consists of two steps: the *Expectation* (E) step and the *Maximization* (M) step. In the *Expectation* step, we estimate the probabilities of examination and relevance for each document at each rank using the latent variables $$\alpha_k$$ and $$\beta_{\boldsymbol{q},d}$$. In the *Maximization* step, we update these latent variables using a regression model.
+
+Although the PBM model is not widely used in practice anymore (other than as a baseline to compare against), for educational purposes let's take a closer look at the Regression-EM process designed for PBM model, as originally proposed by [Wang et al. (2018)][regressionem]. During the *Expectation* (E) step of iteration $$t + 1$$, we estimate the distribution of hidden events $$y$$ (relevance) and $$e$$ (examination) given the current model parameters $$\alpha_k^{(t)}$$ and $$\beta_{q,d}^{(t)}$$ and the observed data log $$\boldsymbol{\mathcal{L}}$$ as follows:
+
+$$
+\begin{align*}
+P(e = 1, y = 1 \mid c = 1, \boldsymbol{q}, d, k) &= 1 \\
+P(e = 1, y = 0 \mid c = 0, \boldsymbol{q}, d, k) &= \frac{\alpha_{k}^{(t)} \left( 1 - \beta_{\boldsymbol{q},d}^{(t)} \right)}{1 - \alpha_{k}^{(t)} \beta_{\boldsymbol{q},d}^{(t)}} \\
+P(e = 0, y = 1 \mid c = 0, \boldsymbol{q}, d, k) &= \frac{\left( 1 - \alpha_{k}^{(t)} \right) \beta_{\boldsymbol{q},d}^{(t)}}{1 - \alpha_{k}^{(t)} \beta_{\boldsymbol{q},d}^{(t)}} \\
+P(e = 0, y = 0 \mid c = 0, \boldsymbol{q}, d, k) &= \frac{\left( 1 - \alpha_{k}^{(t)} \right) \left( 1 - \beta_{\boldsymbol{q},d}^{(t)} \right)}{1 - \alpha_{k}^{(t)} \beta_{\boldsymbol{q},d}^{(t)}}
+\end{align*}
+$$
+
+With these relations, we can calculate marginals $$P(e = 1 \mid c, \boldsymbol{q}, d, k)$$ and $$P(y = 1 \mid c, \boldsymbol{q}, d, k)$$ from the log data $$\boldsymbol{\mathcal{L}}$$ and the current model parameters $$\alpha_k^{(t)}$$ and $$\beta_{\boldsymbol{q},d}^{(t)}$$. This can be seen as complete data where hidden variables are estimated. Then, in the *Maximization* (M) step, we update the model parameters using the estimated marginals:
+
+$$
+\begin{equation*}
+\alpha_{k}^{(t+1)} = \frac{\sum_{c,\boldsymbol{q},d,k'} \mathbb{I}_{k' = k} \cdot \left( c + (1 - c) P(e = 1 \mid c, \boldsymbol{q}, d, k) \right)}{\sum_{c,\boldsymbol{q},d,k'} \mathbb{I}_{k' = k}}
+\end{equation*}
+$$
+
+Although it is possible to express $$\beta_{\boldsymbol{q},d}^{(t+1)}$$ in a similar way, it is more complex because it depends on the query $$\boldsymbol{q}$$ and the document $$d$$. We simply might not have enough samples to estimate it accurately. Therefore, [Wang et al. (2018)][regressionem] proposed to learn it from features &mdash; this way, we can generalize the model to unseen queries and documents, as well as discover the underlying patterns in the data. By sampling $$\hat{y} \sim P(y = 1 \mid c, \boldsymbol{q}, d, k)$$ and having the features $$\boldsymbol{x}_{\boldsymbol{q},d}$$ for the query-document pair, we can treat it as a classification problem and optimize the log likelihood of the observed data:
+
+$$
+\begin{equation*}
+\sum_{\boldsymbol{x}, \hat{y}} \hat{y} \log \left( f_\theta \left( \boldsymbol{x} \right) \right) + \left( 1 - \hat{y} \right) \log \left( 1 - f_\theta \left( \boldsymbol{x} \right) \right)
+\end{equation*}
+$$
+
+After learning the model $$f_\theta$$, we can use it to estimate the relevance probability $$\beta_{\boldsymbol{q},d}^{(t+1)} = f_\theta \left( \boldsymbol{x}_{\boldsymbol{q},d} \right)$$ for any query-document pair. The (E) and (M) steps are repeated until convergence.
+
+
 
 <a name="online-ltr"></a>
 ### 4.3. Online Learning to Rank
