@@ -1,0 +1,19 @@
+-   title: Meet Iva &mdash; My Mini Deep Learning Rig
+    date: 2023-01-22T00:00:00+00:00
+    # weight: 1
+    # aliases: ["/first"]
+    tags: ["machine learning"]
+    author: "Kha Vu Chan"
+    isMediumPost: true
+    mediumUrl: "https://medium.com/@chankhavu/meet-iva-my-mini-deep-learning-rig-f5588588ca8a?source=friends_link&sk=2a867d1c9ebe46b3bad510527b517526"
+    summary: "I built a mini 2x3090 RTX Deep Learning rig for personal projects and Kaggle competitions. And, of course, gaming 😉. I named it after Ivakhnenko &mdash; the Godfather of Deep Learning."
+    hideAuthor: true
+    ShowWordCount: false
+    ShowReadingTime: false
+    cover:
+        image: "https://miro.medium.com/v2/resize:fit:4800/format:webp/1*UB8EFu9szzwK2EUoGZ51ag.jpeg" # image path/url
+        alt: "<alt text>" # alt text
+        caption: "" # display caption under cover
+        relative: false # when using page bundles set this to true
+        hidden: false # only hide on current single page
+        hiddenInList: false # hide in list view
