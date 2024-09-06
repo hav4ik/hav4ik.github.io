@@ -1,4 +1,4 @@
-baseURL: "https://examplesite.com/"
+baseURL: "https://hav4ik.github.io/"
 title: "Chan Kha Vu \U0001F1FA\U0001F1E6"
 paginate: 10
 theme: PaperMod
@@ -8,7 +8,11 @@ buildDrafts: false
 buildFuture: false
 buildExpired: false
 
-googleAnalytics: UA-123-45
+services:
+  googleAnalytics:
+    id: G-7DY2JXTNHX
+  disqus:
+    shortname: tranhavu
 
 minify:
   disableXML: true
@@ -16,12 +20,16 @@ minify:
 
 params:
   env: production # to enable google analytics, opengraph, twitter-cards and schema.
-  title: ExampleSite
-  description: "ExampleSite description"
-  keywords: [Blog, Portfolio]
-  author: Me
+  title: Chan Kha Vu \U0001F1FA\U0001F1E6
+  # This one is visible in OpenGraph, Twitter, whenever I share the blog.
+  description: >-
+    Hi, my name is Chan Kha Vu. I'm currently a Machine Learning engineer at Microsoft in Seattle, working on
+    ranking models at a search engine called Bing. This blog is a place where I share my thoughts and study notes on
+    machine learning, mathematics, and software engineering.
+  keywords: [Blog, Portfolio, RecSys, Machine Learning, Deep Learning, Math, Mathematics, Software Engineering]
+  author: Chan Kha Vu
   # author: ["Me", "You"] # multiple authors
-  images: ["<link or path of image for opengraph, twitter-cards>"]
+  images: ["/img/tpus-go-brrr.jpeg"]
   DateFormat: "January 2, 2006"
   defaultTheme: auto # dark, light
   disableThemeToggle: false
@@ -47,21 +55,21 @@ params:
     # disableHLJS: true # to disable highlight.js
     # disableFingerprinting: true
     favicon: "assets/favicon.ico"
-    # favicon16x16: "assets/favicon.ico"
-    # favicon32x32: "assets/favicon.ico"
-    apple_touch_icon: "<link / abs url>"
-    safari_pinned_tab: "<link / abs url>"
+    favicon16x16: "assets/favicon-16x16.png"
+    favicon32x32: "assets/favicon-32x32.png"
+    apple_touch_icon: "assets/apple-touch-icon.png"
+    # safari_pinned_tab: "<link / abs url>"
 
   label:
     text: "Vu's blog \U0001F1FA\U0001F1E6"
-    icon: /apple-touch-icon.png
-    iconHeight: 35
+    # icon: /assets/favicon.ico
+    # iconHeight: 35
 
   # profile-mode
   profileMode:
     enabled: false # needs to be explicitly set
     title: Chan Kha Vu
-    subtitle: "This is subtitle"
+    subtitle: "A curious human being"
     imageUrl: "/imapilot.jpg"
     imageWidth: 400
     imageHeight: 400
@@ -76,7 +84,7 @@ params:
   homeInfoParams:
     Title: "Heeey, welcome to Vu's blog \U0001F44B"
     Content: >
-      Hi, my name is Chan Kha Vu. I'm currently a Machine Learning engineer at Microsoft in Seattle Area, working on
+      Hi, my name is Chan Kha Vu. I'm currently a Machine Learning engineer at Microsoft in Seattle, working on
       ranking models at a search engine called Bing. This blog is a place where I share my thoughts and study notes on
       machine learning, mathematics, and software engineering.
 
@@ -94,13 +102,13 @@ params:
     - name: kaggle
       url: "https://www.kaggle.com/chankhavu"
 
-  analytics:
-    google:
-      SiteVerificationTag: "XYZabc"
-    bing:
-      SiteVerificationTag: "XYZabc"
-    yandex:
-      SiteVerificationTag: "XYZabc"
+  # analytics:
+  #   google:
+  #     SiteVerificationTag: "XYZabc"
+  #   bing:
+  #     SiteVerificationTag: "XYZabc"
+  #   yandex:
+  #     SiteVerificationTag: "XYZabc"
 
   cover:
     hidden: true # hide everywhere but not in structured data
@@ -133,10 +141,10 @@ menu:
       name: About
       url: /about/
       weight: 20
-    - identifier: cv
-      name: CV
-      url: /files/cv.pdf
-      weight: 50
+    # - identifier: cv
+    #   name: CV
+    #   url: /files/cv.pdf
+    #   weight: 50
     - identifier: archive
       name: Archive
       url: /archive/

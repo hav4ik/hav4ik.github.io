@@ -11,7 +11,10 @@ showToc: true
 TocOpen: false
 draft: false
 hidemeta: false
-comments: false
+comments: true
+disqus_identifier: 07%20Jan%202019%2Farticles%2Florenz-attractor
+disqus_title: Remarks%20on%2014th%20Smale's%20Problem
+disqus_url: https%3A%2F%2Fhav4ik.github.io%2Farticles%2Florenz-attractor
 summary: "The connection between the proof of the existance of the Lorenz Attractor, its Geometric Flow Model, and the Knot Theory Model."
 canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs
@@ -29,7 +32,7 @@ UseHugoToc: false
 strikethrough: true
 cover:
     image: "featured_large.png" # image path/url
-    alt: "<alt text>" # alt text
+    alt: "Lorenz Attractor - artistic rendering" # alt text
     caption: "Lorenz Attractor" # display caption under cover
     relative: false # when using page bundles set this to true
     hidden: false # only hide on current single page
