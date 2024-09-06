@@ -45,6 +45,7 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
+          token: ${{ secrets.HUGO_CI_TOKEN }}
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
