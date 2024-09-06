@@ -20,7 +20,7 @@ minify:
 
 params:
   env: production # to enable google analytics, opengraph, twitter-cards and schema.
-  title: Chan Kha Vu \U0001F1FA\U0001F1E6
+  title: Chan Kha Vu 🇺🇦
   # This one is visible in OpenGraph, Twitter, whenever I share the blog.
   description: >-
     Hi, my name is Chan Kha Vu. I'm currently a Machine Learning engineer at Microsoft in Seattle, working on
