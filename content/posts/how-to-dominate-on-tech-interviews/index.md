@@ -29,9 +29,9 @@ UseHugoToc: false
 strikethrough: true
 cover:
     image: "virgin-vs-chad-interview.png" # image path/url
-    alt: "<alt text>" # alt text
-    caption: "<text>" # display caption under cover
-    relative: false # when using page bundles set this to true
+    alt: "Virgin coder vs Chad mathematician meme" # alt text
+    caption: "Virgin coder vs Chad mathematician meme" # display caption under cover
+    relative: true # when using page bundles set this to true
     hidden: false # only hide on current single page
     hiddenInList: false # hide in list view
 editPost:

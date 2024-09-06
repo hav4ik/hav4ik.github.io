@@ -28,9 +28,9 @@ UseHugoToc: false
 strikethrough: true
 cover:
     image: "iva_1.webp" # image path/url
-    alt: "<alt text>" # alt text
-    caption: "<text>" # display caption under cover
-    relative: false # when using page bundles set this to true
+    alt: "Deep learning rig with 2x3090 RTX" # alt text
+    caption: "Deep learning rig with 2x3090 RTX" # display caption under cover
+    relative: true # when using page bundles set this to true
     hidden: false # only hide on current single page
     hiddenInList: false # hide in list view
 editPost:

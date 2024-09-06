@@ -29,9 +29,9 @@ UseHugoToc: false
 strikethrough: true
 cover:
     image: "featured.png" # image path/url
-    alt: "<alt text>" # alt text
-    caption: "Lorenz Attractor" # display caption under cover
-    relative: false # when using page bundles set this to true
+    alt: "Multi-task taskonomy" # alt text
+    caption: "Multi-task taskonomy" # display caption under cover
+    relative: true # when using page bundles set this to true
     hidden: false # only hide on current single page
     hiddenInList: false # hide in list view
 editPost:

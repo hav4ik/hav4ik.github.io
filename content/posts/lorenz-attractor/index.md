@@ -34,7 +34,7 @@ cover:
     image: "featured_large.png" # image path/url
     alt: "Lorenz Attractor - artistic rendering" # alt text
     caption: "Lorenz Attractor" # display caption under cover
-    relative: false # when using page bundles set this to true
+    relative: true # when using page bundles set this to true
     hidden: false # only hide on current single page
     hiddenInList: false # hide in list view
 editPost:
