@@ -11,7 +11,7 @@ showToc: false
 TocOpen: false
 draft: false
 hidemeta: false
-comments: false
+comments: true
 summary: "To celebrate the week of Bing’s integration with ChatGPT, I built an AI bot based on GPT-3 and BLIP-2 to play Dixit and gathered some friends and co-workers to play against it."
 canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs
@@ -39,6 +39,8 @@ editPost:
     Text: "Suggest Changes" # edit text
     appendFilePath: true # to append file path to Edit link
 ---
+
+> This article was cross-posted on Medium: https://medium.com/@chankhavu/playing-dixit-with-chatgpt-creative-image-captioning-is-solved-599e11f2da79
 
 
 Have you ever played Dixit? It’s a popular party game that features a deck of cards with surreal and imaginative illustrations. During each turn, a player takes on the role of “storyteller” and provides a brief, imaginative clue to describe the card they have selected. The other players then select a card from their hand that they believe most closely matches the description, with the aim of deceiving others into thinking it was the storyteller’s card. Finally, players must guess which card the storyteller chose.

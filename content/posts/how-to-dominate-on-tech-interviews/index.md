@@ -11,7 +11,7 @@ showToc: false
 TocOpen: false
 draft: false
 hidemeta: false
-comments: false
+comments: true
 summary: "Do you want to dominate your interviewer? Wanna bring him to his knees? Make him think that you're superior? I'll tell you how!"
 canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs

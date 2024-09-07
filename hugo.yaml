@@ -29,7 +29,7 @@ params:
   keywords: [Blog, Portfolio, RecSys, Machine Learning, Deep Learning, Math, Mathematics, Software Engineering]
   author: Chan Kha Vu
   # author: ["Me", "You"] # multiple authors
-  images: ["/img/tpus-go-brrr.jpeg"]
+  images: ["/img/hiking-hor.jpeg"]
   DateFormat: "January 2, 2006"
   defaultTheme: auto # dark, light
   disableThemeToggle: false

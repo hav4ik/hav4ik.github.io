@@ -1,5 +1,5 @@
 ---
-title: Meet “Iva” — my mini Deep Learning rig
+title: Meet “Iva”, my mini Deep Learning rig
 url: "/meet-iva-my-dl-rig"
 date: 2023-11-24T00:00:00+00:00
 # weight: 1
@@ -11,11 +11,13 @@ showToc: false
 TocOpen: false
 draft: false
 hidemeta: false
-comments: false
+comments: true
 canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs
 disableShare: false
 disableHLJS: false
+summary: >-
+    I built a cheap-ish 2x3090 RTX Deep Learning rig for my personal projects and experiments. I called it “Iva” — in honor of Oleksii Ivakhnenko from Ukraine, the Godfather of Deep Learning, who first developed an algorithm to train multi-layer perceptrons back in 1965.
 hideSummary: false
 hideAuthor: true
 searchHidden: true
@@ -39,6 +41,7 @@ editPost:
     appendFilePath: true # to append file path to Edit link
 ---
 
+> This article was cross-posted on Medium: https://medium.com/@chankhavu/meet-iva-my-mini-deep-learning-rig-f5588588ca8a).
 
 I’ve always relied on cloud GPU resources throughout my entire Machine Learning career. As a frugal person, I never saw the need to invest thousands of dollars in building my own rig. During university, my Intel i5 + 1070ti gaming computer and Google Colab sufficed for my Bachelor’s and Master’s theses. Starting my professional Machine Learning career in the fourth year of my Bachelor’s, I often borrowed available GPUs at work (thankfully, Samsung Research had a lot of GPUs). Not owning hardware was inconvenient but not essential.
 
@@ -127,5 +130,5 @@ It is a known fact by now that 3090 RTX have really bad thermals, especially on 
 ## I could have built a more powerful rig, but…
 At the time of building this machine, my home country **Ukraine is still fighting to defend itself from the russian invasion.** Although I could afford a much more powerful machine with more and better GPUs with, I would rather send those couple of thousand dollars to those in need.
 
-If you find this blog post helpful, please consider donating to Come Back Alive fund. Just a few dollars might help them save a life.
+If you find this blog post helpful, please consider donating to [Come Back Alive fund](https://savelife.in.ua/en/). Just a few dollars might help them save a life.
 

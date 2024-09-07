@@ -3,10 +3,10 @@ layout: aboutauthor
 title: "About"
 
 cover:  # this will not be displayed on the web page, but will be used for OG and Twitter
-    image: /img/tpus-go-brrr.jpeg # image path/url
+    image: /img/hiking-hor.jpeg # image path/url
     alt: "Photo of Vu being happy with all the TPUs" # alt text
 
-avatarImage: /img/hiking-2.jpg
+avatarImage: /img/hiking-vert.jpeg
 avatarMobileCrop: "top"
 
 timelineTitle: My journey
@@ -16,8 +16,7 @@ timeline:
     position: "ML Engineer"
     location: "Seattle, USA"
     description: >-
-      Developing web-scale image/video search relevance ranking models at [Bing](https://www.bing.com/images/search?q=cat). Scaled up and accelerated training pipelines, improved relevance and engagement metrics.
-      
+      Developing web-scale image/video search relevance ranking models at [Bing](https://www.bing.com/images/search?q=cat). Scaled up and accelerated training pipelines. Improved relevance and stability metrics.
     logoImg:
       src: /img/microsoft.svg
       imgStyle: "width: 60%; border-radius: 25%;"
@@ -51,7 +50,7 @@ timeline:
       &mdash; created a novel NAS algorithm for Multi-Task ConvNets.
     logoImg:
       src: /img/knu.png
-  - time: "2013 &mdash; 2019"
+  - time: "2013 &mdash; 2017"
     institution: "Taras Shevchenko National University of Kyiv"
     description: >-
       Bachelor of Science in Applied Mathematics.
@@ -76,10 +75,10 @@ otherSections:
   - sectionName: Talks & teaching
     sectionContent: |
       * Talk at Samsung Research: **"Multi-Objective Optimization and Multi-Task Learning"**  
-        *SRK AI Conference 2019, Samsung Research, Ukraine. Live talk with 300+ attendees.*
+        *SRK AI Conference 2019, Samsung Research, Ukraine (with an audience of 150+ attendees).*
 
       * Lecture at Kyiv DS Community: **"Deep Metric Learning"** ([video](https://www.youtube.com/watch?v=aU9yEwgrJ54))  
-        *Kyiv Data Science Community, "Introduction to ML and Neural Nets" course, 2021.*
+        *Kyiv Data Science Community, as part of the "Introduction to ML and Neural Nets" course, 2021.*
 
       * Talk at Summer IT Camp at KNU: **"Using LLMs: promting, agents, tuning"** ([slides](https://drive.google.com/file/d/1NhCNChywlmFXxQ-KQer4TNFdk044SdBw/view))  
         *Summer IT Camp, Taras Shevchenko National University of Kyiv, 2023.*

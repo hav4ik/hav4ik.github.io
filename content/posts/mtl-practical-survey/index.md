@@ -11,7 +11,7 @@ showToc: true
 TocOpen: false
 draft: false
 hidemeta: false
-comments: false
+comments: true
 summary: "An in-depth survey on Multi-Task Learning techniques that works like a charm as-is right from the box and are easy to implement – just like instant noodle!"
 canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs
