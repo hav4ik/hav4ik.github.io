@@ -12,9 +12,7 @@ TocOpen: false
 draft: false
 hidemeta: false
 comments: true
-disqus_identifier: 07%20Jan%202019%2Farticles%2Florenz-attractor
-disqus_title: Remarks%20on%2014th%20Smale's%20Problem
-disqus_url: https%3A%2F%2Fhav4ik.github.io%2Farticles%2Florenz-attractor
+disqus_identifier: "07 Jan 2019/articles/lorenz-attractor"
 summary: "The connection between the proof of the existance of the Lorenz Attractor, its Geometric Flow Model, and the Knot Theory Model."
 canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs
