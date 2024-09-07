@@ -12,6 +12,7 @@ TocOpen: false
 draft: true
 hidemeta: false
 comments: false
+disqus_identifier: hav4ik/learning-to-rank
 summary: "Learning to Rank is a core component of any recommendation system. It is the algorithm that forms the final list of items to be shown to the user. This blog post is a comprehensive introduction to the landscape of LTR algorithms. Hopefully, it will give you enough context to start reading recent LTR research papers."
 canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs

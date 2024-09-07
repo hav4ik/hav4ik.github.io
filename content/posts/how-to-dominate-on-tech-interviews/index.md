@@ -12,6 +12,8 @@ TocOpen: false
 draft: false
 hidemeta: false
 comments: true
+# Migrated from the old blog
+disqus_identifier: "08 Feb 2020/articles/how-to-dominate-on-tech-interviews"
 summary: "Do you want to dominate your interviewer? Wanna bring him to his knees? Make him think that you're superior? I'll tell you how!"
 canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs

@@ -12,6 +12,7 @@ TocOpen: false
 draft: false
 hidemeta: false
 comments: true
+disqus_identifier: hav4ik/chatgpt-dixit
 summary: "To celebrate the week of Bing’s integration with ChatGPT, I built an AI bot based on GPT-3 and BLIP-2 to play Dixit and gathered some friends and co-workers to play against it."
 canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs

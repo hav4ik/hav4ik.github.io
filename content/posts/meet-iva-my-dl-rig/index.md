@@ -12,6 +12,7 @@ TocOpen: false
 draft: false
 hidemeta: false
 comments: true
+disqus_identifier: hav4ik/meet-iva-my-dl-rig
 canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs
 disableShare: false

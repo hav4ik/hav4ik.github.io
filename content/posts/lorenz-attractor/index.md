@@ -12,6 +12,7 @@ TocOpen: false
 draft: false
 hidemeta: false
 comments: true
+# Migrated from old blog
 disqus_identifier: "07 Jan 2019/articles/lorenz-attractor"
 summary: "The connection between the proof of the existance of the Lorenz Attractor, its Geometric Flow Model, and the Knot Theory Model."
 canonicalURL: "https://canonical.url/to/page"

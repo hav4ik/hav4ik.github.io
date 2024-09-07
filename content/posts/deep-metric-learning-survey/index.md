@@ -12,6 +12,8 @@ TocOpen: false
 draft: false
 hidemeta: false
 comments: true
+# Migrated from the old blog
+disqus_identifier: "14 Jun 2021/articles/deep-metric-learning-survey"
 summary: "In this post, I'll briefly go over the common approaches for Deep Metric Learning, as well as the new methods proposed in recent years."
 canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs
