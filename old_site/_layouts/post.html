@@ -43,7 +43,7 @@
         {% if page.type == 'article' %}
         <div class="post-info">
           {{ page.date | date_to_string }} |
-          {{ content | number_of_words | divided_by: 200 }} min read |
+          {{ content | number_of_words | divided_by: 180 }} min read |
           Tags: 
           {% for tag in page.tags %}
             {% capture tag_name %}{{ tag }}{% endcapture %}
