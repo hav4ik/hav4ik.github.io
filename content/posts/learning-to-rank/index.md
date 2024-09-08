@@ -9,7 +9,7 @@ author: "Kha Vu Chan"
 # author: ["Me", "You"] # multiple authors
 showToc: true
 TocOpen: true
-draft: true
+draft: false
 hidemeta: false
 comments: false
 disqus_identifier: hav4ik/learning-to-rank
@@ -1805,6 +1805,21 @@ Knowing individual papers is one thing. Understanding the practical aspects and 
 
 ## 5.1. Other active areas of Learning to Rank research
 
+**Beyond clicks.** A lot of recent research in LTR has been in modelling other types of behavior, for example "add to cart", "purchase", "dwell time", "scroll depth", etc. These behaviors are more indicative of the user's intent and satisfaction than clicks. This line of work also studies multiple feedback on the same item.
+
+**Fairness** in learning to rank ensures that attention is distributed more equitably across ranked items. Traditional systems focus on relevance, causing top-ranked items to receive disproportionately more attention, even if the differences in relevance are minimal. This can be unfair to items or providers that are nearly as relevant but overlooked. Fairness in ranking aims to reduce this imbalance by adjusting algorithms to consider both relevance and equitable attention.
+
+There are three main approaches to achieving fairness in ranking:
+1. *Static*: Creates a single ranking that strives to be as fair as possible, although perfect fairness may not always be achievable.
+2. *Amortization*: Updates the ranking over time to gradually improve fairness, often using optimization techniques like Integer Linear Programming.
+3. *Stochastic*: Employs a probability-based system that ensures fairness in the long run, optimizing through methods like policy gradients.
+
+By incorporating these approaches, ranking systems can balance relevance with fair attention distribution over time or across various scenarios.
+
+
+**Safety.** The problem of safety in learning to rank is ensuring that new ranking policies are only deployed if they does not degrade the current production system by too much. During online evaluation (interleaving, intervention harvesting, etc.), presenting significantly worse rankers to users could negatively impact user experience.
+
+
 
 ## 5.2. Practical Tips
 
@@ -1877,7 +1892,8 @@ Such a model will, figuratively speaking, squeeze every bit of predictive power 
 
 
 
-### 5.2.4. Always ablate, don't trust academic benchmarks
+<!-- ### 5.2.4. Always ablate, don't trust academic benchmarks -->
+
 
 
 ## 5.3. Useful Resources
