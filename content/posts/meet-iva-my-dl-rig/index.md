@@ -4,7 +4,7 @@ url: "/meet-iva-my-dl-rig"
 date: 2023-11-24T00:00:00+00:00
 # weight: 1
 # aliases: ["/first"]
-tags: ["projects"]
+tags: ["Projects", "Hardware"]
 author: "Kha Vu Chan"
 # author: ["Me", "You"] # multiple authors
 showToc: false

@@ -4,7 +4,7 @@ date: 2019-01-22T00:00:00+00:00
 url: "/articles/mtl-a-practical-survey"
 # weight: 1
 # aliases: ["/first"]
-tags: ["machine learning", "survey"]
+tags: ["Machine Learning", "Math", "Survey"]
 author: "Kha Vu Chan"
 # author: ["Me", "You"] # multiple authors
 showToc: true

@@ -1,17 +1,17 @@
 ---
 title: "At the core of a Search Engine: Learning to Rank"
 url: "/learning-to-rank"
-date: 2024-09-01T00:00:00+00:00
+date: 2024-09-08T00:00:00+00:00
 # weight: 1
 # aliases: ["/first"]
-tags: ["RecSys"]
+tags: ["RecSys", "Survey", "Machine Learning"]
 author: "Kha Vu Chan"
 # author: ["Me", "You"] # multiple authors
 showToc: true
 TocOpen: true
 draft: false
 hidemeta: false
-comments: false
+comments: true
 disqus_identifier: hav4ik/learning-to-rank
 summary: "Learning to Rank (LTR) is a core component of any recommendation system. It is the algorithm that forms the final list of items to be shown to the user. This blog post is a comprehensive introduction to the basics of LTR and Unbiased LTR. Hopefully, it will give you enough context to build your own models or to understand more recent research in the field."
 # canonicalURL: "https://canonical.url/to/page"
@@ -91,7 +91,7 @@ ranking algorithms as more diverse features are extracted from web pages. As of 
 
 > **Note:** Despite the deceptive simplicity of the above described schema, for web-scale search engines everything is a million times more complicated. Only few companies have enough infrastructure, computing resources, and manpower to develop and deploy search engines at such scale.
 
-The following [diagram by researchers from Nvidia][nvidia_merlin] is a more truthful representation of a modern search engine:
+The following [diagram by researchers from Nvidia Merlin team][nvidia_merlin] (originally proposed by [Eugene Yan][ey_chart]) is a more truthful representation of a modern search engine. Check those amazing blogs out for more detailed information about the architecture of a search engine.
 
 {{< figure src="eugene_yan_chart.webp" caption="More detailed chart of actual stages of a modern search engine. This one is much more closer to the actual production-level search stack." invertible="true" >}}
 
@@ -115,6 +115,7 @@ The following [diagram by researchers from Nvidia][nvidia_merlin] is a more trut
 [embedding_in_ml]: https://datascience.stackexchange.com/questions/53995/what-does-embedding-mean-in-machine-learning
 [ann_methods]: https://towardsdatascience.com/comprehensive-guide-to-approximate-nearest-neighbors-algorithms-8b94f057d6b6
 [nvidia_merlin]: https://medium.com/nvidia-merlin/recommender-systems-not-just-recommender-models-485c161c755e
+[ey_chart]: https://eugeneyan.com/writing/system-design-for-discovery/
 
 
 
@@ -123,7 +124,7 @@ The following [diagram by researchers from Nvidia][nvidia_merlin] is a more trut
 
 # 2. Introduction to Learning to Rank
 
-Given a query \( q \) and a set of \( n \) retrieved documents \( \mathcal{D} = \{ d_1, d_2, \ldots, d_n \} \), we'd like to learn a function \( f(\mathcal{Q}, \mathcal{D}) \) that will return a correct ordering of the documents, such that the first documents would be the most relevant to the user. Usually, \( f \) predicts a score for each document, and then the ranking order is determined by the scores.
+Given a query \( \boldsymbol{q} \) and a set of \( n \) retrieved documents \( \mathcal{D} = \{ d_1, d_2, \ldots, d_n \} \), we'd like to learn a function \( f(\boldsymbol{q}, \mathcal{D}) \) that will return a correct ordering of the documents, such that the first documents would be the most relevant to the user. Usually, \( f \) predicts a score for each document, and then the ranking order is determined by the scores.
 
 
 {{< figure src="ltr_task.png" caption="Given a query and a list of documents, the Learning-to-Rank task is to predict the relevance ranking of the documents, i.e. which document is the most relevant to the query." invertible="true" >}}
@@ -222,11 +223,11 @@ In this section, I will closely follow the survey by [Burges (2010)][burges-rank
 <td>The \(i\)-th document (or web page URL) that matches the given query \(\boldsymbol{q}\).</td>
 </tr>
 <tr>
-<td>\( {\bf x}_{i} \)</td>
-<td>Feature vector for the \(i\)-th result, computed from the query-document pair \((\boldsymbol{q}, d_{i})\).</td>
+<td>\( {\bf x}_{d} \)</td>
+<td>Feature vector for \(d\), computed from the query-document pair \((\boldsymbol{q}, d)\).</td>
 </tr>
 <tr>
-<td>\( f_\theta (\cdot) \)</td>
+<td>\( f_{\theta} (\cdot) \)</td>
 <td>The model (either a Neural Net or GBDT) with weights \(\theta\) that we want to train.</td>
 </tr>
 <tr>
@@ -236,10 +237,6 @@ In this section, I will closely follow the survey by [Burges (2010)][burges-rank
 <tr>
 <td>\( d_{i} \rhd d_{j} \)</td>
 <td>Denotes the event that \( d_{i} \) should rank higher than \( d_{j} \).</td>
-</tr>
-<tr>
-<td>\( \boldsymbol{\mathcal I}_{\rhd} \)</td>
-<td>Set of pairs \(\{ i, j\}\) such that \(d_{i} \rhd d_{j}\). Note that it is not symmetrical.</td>
 </tr>
 </table>
 
@@ -263,7 +260,7 @@ $$
 \end{equation}
 $$
 
-Obviously, this cost function is symmetric: swapping \( i \) and \( j \) and flipping the probabilities \( P_{ij} \) and \( \widetilde{P}_{ij} \) should not change the cost. At each minibatch descent step, the RankNet's cost is summarized from all document pairs in \( \boldsymbol{\mathcal I}_{\rhd} \).
+Obviously, this cost function is symmetric: swapping \( i \) and \( j \) and flipping the probabilities \( P_{ij} \) and \( \widetilde{P}_{ij} \) should not change the cost. At each minibatch descent step, the RankNet's cost is summarized from all document pairs in the set \( \boldsymbol{\mathcal I}_{\rhd} \) of pairs \(\{ i, j\}\) such that \(d_{i} \rhd d_{j}\).
 
 RankNet opened a new direction in LTR research, and is the precursor to LambdaRank and LambdaMART. In 2015, the RankNet paper won the ICML Test of Time Best Paper Award, which honors “a paper from ICML ten years ago that has had substantial impact on the field of machine learning, including both research and practice.”
 
@@ -659,7 +656,11 @@ Some frequently used notations for this section:
 </tr>
 <tr>
 <td>\( \boldsymbol{\pi}_\theta^{\boldsymbol{\mathcal{q}}} \)</td>
-<td>The ranking of documents for query \( \boldsymbol{\mathcal{q}} \), generated by model \( f \) with parameters \( \theta \).</td>
+<td>The ranked list documents for query \( \boldsymbol{\mathcal{q}} \), generated by model \( f \) with parameters \( \theta \).</td>
+</tr>
+<tr>
+<td>\( \boldsymbol{\pi}_\theta^{\boldsymbol{\mathcal{q}}} (d) \)</td>
+<td>The rank of document \(d\) in the ranking \( \boldsymbol{\pi}_\theta^{\boldsymbol{\mathcal{q}}} \).</td>
 </tr>
 <tr>
 <td>\( \boldsymbol{y}^{\boldsymbol{\mathcal{q}}} = \{ y_d^{\boldsymbol{\mathcal{q}}} \} \)</td>
@@ -685,7 +686,8 @@ Some frequently used notations for this section:
 
 Please be aware that the notation used in this section are slightly different from the notation used in the original publications. This is because different authors prefer different notations styles and the bias models are slightly different from each other. This set of notations is my attempt to unify and simplify the notations used in different papers while preserving as much of the semantics as possible, at the cost of losing some of the flexibility and granularity of the original notations.
 
-<a name="click-biases"></a>
+
+
 ## 4.1. Click Signal Biases
 
 User click should be a good indicator that a document is relevant to the user, right? Well, not that easy &mdash; not every relevant document is given an equal chance to be clicked by the user. Implicit user signals typically include multiple biases, the most common types are: position bias, selection bias, and trust bias. It is important to identify the types of biases, because for Unbiased Learning to Rank we will need to build models to estimate such biases.
@@ -857,13 +859,103 @@ The biased estimator \( \Delta_{\text{naive}} \) weights documents according to 
 
 ### 4.2.3. Inverse Propensity Weighting
 
-The naive estimator above can be easily de-biased by dividing each term by its bias factor. That's the basic idea of **Inverse Propensity Weighting** Estimator, first applied to the Learning to Rank problem in the works of [Joachims et al. (2016)][joachims_2016] and [Wang et al. (2016)][wang_2016]. For any new ranking \( \boldsymbol{\pi}_{\phi} \) (different from the ranking \( \boldsymbol{\mathcal{\pi}}_{\theta} \) presented to the user), the IPS estimator is defined as:
+The naive estimator above can be easily de-biased by dividing each term by its bias factor. That's the basic idea of **Inverse Propensity Weighting** Estimator, first applied to the Learning to Rank problem in the works of [Joachims et al. (2016)][joachims_2016] and [Wang et al. (2016)][wang_2016]. For a ranking \( \boldsymbol{\pi} \) the IPS estimator is defined as:
 
 $$
 \begin{equation*} \tag{IPW} \label{eq:ipw}
     \Delta_{\text{IPW}} \left(
-        \boldsymbol{\mathcal{\pi}}_\phi, \boldsymbol{\mathcal{y}} \vert
-        \boldsymbol{\pi}_\theta
+        \boldsymbol{\mathcal{\pi}}, \boldsymbol{\mathcal{y}}
+    \right)
+    =
+    \sum_{d \colon o_d = 1} {
+        \frac{
+        \mu \big[
+            \boldsymbol{\pi}(d)
+        \big]
+        \cdot y_d
+        }{
+        P\left(o_d = 1 \vert \boldsymbol{\pi} \right)
+        }
+    }
+\end{equation*}
+$$
+
+This is an unbiased estimate of \(\Delta \left( \boldsymbol{\mathcal{\pi}}, \boldsymbol{\mathcal{y}} \right)\) for any ranking \(\boldsymbol{\mathcal{\pi}}\) and relevance observation indicator \(\boldsymbol{o}\), if \(P\left(o_d = 1 \vert \boldsymbol{\mathcal{\pi}}\right) > 0\) for all documents that are relevant for the specific user (again, we assume that the query \(\boldsymbol{q}\) captures user context as well), i.e. \(y_d = 1\) (but not necessarily for the irrelevant documents).
+
+$$
+\begin{equation}
+\begin{aligned}
+    \mathbb{E}_{\boldsymbol{o}^{\boldsymbol{q}}}
+    \big[
+    \Delta_{\text{IPW}} \left(
+        \boldsymbol{\mathcal{\pi}}, \boldsymbol{\mathcal{y}}
+    \right)
+    \big]
+    & =
+    \mathbb{E}_{\boldsymbol{o}^{\boldsymbol{q}}}
+    \left[
+    \sum_{d \colon o_d = 1} {
+    \frac{
+        \mu \big[
+        \boldsymbol{\pi}(d)
+        \big]
+        \cdot y_d
+    }{
+        P\left(o_d = 1 \vert \boldsymbol{\mathcal{\pi}}\right)
+    }
+    }
+    \right]
+    \\ &=
+    \sum_{d \in \boldsymbol{\mathcal{D}}} {
+    \mathbb{E}_{\boldsymbol{o}^{\boldsymbol{q}}}
+    \left[
+    \frac{
+        o_d \cdot
+        \mu \big[
+        \boldsymbol{\pi}(d)
+        \big]
+        \cdot y_d
+    }{
+        P\left(o_d = 1 \vert \boldsymbol{\mathcal{\pi}}\right)
+    }
+    \right]
+    }
+    \\ &=
+    \sum_{d \in \boldsymbol{\mathcal{D}}} {
+    \frac{
+        P\left(o_d = 1 \vert \boldsymbol{\mathcal{\pi}} \right) \cdot
+        \mu \big[
+        \boldsymbol{\pi}(d)
+        \big]
+        \cdot y_d
+    }{
+        P\left(o_d = 1 \vert \boldsymbol{\mathcal{\pi}}\right)
+    }
+    }
+    \\ &=
+    \sum_{d \in \boldsymbol{\mathcal{D}}} {
+    \mu \big[
+        \boldsymbol{\pi}(d)
+    \big]
+    \cdot y_d
+    }
+    \\ &=
+    \Delta \left( \boldsymbol{\mathcal{\pi}}, \boldsymbol{y}\right)
+    \,.
+\end{aligned}
+\label{eq:ipw_unbiased}
+\end{equation}
+$$
+
+Note that this estimator sums only over the results where the relevance feedback is observed (i.e. \(\ o(d) = 1\)) and positive (i.e. \(\ y_d = 1\)). Therefore, we only need the propensities \(\ P\left(o_d = 1 \vert \boldsymbol{\mathcal{\pi}}\right)\) for the relevant documents, which means that we do not have to disambiguate whether lack of positive feedback (e.g., the lack of a click) is due to a lack of relevance or due to missing the observation (e.g., result not relevant vs. not viewed). An additional requirement for making \(\ \Delta_\text{IPS}\) computable while remaining unbiased is that the propensities only depend on observable information.
+
+A neat thing about IPS estimator is that, having a logging policy \( f_\theta \) (i.e. a ranker that was used to show results to the user and collect data), we can estimate a new ranker \( f_\phi \) without deploying it in production, as long as the observation probability of documents for both rankers are non-zero for the same documents. Having ranked lists \(\boldsymbol{\pi}_\theta\) and \(\boldsymbol{\pi}_\phi\) generated by rankers \( f_\theta \) and \( f_\phi \) respectively, we can estimate the performance of the new ranker \( f_\phi \) using the IPS discounts:
+
+$$
+\begin{equation*}
+    \Delta_{\text{IPW}} \left(
+        \boldsymbol{\mathcal{\pi}}_\phi, \boldsymbol{\mathcal{y}}
+        \vert \boldsymbol{\mathcal{\pi}}_\theta
     \right)
     =
     \sum_{d \colon o_d = 1} {
@@ -879,75 +971,28 @@ $$
 \end{equation*}
 $$
 
-This is an unbiased estimate of \(\Delta \left( \boldsymbol{\mathcal{\pi}}_\phi, \boldsymbol{\mathcal{y}} \right)\) for any ranking \(\boldsymbol{\mathcal{\pi}}\) and relevance observation indicator \(\boldsymbol{o}\), if \(P\left(o_d = 1 \vert \boldsymbol{\mathcal{\pi}}\right) > 0\) for all documents that are relevant for the specific user (again, we assume that the query \(\boldsymbol{q}\) captures user context as well), i.e. \(y_d = 1\) (but not necessarily for the irrelevant documents).
+The idea is simple: we treat the discounted click \( c_d / P\left(o_d = 1 \vert \boldsymbol{\mathcal{\pi}}_\theta\right) \) as an unbiased estimate of the relevance \( y_d \) of the document \( d \) for the given query \( \boldsymbol{\mathcal{q}} \). Then, we just multiply that by the rank weighting function \( \mu \).
+
+It is almost guaranteed that in the real-world scenario, you would likely have a problem of **high variance** due to low quality (high noise) of the click data, not enough data, and noisy clicks on documents with smaller propensity. A simple solution is to clip the propensities:
 
 $$
-\begin{equation}
-\begin{aligned}
-    \mathbb{E}_{\boldsymbol{o}^{\boldsymbol{q}}}
-    \big[
-    \Delta_{\text{IPW}} \left(
-        \boldsymbol{\mathcal{\pi}}_\phi, \boldsymbol{\mathcal{y}} \vert
-        \boldsymbol{\pi}_\theta
+\begin{equation*} \tag{Clipped-IPW} \label{eq:ipwclipped}
+    \Delta_{\text{Clipped-IPW}} \left(
+        \boldsymbol{\mathcal{\pi}}, \boldsymbol{\mathcal{y}}
     \right)
-    \big]
-    & =
-    \mathbb{E}_{\boldsymbol{o}^{\boldsymbol{q}}}
-    \left[
+    =
     \sum_{d \colon o_d = 1} {
-    \frac{
+        \frac{
         \mu \big[
-        \boldsymbol{\pi}_\phi(d)
+            \boldsymbol{\pi}(d)
         \big]
         \cdot y_d
-    }{
-        P\left(o_d = 1 \vert \boldsymbol{\mathcal{\pi}}_{\theta}\right)
+        }{
+        \max\left( \tau, P\left(o_d = 1 \vert \boldsymbol{\pi} \right)\right)
+        }
     }
-    }
-    \right]
-    \\ &=
-    \sum_{d \in \boldsymbol{\mathcal{D}}} {
-    \mathbb{E}_{\boldsymbol{o}^{\boldsymbol{q}}}
-    \left[
-    \frac{
-        o_d \cdot
-        \mu \big[
-        \boldsymbol{\pi}_\phi(d)
-        \big]
-        \cdot y_d
-    }{
-        P\left(o_d = 1 \vert \boldsymbol{\mathcal{\pi}}_{\theta}\right)
-    }
-    \right]
-    }
-    \\ &=
-    \sum_{d \in \boldsymbol{\mathcal{D}}} {
-    \frac{
-        P\left(o_d = 1 \vert \boldsymbol{\mathcal{\pi}}_\theta \right) \cdot
-        \mu \big[
-        \boldsymbol{\pi}_\phi(d)
-        \big]
-        \cdot y_d
-    }{
-        P\left(o_d = 1 \vert \boldsymbol{\mathcal{\pi}}_{\theta}\right)
-    }
-    }
-    \\ &=
-    \sum_{d \in \boldsymbol{\mathcal{D}}} {
-    \mu \big[
-        \boldsymbol{\pi}_\phi(d)
-    \big]
-    \cdot y_d
-    }
-    \\ &=
-    \Delta \left( \boldsymbol{\mathcal{\pi}}_\phi, \boldsymbol{y}\right)
-    \,.
-\end{aligned}
-\label{eq:ipw_unbiased}
-\end{equation}
+\end{equation*}
 $$
-
-Note that this estimator sums only over the results where the relevance feedback is observed (i.e. \(\ o(d) = 1\)) and positive (i.e. \(\ y_d = 1\)). Therefore, we only need the propensities \(\ P\left(o_d = 1 \vert \boldsymbol{\mathcal{\pi}}\right)\) for the relevant documents, which means that we do not have to disambiguate whether lack of positive feedback (e.g., the lack of a click) is due to a lack of relevance or due to missing the observation (e.g., result not relevant vs. not viewed). An additional requirement for making \(\ \Delta_\text{IPS}\) computable while remaining unbiased is that the propensities only depend on observable information.
 
 
 
@@ -1125,63 +1170,62 @@ In this paper, [Ai et al. (2018)][ai_2018] also provided a rigorous proof that t
 
 
 
-<a name="regression-em"></a>
 ### 4.2.6. Regression EM
 
 [Wang et al. (2018)][regressionem] proposed a different approach called **Regression EM** to estimate the position bias without having to randomize the search results ordering in online setting. The idea is to use the Expectation-Maximization (EM) algorithm to estimate the position bias. The key idea is to treat the position bias as a latent variable and estimate it using the EM algorithm.
 
 Why do we need this? Is it more effective? Does it converge faster than DLA? No, but turns out that this algorithm can estimate not only position bias but some other types of biases as well, which will be handy in the next section where we will discuss trust bias and other types of biases.
 
-Let's define some shorthand notations for the examination \(P(e = 1)\) and relevance \(P(y = 1)\) probabilities for document \(d\) at position \(k = \mathrm{rank}(d \vert \boldsymbol{\mathcal{\pi}})\):
+Let's define some shorthand notations for the examination \(P(e = 1)\) and relevance \(P(y = 1)\) probabilities for document \(d\) at position \(k = \boldsymbol{\mathcal{\pi}}(d)\):
 
 $$
 \begin{equation*}
-    \alpha_k = P\left( e = 1 \vert k \right) \,, \quad
-    \beta_{q,d} = P\left( y = 1 \vert \boldsymbol{q}, d \right)
+    \theta_k = P\left( e = 1 \vert k \right) \,, \quad
+    \gamma_{q,d} = P\left( y = 1 \vert \boldsymbol{q}, d \right)
 \end{equation*}
 $$
 
-Note that, in the PBM model, the examination probability \(\alpha_k\) only depends on the rank \(k\), and the relevance probability \(\beta_{\boldsymbol{q},d}\) only depends on the query \(q\) and the document \(d\). We are using the terms *examination* and *observation* interchangeably here. This is because in the PBM model, these two events are the same. Given a regular click log \(\boldsymbol{\mathcal{L}} = \{ c, \boldsymbol{\mathcal{q}}, d, k \}\), the likelihood of getting this log data is:
+Note that, in the PBM model, the examination probability \(\theta_k\) only depends on the rank \(k\), and the relevance probability \(\gamma_{\boldsymbol{q},d}\) only depends on the query \(q\) and the document \(d\). We are using the terms *examination* and *observation* interchangeably here. This is because in the PBM model, these two events are the same. Given a regular click log \(\boldsymbol{\mathcal{L}} = \{ c, \boldsymbol{\mathcal{q}}, d, k \}\), the likelihood of getting this log data is:
 
 $$
 \begin{equation*}
     \log P\left( \boldsymbol{\mathcal{L}} \right) = \sum_{c, \boldsymbol{q}, d, k} {
-    c \cdot \log \left( \alpha_k \cdot \beta_{\boldsymbol{q},d} \right)
-    + (1 - c) \cdot \log \left( 1 - \alpha_k \cdot \beta_{\boldsymbol{q},d} \right)
+    c \cdot \log \left( \theta_k \cdot \gamma_{\boldsymbol{q},d} \right)
+    + (1 - c) \cdot \log \left( 1 - \theta_k \cdot \gamma_{\boldsymbol{q},d} \right)
     }
 \end{equation*}
 $$
 
-The **Regression EM** then finds the parameters \(\alpha_k\) and \(\beta_{\boldsymbol{q},d}\) that maximize the likelihood of the click log data. Similar to the standard EM process, the *Regression EM* process consists of two steps: the *Expectation* (E) step and the *Maximization* (M) step. In the *Expectation* step, we estimate the probabilities of examination and relevance for each document at each rank using the latent variables \(\alpha_k\) and \(\beta_{\boldsymbol{q},d}\). In the *Maximization* step, we update these latent variables using a regression model.
+The **Regression EM** then finds the parameters \(\theta_k\) and \(\gamma_{\boldsymbol{q},d}\) that maximize the likelihood of the click log data. Similar to the standard EM process, the *Regression EM* process consists of two steps: the *Expectation* (E) step and the *Maximization* (M) step. In the *Expectation* step, we estimate the probabilities of examination and relevance for each document at each rank using the latent variables \(\theta_k\) and \(\gamma_{\boldsymbol{q},d}\). In the *Maximization* step, we update these latent variables using a regression model.
 
-Although the PBM model is not widely used in practice anymore (other than as a baseline to compare against), for educational purposes let's take a closer look at the Regression-EM process designed for PBM model, as originally proposed by [Wang et al. (2018)][regressionem]. During the *Expectation* (E) step of iteration \(t + 1\), we estimate the distribution of hidden events \(y\) (relevance) and \(e\) (examination) given the current model parameters \(\alpha_k^{(t)}\) and \(\beta_{q,d}^{(t)}\) and the observed data log \(\boldsymbol{\mathcal{L}}\) as follows:
+Although the PBM model is not widely used in practice anymore (other than as a baseline to compare against), for educational purposes let's take a closer look at the Regression-EM process designed for PBM model, as originally proposed by [Wang et al. (2018)][regressionem]. During the *Expectation* (E) step of iteration \(t + 1\), we estimate the distribution of hidden events \(y\) (relevance) and \(e\) (examination) given the current model parameters \(\theta_k^{(t)}\) and \(\gamma_{q,d}^{(t)}\) and the observed data log \(\boldsymbol{\mathcal{L}}\) as follows:
 
 $$
 \begin{align*}
     P(e = 1, y = 1 \mid c = 1, \boldsymbol{q}, d, k) &= 1 \\
-    P(e = 1, y = 0 \mid c = 0, \boldsymbol{q}, d, k) &= \frac{\alpha_{k}^{(t)} \left( 1 - \beta_{\boldsymbol{q},d}^{(t)} \right)}{1 - \alpha_{k}^{(t)} \beta_{\boldsymbol{q},d}^{(t)}} \\
-    P(e = 0, y = 1 \mid c = 0, \boldsymbol{q}, d, k) &= \frac{\left( 1 - \alpha_{k}^{(t)} \right) \beta_{\boldsymbol{q},d}^{(t)}}{1 - \alpha_{k}^{(t)} \beta_{\boldsymbol{q},d}^{(t)}} \\
-    P(e = 0, y = 0 \mid c = 0, \boldsymbol{q}, d, k) &= \frac{\left( 1 - \alpha_{k}^{(t)} \right) \left( 1 - \beta_{\boldsymbol{q},d}^{(t)} \right)}{1 - \alpha_{k}^{(t)} \beta_{\boldsymbol{q},d}^{(t)}}
+    P(e = 1, y = 0 \mid c = 0, \boldsymbol{q}, d, k) &= \frac{\theta_k{k}^{(t)} \left( 1 - \gamma_{\boldsymbol{q},d}^{(t)} \right)}{1 - \theta_k{k}^{(t)} \gamma_{\boldsymbol{q},d}^{(t)}} \\
+    P(e = 0, y = 1 \mid c = 0, \boldsymbol{q}, d, k) &= \frac{\left( 1 - \theta_k{k}^{(t)} \right) \gamma_{\boldsymbol{q},d}^{(t)}}{1 - \theta_k{k}^{(t)} \gamma_{\boldsymbol{q},d}^{(t)}} \\
+    P(e = 0, y = 0 \mid c = 0, \boldsymbol{q}, d, k) &= \frac{\left( 1 - \theta_k{k}^{(t)} \right) \left( 1 - \gamma_{\boldsymbol{q},d}^{(t)} \right)}{1 - \theta_k{k}^{(t)} \gamma_{\boldsymbol{q},d}^{(t)}}
 \end{align*}
 $$
 
-With these relations, we can calculate marginals \( P(e = 1 \mid c, \boldsymbol{q}, d, k) \) and \( P(y = 1 \mid c, \boldsymbol{q}, d, k) \) from the log data \( \boldsymbol{\mathcal{L}} \) and the current model parameters \( \alpha_k^{(t)} \) and \( \beta_{\boldsymbol{q},d}^{(t)} \). This can be seen as complete data where hidden variables are estimated. Then, in the *Maximization* (M) step, we update the model parameters using the estimated marginals:
+With these relations, we can calculate marginals \( P(e = 1 \mid c, \boldsymbol{q}, d, k) \) and \( P(y = 1 \mid c, \boldsymbol{q}, d, k) \) from the log data \( \boldsymbol{\mathcal{L}} \) and the current model parameters \( \theta_k^{(t)} \) and \( \gamma_{\boldsymbol{q},d}^{(t)} \). This can be seen as complete data where hidden variables are estimated. Then, in the *Maximization* (M) step, we update the model parameters using the estimated marginals:
 
 $$
 \begin{equation*}
-    \alpha_{k}^{(t+1)} = \frac{\sum_{c,\boldsymbol{q},d,k'} \mathbb{I}_{k' = k} \cdot \left( c + (1 - c) P(e = 1 \mid c, \boldsymbol{q}, d, k) \right)}{\sum_{c,\boldsymbol{q},d,k'} \mathbb{I}_{k' = k}}
+    \theta_k{k}^{(t+1)} = \frac{\sum_{c,\boldsymbol{q},d,k'} \mathbb{I}_{k' = k} \cdot \left( c + (1 - c) P(e = 1 \mid c, \boldsymbol{q}, d, k) \right)}{\sum_{c,\boldsymbol{q},d,k'} \mathbb{I}_{k' = k}}
 \end{equation*}
 $$
 
-Although it is possible to express \(\beta_{\boldsymbol{q},d}^{(t+1)}\) in a similar way, it is more complex because it depends on the query \(\boldsymbol{q}\) and the document \(d\). We simply might not have enough samples to estimate it accurately. Therefore, [Wang et al. (2018)][regressionem] proposed to learn it from features &mdash; this way, we can generalize the model to unseen queries and documents, as well as discover the underlying patterns in the data. By sampling \(\hat{y} \sim P(y = 1 \mid c, \boldsymbol{q}, d, k)\) and having the features \(\boldsymbol{x}_{\boldsymbol{q},d}\) for the query-document pair, we can treat it as a classification problem and optimize the log likelihood of the observed data:
+Although it is possible to express \(\gamma_{\boldsymbol{q},d}^{(t+1)}\) in a similar way, it is more complex because it depends on the query \(\boldsymbol{q}\) and the document \(d\). We simply might not have enough samples to estimate it accurately. Therefore, [Wang et al. (2018)][regressionem] proposed to learn it from features &mdash; this way, we can generalize the model to unseen queries and documents, as well as discover the underlying patterns in the data. By sampling \(\hat{y} \sim P(y = 1 \mid c, \boldsymbol{q}, d, k)\) and having the features \(\boldsymbol{x}_{\boldsymbol{q},d}\) for the query-document pair, we can treat it as a classification problem and optimize the log likelihood of the observed data:
 
 $$
 \begin{equation*}
-    \sum_{\boldsymbol{x}, \hat{y}} \hat{y} \log \left( f_\theta \left( \boldsymbol{x} \right) \right) + \left( 1 - \hat{y} \right) \log \left( 1 - f_\theta \left( \boldsymbol{x} \right) \right)
+    \sum_{\boldsymbol{x}, \hat{y}} \hat{y} \log \left( f \left( \boldsymbol{x} \right) \right) + \left( 1 - \hat{y} \right) \log \left( 1 - f \left( \boldsymbol{x} \right) \right)
 \end{equation*}
 $$
 
-After learning the model \( f_\theta \), we can use it to estimate the relevance probability \( \beta_{\boldsymbol{q},d}^{(t+1)} = f_\theta \left( \boldsymbol{x}_{\boldsymbol{q},d} \right) \) for any query-document pair. The (E) and (M) steps are repeated until convergence.
+After learning the model \( f \), we can use it to estimate the relevance probability \( \gamma_{\boldsymbol{q},d}^{(t+1)} = f \left( \boldsymbol{x}_{\boldsymbol{q},d} \right) \) for any query-document pair. The (E) and (M) steps are repeated until convergence.
 
 
 
@@ -1478,7 +1522,7 @@ This assumption does not always hold true. Moreover, there are many other biases
 
 Unlike PBM, the Cascading Model, first analyzed in the works of [Craswell & Taylor (2008)][experimental_comparison_of_click_models], does not assume that the act of observing an item is independent from other items. Instead, it assumes that the user will scan documents on the SERP page from top to bottom **until they find a relevant document.** Hence, observation (or examination) depends not only on the position of the document but also on the relevance of previously seen items.
 
-Given the displayed ranking \(\boldsymbol{\mathcal{\pi}} = \{ \boldsymbol{\mathcal{\pi}}_1, \ldots, \boldsymbol{\mathcal{\pi}}_k \}\) for the user query \(\boldsymbol{\mathcal{q}}\), the probability of the user clicking on a document \(d\) at position \(\mathrm{rank}(d \vert \boldsymbol{\mathcal{\pi}})\) can be expressed as:
+Given the displayed ranking \(\boldsymbol{\mathcal{\pi}} = \{ \boldsymbol{\mathcal{\pi}}_1, \ldots, \boldsymbol{\mathcal{\pi}}_k \}\) for the user query \(\boldsymbol{\mathcal{q}}\), the probability of the user clicking on a document \(d\) at position \(\boldsymbol{\mathcal{\pi}}(d)\) can be expressed as:
 
 $$
 \begin{equation*}
@@ -1501,7 +1545,7 @@ $$
     }}
     \cdot
     {\underbrace{
-    \prod_{i=1}^{\mathrm{rank}(d\vert \boldsymbol{\mathcal{\pi}})-1}
+    \prod_{i=1}^{\boldsymbol{\mathcal{\pi}}(d)-1}
     \left( 1 - P \left(y_{\boldsymbol{\mathcal{\pi}}_i} = 1 \vert \boldsymbol{\mathcal{\pi}} \right) \right)
     }_{
     \substack{
@@ -1523,7 +1567,7 @@ $$
     P \left(y_d = 1 \vert \boldsymbol{\mathcal{\pi}} \right)
     \cdot
     {\underbrace{
-    P \left(e_d = 1 \vert c_1, \ldots, c_{\mathrm{rank}(d\vert \boldsymbol{\mathcal{\pi}})-1} \right)
+    P \left(e_d = 1 \vert c_1, \ldots, c_{\boldsymbol{\mathcal{\pi}}(d)-1} \right)
     }_{
     \substack{
         \text{Probability examination of document } d \\
@@ -1546,9 +1590,9 @@ Instead of global propensities like in PBM, this formulation of cascade model re
 
   $$
   \begin{equation*}
-        P_{\text{DCM}} \left(e_d = 1 \vert \{ c_i \}_{i < \mathrm{rank}(d\vert \boldsymbol{\mathcal{\pi}})-1} \right)
+        P_{\text{DCM}} \left(e_d = 1 \vert \{ c_i \}_{i < \boldsymbol{\mathcal{\pi}}(d)-1} \right)
         =
-        \prod_{i=1}^{\mathrm{rank}(d\vert \boldsymbol{\mathcal{\pi}})-1}
+        \prod_{i=1}^{\boldsymbol{\mathcal{\pi}}(d)-1}
         \left( c_i \cdot \lambda_i \right) + \left( 1 - c_i \right)
   \end{equation*}
   $$
@@ -1557,9 +1601,9 @@ Instead of global propensities like in PBM, this formulation of cascade model re
 
   $$
   \begin{equation*}
-        P_{\text{DBN}} \left(e_d = 1 \vert \{ c_i \}_{i < \mathrm{rank}(d\vert \boldsymbol{\mathcal{\pi}})-1} \right)
+        P_{\text{DBN}} \left(e_d = 1 \vert \{ c_i \}_{i < \boldsymbol{\mathcal{\pi}}(d)-1} \right)
         =
-        \prod_{i=1}^{\mathrm{rank}(d\vert \boldsymbol{\mathcal{\pi}})-1}
+        \prod_{i=1}^{\boldsymbol{\mathcal{\pi}}(d)-1}
         \gamma \cdot \left (1 - c_i \cdot s_{\boldsymbol{\mathcal{\pi}}_i} \right)
   \end{equation*}
   $$
@@ -1569,24 +1613,23 @@ These examination probabilities can be easily plugged back into the IPS framewor
 $$
 \begin{equation*} \tag{IPS-CM}
     \Delta_{\text{IPS-CM}} \left(
-        \boldsymbol{\mathcal{\pi}}_\phi, \boldsymbol{\mathcal{y}} \vert
-        \boldsymbol{\pi}_\theta
+        \boldsymbol{\mathcal{\pi}}, \boldsymbol{\mathcal{y}}
     \right)
     =
     \sum_{d \colon o_d = 1} {
         \frac{
         \mu \big[
-            \boldsymbol{\pi}_\phi(d)
+            \boldsymbol{\pi}
         \big]
         \cdot y_d
         }{
-        P \left(e_d = 1 \vert \{ c_i \}_{i < \mathrm{rank}(d\vert \boldsymbol{\mathcal{\pi}}_\theta)-1} \right)
+        P \left(e_d = 1 \vert \{ c_i \}_{i < \boldsymbol{\mathcal{\pi}} (d)-1} \right)
         }
     }
 \end{equation*}
 $$
 
-Some other extensions of the Cascading Model are described in [Chulkin et al. (2015)][clickmodelsforwebsearch], including multiple clicks per session (impression) and abandoning a session without clicking. Deriving a bias term for them should not pose any difficulties for the reader after understanding the DCM and DBN models.
+Some other extensions of the Cascading Model are described in [Chulkin et al. (2015)][clickmodelsforwebsearch], including multiple clicks per session (impression) and abandoning a session without clicking. Deriving a bias term for them should not pose any difficulties for the reader after understanding the DCM and DBN models. Just as in the case of IPS, we can apply the discounting coefficients to estimate a ranked list \(\boldsymbol{\pi}_\phi\) given the logging policy \(\boldsymbol{\pi}_\theta\).
 
 
 
@@ -1594,7 +1637,7 @@ Some other extensions of the Cascading Model are described in [Chulkin et al. (2
 
 When your search engine become good enough, users will start to trust it. They are more likely to perceive the top documents on the SERP page to be relevant, even when the displayed information about the item suggests otherwise. This is called the **trust bias**.
 
-The trust bias can be modelled by distinguishing **real relevance** \(y_d\) of a document \(d\) (as proposed by [Agarwal et al. 2019][agarwal_trust_2019]) and **perceived relevance** \(\hat{y}_d\). Trust bias occurs because users are more likely to perceive top items as relevant \(\hat{y}_d = 1\). In this model, a click happens when the user observes and perceives an item to be relevant, thus the click probability of document \(d\) at position \(k = \mathrm{rank}(d \vert \boldsymbol{\mathcal{\pi}})\) can be expressed as:
+The trust bias can be modelled by distinguishing **real relevance** \(y_d\) of a document \(d\) (as proposed by [Agarwal et al. 2019][agarwal_trust_2019]) and **perceived relevance** \(\hat{y}_d\). Trust bias occurs because users are more likely to perceive top items as relevant \(\hat{y}_d = 1\). In this model, a click happens when the user observes and perceives an item to be relevant, thus the click probability of document \(d\) at position \(k = \boldsymbol{\mathcal{\pi}}(d)\) can be expressed as:
 
 $$
 \begin{equation*}
@@ -1649,17 +1692,17 @@ Which means that the true relevance probability \(P(y = 1 \vert \boldsymbol{q}, 
 $$
 \begin{align*}
     \Delta_{\text{Affine}} \left(
-        \boldsymbol{\pi}_{\mathcal{W}}
+        \boldsymbol{\pi}
     \right)
     & =
-    \sum_{d \in \boldsymbol{\pi}_{\mathcal{W}}} {
+    \sum_{d \in \boldsymbol{\pi}} {
         \frac{
-            c_d - \beta_{\boldsymbol{\pi}_{\mathcal{W}}(d)}
+            c_d - \beta_{\boldsymbol{\pi}}(d)
         }{
-            \alpha_{\boldsymbol{\pi}_{\mathcal{W}}(d)}
+            \alpha_{\boldsymbol{\pi}(d)}
         }
         \cdot \mu \big[
-            \boldsymbol{\pi}_{\mathcal{W}}(d)
+            \boldsymbol{\pi}(d)
         \big]
     }
     \\ & =
@@ -1667,18 +1710,18 @@ $$
         \frac{
             c_d - \theta_{\boldsymbol{\pi}_{\mathcal{W}}(d)} \cdot \epsilon_{\boldsymbol{\pi}_{\mathcal{W}}(d)}^-
         }{
-            \theta_{\boldsymbol{\pi}_\mathcal{W}(d)} \cdot (\epsilon_{\boldsymbol{\pi}_\mathcal{W}(d)}^+ - \epsilon_ {\boldsymbol{\pi}_\mathcal{W}(d)}^-)
+            \theta_{\boldsymbol{\pi}(d)} \cdot (\epsilon_{\boldsymbol{\pi}(d)}^+ - \epsilon_ {\boldsymbol{\pi}(d)}^-)
         }
-        \cdot \mu \big[\boldsymbol{\pi}_\mathcal{W}(d)]
+        \cdot \mu \big[\boldsymbol{\pi}(d)]
     }
     \\ & =
     \sum_{d \in \boldsymbol{\pi}_{\mathcal{W}}} {
         \frac{
             c_d - \zeta^-_{\boldsymbol{\pi}_{\mathcal{W}}(d)}
         }{
-            \zeta^+_{\boldsymbol{\pi}_\mathcal{W}(d)} - \zeta^-_{\boldsymbol{\pi}_\mathcal{W}(d)}
+            \zeta^+_{\boldsymbol{\pi}(d)} - \zeta^-_{\boldsymbol{\pi}(d)}
         }
-        \cdot \mu \big[\boldsymbol{\pi}_\mathcal{W}(d)]
+        \cdot \mu \big[\boldsymbol{\pi}(d)]
     }
     \tag{Affine}
     \label{eq:affineestimator}
@@ -1699,12 +1742,12 @@ The most problematic bias in learning from user behavior (clicks) is the **item 
 
 [Oosterhuis and Rijke (2020)][oosterhuis_selectionbias] proposed a simple solution to this. They argued that, in top-K ranking, we have a clear cut of K documents to show to the user, so the probability of collecting feedback for other documents is zero. What if we show more documents accross multiple sessions of the same query?
 
-Instead of a single logging policy \( f_{\text{log}} \), they proposed to use a set of logging policies \( f_{\text{log}} = \{ f_1, \ldots, f_M \} \) that are diverse enough that each (potentially relevant) document is displayed with a non-zero chance. In other words, among the returned ranked lists \( \boldsymbol{\mathcal{\pi}}_1, \ldots, \boldsymbol{\mathcal{\pi}}_M \) for the query \( \boldsymbol{q} \), at least one of them contains the document \(d\). The unbiased estimator for the item selection bias is then:
+Instead of a single logging policy \( f_{\text{log}} \), they proposed to use a set of logging policies \( f_{\text{log}} = \{ f_1, \ldots, f_M \} \) that are diverse enough that each (potentially relevant) document is displayed with a non-zero chance. In other words, among the returned ranked lists \( \boldsymbol{\mathcal{\pi}}_1, \ldots, \boldsymbol{\mathcal{\pi}}_M \) for the query \( \boldsymbol{q} \), at least one of them contains the document \(d\). The unbiased estimator for the item selection bias of a ranking \(\boldsymbol{\pi}_{\mathcal{W}}\) given the set of ranked lists \( \{ \boldsymbol{\pi}_i \}_{i = 1}^M \) taken from the logging policies \( f_1, \ldots, f_M \) is then:
 
 $$
 \begin{equation*} \tag{IPS-Sel}
     \Delta_{\text{IPS-Selection}} \left(
-        \boldsymbol{\pi}_{\mathcal{W}}
+        \boldsymbol{\pi}_{\mathcal{W}} \,\vert\, \{ \boldsymbol{\pi}_i \}_{i = 1}^M
     \right)
     =
     \sum_{d \in \boldsymbol{\pi}_{\mathcal{W}}} {
@@ -1890,10 +1933,11 @@ It is very tempting, given the recent hype of neural networks, to jump right awa
 Such a model will, figuratively speaking, squeeze every bit of predictive power from the features you have. Then, you can use the clicks as features during the fine-tuning stage. This way, you will have a model that is not lazy and has a good predictive power, and you will use the clicks as an additional powerful signal to further improve the model's relevance. For GBDTs, it simply means training the first N trees without clicks (LightGBM has a `init_model` parameter for that), and then training the rest of the trees with clicks. Same idea can be applied to other highly biased signals to prevent lazy learning as well.
 
 
+### 5.2.4. Always ablate, don't trust academic benchmarks
 
+The ugly truth about Learning to Rank research is that, unlike other areas of machine learning, the academic benchmarks are not very reliable. The LETOR datasets are very small and not representative of the real-world data. The models that perform well on LETOR datasets might not perform well in the real-world setting. If you look at the ULTR papers, most of them studies the effectiveness of their algorithms in a simulated setting, since they don't have access to commercial RecSys data (mostly due to privacy concerns). The only way to know for sure is to rigorously ablate your model on your own data.
 
-<!-- ### 5.2.4. Always ablate, don't trust academic benchmarks -->
-
+A paper published this year by [Hager et al. (2024)][ultrmeetsreality] comparing various Unbiased Learning to Rank methods on the Baidu-ULTR dataset released for the WSDM Cup 2023 (collected from Baidus search engine) paints a grim picture of the current state of the field. Speaking informally from my own experience, I would say their assessment is more pessimistic than the reality, as the released dataset is clearly very noisy. However, the main point stands: always ablate your model on your own data, and don't trust the academic benchmarks.
 
 
 ## 5.3. Useful Resources
@@ -2001,6 +2045,8 @@ Recommendation: A Survey."][diversifying_survey] Implementations: https://github
 
 42. Tao Yang, Chen Luo, Hanqing Lu, Parth Gupta, Bing Yin, Qingyao Ai. ["Can clicks be both labels and features? Unbiased behavior feature collection and uncertainty-aware learning to rank."][can_clicks_be_features] In *Proceedings of the 45th International ACM SIGIR Conference on Research and Development in Information Retrieval* (SIGIR), 2022.
 
+43. Philipp Hager, Romain Deffayet, Jean-Michel Renders, Onno Zoeter, Maarten de Rijke. ["Unbiased Learning to Rank Meets Reality: Lessons from Baidu's Large-Scale Search Dataset"][ultrmeetsreality] In *Proceedings of the 47th International ACM SIGIR Conference on Research and Development in Information Retrieval* (SIGIR), 2024.
+
 
 
 [burges-ranknet]: https://www.microsoft.com/en-us/research/publication/learning-to-rank-using-gradient-descent/
@@ -2045,3 +2091,4 @@ Recommendation: A Survey."][diversifying_survey] Implementations: https://github
 [diversifying_search_results]: https://dl.acm.org/doi/10.1145/1498759.1498766
 [diversifying_survey]: https://arxiv.org/pdf/2212.14464
 [can_clicks_be_features]: https://www.amazon.science/publications/can-clicks-be-both-labels-and-features-unbiased-behavior-feature-collection-and-uncertainty-aware-learning-to-rank
+[ultrmeetsreality]: https://dl.acm.org/doi/10.1145/3626772.3657892

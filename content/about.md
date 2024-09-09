@@ -16,7 +16,7 @@ timeline:
     position: "ML Engineer"
     location: "Seattle, USA"
     description: >-
-      Developing web-scale image/video search relevance ranking models at [Bing](https://www.bing.com/images/search?q=cat). Scaled up and accelerated training pipelines. Improved relevance and stability metrics.
+      Developing web-scale image/video search relevance ranking models at [Bing](https://www.bing.com/images/search?q=cat). I feel incredibly fortunate to work with amazing people who are much smarter than me!
     logoImg:
       src: /img/microsoft.svg
       imgStyle: "width: 60%; border-radius: 25%;"

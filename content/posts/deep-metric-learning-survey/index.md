@@ -4,7 +4,7 @@ url: "/articles/deep-metric-learning-survey"
 date: 2021-06-14T00:00:00+00:00
 # weight: 1
 # aliases: ["/first"]
-tags: ["Contrastive Learning", "RecSys", "Survey"]
+tags: ["Information Retrieval", "RecSys", "Survey"]
 author: "Kha Vu Chan"
 # author: ["Me", "You"] # multiple authors
 showToc: true
