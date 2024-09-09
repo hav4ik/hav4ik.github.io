@@ -102,7 +102,9 @@ params:
     - name: kaggle
       url: "https://www.kaggle.com/chankhavu"
 
-  # analytics:
+  analytics:
+    microsoftClarity:
+      projectId: cadm0zko4j
   #   google:
   #     SiteVerificationTag: "XYZabc"
   #   bing:
