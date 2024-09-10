@@ -105,8 +105,8 @@ params:
   analytics:
     microsoftClarity:
       projectId: cadm0zko4j
-  #   google:
-  #     SiteVerificationTag: "XYZabc"
+    google:
+      SiteVerificationTag: "EW0sdEkc_piw9OdV15epJDIzrcye1Qs2fIl3TUxOzjU"
   #   bing:
   #     SiteVerificationTag: "XYZabc"
   #   yandex:
