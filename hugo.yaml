@@ -1,0 +1,185 @@
+baseURL: "https://hav4ik.github.io/"
+title: "Chan Kha Vu \U0001F1FA\U0001F1E6"
+paginate: 10
+theme: PaperMod
+
+enableRobotsTXT: true
+buildDrafts: false
+buildFuture: false
+buildExpired: false
+
+services:
+  googleAnalytics:
+    id: G-7DY2JXTNHX
+  disqus:
+    shortname: tranhavu
+
+minify:
+  disableXML: true
+  minifyOutput: true
+
+params:
+  env: production # to enable google analytics, opengraph, twitter-cards and schema.
+  title: Chan Kha Vu 🇺🇦
+  # This one is visible in OpenGraph, Twitter, whenever I share the blog.
+  description: >-
+    Hi, my name is Chan Kha Vu. I'm currently a Machine Learning engineer at Microsoft in Seattle, working on
+    ranking models at a search engine called Bing. This blog is a place where I share my thoughts and study notes on
+    machine learning, mathematics, and software engineering.
+  keywords: [Blog, Portfolio, RecSys, Machine Learning, Deep Learning, Math, Mathematics, Software Engineering]
+  author: Chan Kha Vu
+  # author: ["Me", "You"] # multiple authors
+  images: ["/img/hiking-hor.jpeg"]
+  DateFormat: "January 2, 2006"
+  defaultTheme: light # dark, light
+  disableThemeToggle: false
+
+  ShowReadingTime: true
+  ShowShareButtons: true
+  ShowPostNavLinks: true
+  ShowBreadCrumbs: true
+  ShowCodeCopyButtons: false
+  ShowWordCount: true
+  ShowRssButtonInSectionTermList: true
+  UseHugoToc: true
+  disableSpecial1stPost: false
+  disableScrollToTop: false
+  comments: false
+  hidemeta: false
+  hideSummary: false
+  showtoc: false
+  tocopen: false
+  math: true
+
+  assets:
+    # disableHLJS: true # to disable highlight.js
+    # disableFingerprinting: true
+    favicon: "assets/favicon.ico"
+    favicon16x16: "assets/favicon-16x16.png"
+    favicon32x32: "assets/favicon-32x32.png"
+    apple_touch_icon: "assets/apple-touch-icon.png"
+    # safari_pinned_tab: "<link / abs url>"
+
+  label:
+    text: "Vu's blog"
+    icon: /assets/ukraine_heart.png
+    iconHeight: 38
+
+  # profile-mode
+  profileMode:
+    enabled: false # needs to be explicitly set
+    title: Chan Kha Vu
+    subtitle: "A curious human being"
+    imageUrl: "/imapilot.jpg"
+    imageWidth: 400
+    imageHeight: 400
+    imageTitle: my image
+    buttons:
+      - name: Posts
+        url: posts
+      - name: Tags
+        url: tags
+
+  # home-info mode
+  homeInfoParams:
+    Title: "Heeey, welcome to Vu's blog \U0001F44B"
+    Content: >
+      Hi, my name is Chan Kha Vu. I'm currently a Machine Learning engineer at Microsoft in Seattle, working on
+      ranking models at a search engine called Bing. This blog is a place where I share my thoughts and study notes on
+      machine learning, mathematics, and software engineering.
+
+  socialIcons:
+    - name: x
+      url: "https://x.com/chankhavu"
+    - name: medium
+      url: "https://medium.com/@chankhavu"
+    - name: stackoverflow
+      url: "https://stackoverflow.com/users/4789373/chan-kha-vu"
+    - name: github
+      url: "https://github.com/hav4ik"
+    - name: linkedin
+      url: "https://www.linkedin.com/in/havuchan/"
+    - name: kaggle
+      url: "https://www.kaggle.com/chankhavu"
+
+  analytics:
+    microsoftClarity:
+      projectId: cadm0zko4j
+  #   google:
+  #     SiteVerificationTag: "XYZabc"
+  #   bing:
+  #     SiteVerificationTag: "XYZabc"
+  #   yandex:
+  #     SiteVerificationTag: "XYZabc"
+
+  cover:
+    hidden: true # hide everywhere but not in structured data
+    hiddenInList: true # hide on list pages and home
+    hiddenInSingle: true # hide on single page
+
+  editPost:
+    URL: "https://github.com/<path_to_repo>/content"
+    Text: "Suggest Changes" # edit text
+    appendFilePath: true # to append file path to Edit link
+
+  # for search
+  # https://fusejs.io/api/options.html
+  fuseOpts:
+    isCaseSensitive: false
+    shouldSort: true
+    location: 0
+    distance: 1000
+    threshold: 0.4
+    minMatchCharLength: 0
+    limit: 10 # refer: https://www.fusejs.io/api/methods.html#search
+    keys: ["title", "permalink", "summary", "content"]
+menu:
+  main:
+    - identifier: blog
+      name: Blog
+      url: /
+      weight: 1
+    - identifier: about
+      name: About
+      url: /about/
+      weight: 20
+    # - identifier: cv
+    #   name: CV
+    #   url: /files/cv.pdf
+    #   weight: 50
+    - identifier: archive
+      name: Archive
+      url: /archive/
+      weight: 40
+    - identifier: donations
+      name: "Stand with Ukraine \U0001F1FA\U0001F1E6"
+      url: https://savelife.in.ua/en/
+      weight: 100
+# Read: https://github.com/adityatelange/hugo-PaperMod/wiki/FAQs#using-hugos-syntax-highlighter-chroma
+pygmentsUseClasses: true
+markup:
+  highlight:
+    noClasses: false
+    # anchorLineNos: true
+    # codeFences: true
+    # guessSyntax: true
+    # lineNos: true
+    # style: monokai
+
+  goldmark:
+    renderer:
+        hardWraps: false
+        unsafe: true
+        xhtml: false
+    extensions:
+      passthrough:
+        delimiters:
+          block:
+          - - \[
+            - \]
+          - - $$
+            - $$
+          inline:
+          - - \(
+            - \)
+        enable: true
