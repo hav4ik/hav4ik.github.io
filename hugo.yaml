@@ -107,8 +107,8 @@ params:
       projectId: cadm0zko4j
     google:
       SiteVerificationTag: "EW0sdEkc_piw9OdV15epJDIzrcye1Qs2fIl3TUxOzjU"
-  #   bing:
-  #     SiteVerificationTag: "XYZabc"
+    bing:
+      SiteVerificationTag: "CE9741F7F9E1BED03F98CC596D385FB5"
   #   yandex:
   #     SiteVerificationTag: "XYZabc"
 
