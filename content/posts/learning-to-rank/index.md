@@ -35,10 +35,10 @@ cover:
     relative: true # when using page bundles set this to true
     hidden: false # only hide on current single page
     hiddenInList: false # hide in list view
-editPost:
-    URL: "https://github.com/hav4ik.github.io/content"
-    Text: "Suggest Changes" # edit text
-    appendFilePath: true # to append file path to Edit link
+# editPost:
+#     URL: "https://github.com/hav4ik/hav4ik.github.io/content"
+#     Text: "Suggest Changes" # edit text
+#     appendFilePath: true # to append file path to Edit link
 ---
 
 
@@ -51,7 +51,7 @@ Back then, even in my wildest dreams, I couldn't have imagined that 24 years old
 
 In this blog post, I'll walk you through the basic body of literature of [Learning to Rank (LTR)][ltr] algorithms, starting from the core metrics and supervised methods to the more recent paradigm of learning from user behavior. The list of papers that I'm going to cover is based on my personal learning notes (so, biased towards Web Search) and by no means exhaustive, but I hope it will give you a good starting point to dive deeper into the field.
 
-I'm far from an expert in this field (literally all my team members are more knowledgeable than me), so this post likely contains inaccuracies. If you spotted any mistakes in this post or if I'm completely wrong somewhere, please let me know.
+I'm far from an expert in this field (literally all my team members are more knowledgeable than me), so this post likely contains inaccuracies or I can be blatantly wrong in some places. The only reason I wrote this blog post is because I haven't found a good comprehensive introduction to LTR online. There are surveys and high-level lectures, but no detailed discussion of the core concepts in one place. So, I decided to write one myself. I hope you'll find it useful!
 
 ***Disclaimer:** all information in this blog post is taken from published research papers or publically available online articles. No [NDA][nda]s were violated. Only general knowledge is presented. You won't find any details specific to the inner working of [Bing][bing] or other search engines here :)*
 
@@ -66,7 +66,7 @@ I'm far from an expert in this field (literally all my team members are more kno
 
 # 1. How do search engines work?
 
-Not all search engines are built with the ambitious goal of "searching the whole internet." Tech giants like Quora, Netflix, Amazon, and Facebook have in-house search engines as well, created to recommend the best products, content, and movies that match the user’s search queries. Big online retail companies, for example, also have their own search engines. That's how they recommend you the products that you are more likely to be interested in, given your prior purchases.
+Not all search engines are built with the ambitious goal of "searching the whole internet." Tech giants like Quora, Netflix, Amazon, and Facebook have in-house search engines as well, created to recommend the best products, content, and movies that match the user’s search queries. Big online retail companies, for example, also have their own search engines.
 
 In information retrieval, the items that are being searched for (e.g. videos, books, web pages, etc.) are regarded as **documents.** All modern search engines, on the most abstract schematic level, have a similar underlying mechanism of searching for the most 
 relevant documents for a given query:
@@ -75,15 +75,18 @@ relevant documents for a given query:
 {{< figure src="search_engine.png" caption="Over-simplified general schema of search engines. Features extracted from all documents using the indexer are stored in the index database. For a search given query, top k documents are retrieved from the index database and then sorted by their relevance to the given query." invertible="true" >}}
 
 
-**Indexing** is performed continuously offline. At this step, meaningful features and signals from all crawled documents are extracted and stored in the Index database. For retail companies, these features can be as primitive as raw description or [TF-IDF][tfidf] of the product description together with its popularity and user rating. For web-scale search engines like Google and [Bing][bing], the index is constructed from thousands of different signals and compressed embeddings from state-of-the-art neural networks. Needless to say, feature engineering is extremely important, so the choice of what signals and features to extract is kept secret by each search engine to maintain the competitive edge on the market.
+**Indexing** is performed continuously offline. At this step, meaningful features and signals from all crawled documents are extracted and stored in the Index database. For retail companies, these features can be as primitive as raw description or [TF-IDF][tfidf] of the product description together with its popularity and user rating. For web-scale search engines like Google and [Bing][bing], there are multiple indexes:
+- [Inverted Index][inverted_index_wiki] (also referred to as *Posting list*) is used to store the mapping from words or terms back to documents. This index is then used to quickly find documents that contain a given word or term and compute term-based scores like [TF-IDF][tfidf] and [BM25][bm25].
+- [Vector Index][vector_index] is used to store the embeddings of documents and queries. These embeddings are usually computed using State-of-the-Art contrastive learning neural networks. For example, visual search may use [SigLIP][siglip_paper] embeddings, while text search may use BERT-like embeddings.
+- *Feature Index* constructed from thousands of different signals and compressed embeddings from state-of-the-art neural networks. These features are then used during the re-ranking stage. Needless to say, feature engineering is extremely important &mdash; the more expressive your features are, the better your ranking layer will perform.
 
-**Top-k Retrieval** (sometimes also called *"Level-0 Ranking"* or *"Matching"*) is performed on each user's query to retrieve the potentially relevant documents for the given query. For small search engines, simple text matching is usually enough at this stage. For web-scale search engines, a hybrid of keyword (entity) matching and [Embedding][embedding_in_ml]-based Retrieval is used. In Embedding-based Retrieval, an embedding vector is calculated for the given query, and then k nearest embedding vectors (by euclidean or cosine similarity) of all documents stored in the Index database are retrieved.
+**Top-k Retrieval** (sometimes also called *"Level-0 Ranking"* or *"Matching"*) is performed on each user's query to retrieve the potentially relevant documents for the given query. For small search engines, simple text matching is usually enough at this stage. For web-scale search engines, a hybrid of keyword (entity) matching (using Inverted Index) and [Embedding][embedding_in_ml]-based Retrieval is used. In Embedding-based Retrieval, an embedding vector is calculated for the given query, and then k nearest embedding vectors (by euclidean or cosine similarity) of all documents stored in the Vector Index database are retrieved. At this stage, general-purpose search engines can even use [knowledge graphs][google_knowledge_graph] to expand the query and retrieve more relevant documents.
 
 [Huang et al. (2020)][fbsearch_embedding] described in detail how Facebook Search is using Embedding-based Retrieval in their search engine. [Bing Search][bing], according to their [2018 blog post][bing_img_search_2018], calculates image embeddings in addition to text embeddings for their retrieval stage. Google's blog post ["Building a real-time embeddings similarity matching system"][google_building_retrieval] gives us a glimpse of how Embedding-based Retrieval is likely to be performed inside Google, although their inner system is for sure much more sophisticated than that, and is probably combined Rule-based Retrieval as well.
 
 Algorithmic nerds out there might find it interesting that metric trees (like [k-d tree][kdtree]) is not used in large-scale search engines due to their slow \( O(\log n) \) complexity and large memory consumption. Instead, [Approximate Nearest Neighbors (ANN)][ann_methods] search (like [LHS][lhs_hashing] or [PCA hashing][pca_hashing]) is used to achieve close to \(O(1)\) retrieval complexity. If you want to learn more about these algorithms, I highly recommend [this Medium post][ann_methods] about ANN search.
 
-**Ranking** is the step that actually makes search engines work. Retrieved documents from the previous step are then ranked by their relevance to the given query and (optionally) the user's preferences. While hand-crafted heuristics and rule-based methods for relevance ranking are often more than enough for small and even mid-sized search engines, all big names in the industry right now are using Machine-Learning (i.e. [Learning-to-Rank][ltr]) techniques for search results ranking.
+**Ranking** is the step that actually makes search engines work. Retrieved documents from the previous step are then ranked by their relevance to the given query and (optionally) the user's preferences. While hand-crafted heuristics and rule-based methods for relevance ranking are often more than enough for small and even mid-sized search engines, all big names in the industry right now are using Machine-Learning (i.e. [Learning-to-Rank][ltr]) techniques for search results ranking. This can be something as simple as classification or regression-based approaches to give a score to each document, or more general Learning-to-Rank techniques.
 
 There was a time when [PageRank][pagerank] was a sole ranking factor for Google, but they quickly moved to more sophisticated 
 ranking algorithms as more diverse features are extracted from web pages. As of 2020, [PageRank][pagerank] score is still a small part of Google's index, as [confirmed multiple times][pagerank_alive] by googlers. Interestingly, for a long time Google has resisted using machine learning for their core search ranking algorithm, as explained in [this Quora answer][google_hates_ml] from 2011 by a former Google engineer. For more information about Google's algorithm changes over years, [this blog post][google_algo_changes] is an excellent tracker of their recent publically known major changes.
@@ -94,6 +97,9 @@ ranking algorithms as more diverse features are extracted from web pages. As of 
 The following [diagram by researchers from Nvidia Merlin team][nvidia_merlin] (originally proposed by [Eugene Yan][ey_chart]) is a more truthful representation of a modern search engine. Check those amazing blogs out for more detailed information about the architecture of a search engine.
 
 {{< figure src="eugene_yan_chart.webp" caption="More detailed chart of actual stages of a modern search engine. This one is much more closer to the actual production-level search stack." invertible="true" >}}
+
+I would only add that at each stage, a combination of many different algorithms and models are used, instead of having just one paradigm as shown in this chart.
+
 
 
 [tfidf]: https://en.wikipedia.org/wiki/Tf%E2%80%93idf
@@ -116,6 +122,10 @@ The following [diagram by researchers from Nvidia Merlin team][nvidia_merlin] (o
 [ann_methods]: https://towardsdatascience.com/comprehensive-guide-to-approximate-nearest-neighbors-algorithms-8b94f057d6b6
 [nvidia_merlin]: https://medium.com/nvidia-merlin/recommender-systems-not-just-recommender-models-485c161c755e
 [ey_chart]: https://eugeneyan.com/writing/system-design-for-discovery/
+[inverted_index_wiki]: https://en.wikipedia.org/wiki/Inverted_index#:~:text=In%20computer%20science%2C%20an%20inverted,index%2C%20which%20maps%20from%20documents
+[vector_index]: https://medium.com/@myscale/understanding-vector-indexing-a-comprehensive-guide-d1abe36ccd3c
+[siglip_paper]: https://arxiv.org/abs/2303.15343
+[google_knowledge_graph]: https://support.google.com/knowledgepanel/answer/9787176?hl=en
 
 
 
@@ -162,7 +172,7 @@ Online and Counterfactual LTR are extremely important classes of LTR methods and
 
 ## 2.3. Relevance Ranking Metrics
 
-Information retrieval researchers use ranking quality metrics such as [Mean Average Precision (**MAP**)][map-explained] which I'm sure many of you are familiar with, [Mean Reciprocal Rank (**MRR**)][wiki-mrr], Expected Reciprocal Rank (**ERR**), and Normalized Discounted Cumulative Gain (**NDCG**) to evaluate the quality of search results ranking. The former two (MAP and MRR) are widely used for documents retrieval but not for search results ranking because they don't take into account the relevance score for each document.
+Information retrieval researchers use ranking quality metrics such as [Mean Average Precision (**MAP**)][map-explained] which I'm sure many of you are familiar with, [Mean Reciprocal Rank (**MRR**)][wiki-mrr], Expected Reciprocal Rank (**ERR**), and Normalized Discounted Cumulative Gain (**NDCG**) to evaluate the quality of search results ranking. The former two (MAP and MRR) are widely used for documents retrieval but not for search results ranking because they don't take into account the relevance score for each document. Of course, if you are okay with binary labels, you can use them as well, or you can modify the MRR to take into account the relevance score of each document.
 
 <a name="metrics-ndcg"></a>
 To define **NDCG (Normalized Discounted Cumulative Gain)**, first we need to define the DCG (Discounted Cumulative Gain) metric. For a given query, the DCG of a list of search results is defined as:
@@ -627,7 +637,7 @@ $$
 
 # 4. Introduction to Unbiased Learning to Rank
 
-In the previous section, we have learned how to train a ranker on labeled data, where each document-query pair is annotated with a score (from 1 to 5) that shows how relevant that document is to the given query. This process is very expensive: to ensure the objectivity of labeled score, the human labeler would have to go through a strict checklist with multiple questions, then the document's relevance score will be calculated from the given answers. [Google's guidelines for search quality rating][google_sqe_guidelines] is a clear example of how complicated that process is (167 pages of guideline).
+In the previous section, we have learned how to train a ranker on labeled data, where each document-query pair is annotated with a score (e.g. from 1 to 5) that shows how relevant that document is to the given query. This process is very expensive: to ensure the objectivity of labeled score, the human labeler would have to go through a strict checklist with multiple questions, then the document's relevance score will be calculated from the given answers. [Google's guidelines for search quality rating][google_sqe_guidelines] is a clear example of how complicated that process is (167 pages of guideline).
 
 One might wonder **why we can't just use user's clicks as relevance labels?** Which is quite a natural idea: clicks are the main way users interacts with our web page, and the more relevant the document is to the given query, the more likely it is going to be clicked on. In this section, we will learn about approaches that allows us to learn directly from click data.
 
@@ -684,7 +694,9 @@ Some frequently used notations for this section:
 </tr>
 </table>
 
-Please be aware that the notation used in this section are slightly different from the notation used in the original publications. This is because different authors prefer different notations styles and the bias models are slightly different from each other. This set of notations is my attempt to unify and simplify the notations used in different papers while preserving as much of the semantics as possible, at the cost of losing some of the flexibility and granularity of the original notations.
+Please be aware that the notation used in this section are slightly different from the notation used in the original publications. This is because different authors prefer different notations styles and the bias models are slightly different from each other. This set of notations is my attempt to unify and simplify the notations used in different papers for readability while preserving as much of the semantics as possible, at the cost of losing some of the flexibility and granularity of the original notations.
+
+When the query \( \boldsymbol{q} \) or the weights \( \theta \) are not explicitly needed in formulation or calculation, we will omit the superscript and subscript for brevity.
 
 
 
@@ -857,13 +869,13 @@ The biased estimator \( \Delta_{\text{naive}} \) weights documents according to 
 [iff_wiki]: https://en.wikipedia.org/wiki/If_and_only_if
 
 
-### 4.2.3. Inverse Propensity Weighting
+### 4.2.3. Inverse Propensity Scoring
 
-The naive estimator above can be easily de-biased by dividing each term by its bias factor. That's the basic idea of **Inverse Propensity Weighting** Estimator, first applied to the Learning to Rank problem in the works of [Joachims et al. (2016)][joachims_2016] and [Wang et al. (2016)][wang_2016]. For a ranking \( \boldsymbol{\pi} \) the IPS estimator is defined as:
+The naive estimator above can be easily de-biased by dividing each term by its bias factor. That's the basic idea of **Inverse Propensity Scoring** (or *Weighting*) Estimator, first applied to the Learning to Rank problem in the works of [Joachims et al. (2016)][joachims_2016] and [Wang et al. (2016)][wang_2016]. For a ranking \( \boldsymbol{\pi} \) the IPS estimator is defined as:
 
 $$
-\begin{equation*} \tag{IPW} \label{eq:ipw}
-    \Delta_{\text{IPW}} \left(
+\begin{equation*} \tag{IPS} \label{eq:ipw}
+    \Delta_{\text{IPS}} \left(
         \boldsymbol{\mathcal{\pi}}, \boldsymbol{\mathcal{y}}
     \right)
     =
@@ -887,7 +899,7 @@ $$
 \begin{aligned}
     \mathbb{E}_{\boldsymbol{o}^{\boldsymbol{q}}}
     \big[
-    \Delta_{\text{IPW}} \left(
+    \Delta_{\text{IPS}} \left(
         \boldsymbol{\mathcal{\pi}}, \boldsymbol{\mathcal{y}}
     \right)
     \big]
@@ -953,7 +965,7 @@ A neat thing about IPS estimator is that, having a logging policy \( f_\theta \)
 
 $$
 \begin{equation*}
-    \Delta_{\text{IPW}} \left(
+    \Delta_{\text{IPS}} \left(
         \boldsymbol{\mathcal{\pi}}_\phi, \boldsymbol{\mathcal{y}}
         \vert \boldsymbol{\mathcal{\pi}}_\theta
     \right)
@@ -976,8 +988,8 @@ The idea is simple: we treat the discounted click \( c_d / P\left(o_d = 1 \vert 
 It is almost guaranteed that in the real-world scenario, you would likely have a problem of **high variance** due to low quality (high noise) of the click data, not enough data, and noisy clicks on documents with smaller propensity. A simple solution is to clip the propensities:
 
 $$
-\begin{equation*} \tag{Clipped-IPW} \label{eq:ipwclipped}
-    \Delta_{\text{Clipped-IPW}} \left(
+\begin{equation*} \tag{Clipped-IPS} \label{eq:ipwclipped}
+    \Delta_{\text{Clipped-IPS}} \left(
         \boldsymbol{\mathcal{\pi}}, \boldsymbol{\mathcal{y}}
     \right)
     =
@@ -994,6 +1006,7 @@ $$
 \end{equation*}
 $$
 
+While clipping the propensities can help with the high variance, it can also introduce a **bias** in the estimation. The choice of the clipping threshold \( \tau \) is a trade-off between bias and variance. The higher the threshold, the lower the variance, but the higher the bias. The lower the threshold, the lower the bias, but the higher the variance.
 
 
 ### 4.2.4. Estimating Position Bias by Randomization
@@ -1184,6 +1197,8 @@ $$
     \gamma_{q,d} = P\left( y = 1 \vert \boldsymbol{q}, d \right)
 \end{equation*}
 $$
+
+I know what you're thinking. Using \(\theta\) both to denote model's weights and position bias is confusing. It's a deliberate choice to keep the notation consistent with the original paper. Hope you can understand the meaning from the context.
 
 Note that, in the PBM model, the examination probability \(\theta_k\) only depends on the rank \(k\), and the relevance probability \(\gamma_{\boldsymbol{q},d}\) only depends on the query \(q\) and the document \(d\). We are using the terms *examination* and *observation* interchangeably here. This is because in the PBM model, these two events are the same. Given a regular click log \(\boldsymbol{\mathcal{L}} = \{ c, \boldsymbol{\mathcal{q}}, d, k \}\), the likelihood of getting this log data is:
 
@@ -1919,6 +1934,10 @@ The issue of SERP diversity has been dicussed in Learning to Rank literature as 
 
 
 ### 5.2.4. Modelling and training tips
+
+**Prioritize supervised models first.** Don't even flirt with the idea of using user behavior before squeezing every bit of predictive power from your supervised dataset. Make sure you have the best possible supervised model! Maybe you don't even need to use clicks at all. Remember: your ranker is bottlenecked by the quality of your features and retrieval pipeline, so work on that first.
+
+If your documents count is small, you can try out classification-based approaches first. For larger action space, you can try out sigmoid classifiers as a baseline. Classifiers are much simpler to implement and interpret, and we all know them well. Ranking-base approaches are more powerful, but they are also more complex and require much, much more data.
 
 **Neural nets or trees?** It is very tempting to jump to latest and shiniest methods, but the first version of your ranking model will should be a supervised one. There's just too much complexity in the unbiased learning to rank algorithms to start with them. Moreover, if you don't have a large enough user base and a good spam/bots filter, you will likely have a lot of noise in your click data.
 
