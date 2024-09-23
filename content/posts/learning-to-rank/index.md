@@ -5,6 +5,7 @@ date: 2024-09-08T00:00:00+00:00
 # weight: 1
 # aliases: ["/first"]
 tags: ["RecSys", "Survey", "Machine Learning"]
+keywords: ["Learning to Rank", "LTR", "Machine Learning", "Information Retrieval", "RecSys", "Unbiased Learning to Rank", "Unbiased LTR", "Counterfactual Learning to Rank", "Counterfactual LTR", "Online Learning to Rank", "Online LTR", "Search Engine", "Web Search", "Ranking"]
 author: "Kha Vu Chan"
 # author: ["Me", "You"] # multiple authors
 showToc: true
@@ -193,10 +194,9 @@ $$
 
 where the denominator \( \max DCG@T \) is the maximum possible DCG for the given query and list of results, so that \( NDCG@T \in [0, 1] \). This is the most commonly used metric.
 
-<a name="fig-ndcg-at-10"></a>
 {{< figure src="ndcg_vis.png" caption="Visualization of NDCG@5 metric for different rankings of a collection of retrieved documents, with relevance (to a hypothetical query) scores \( \left[0, 0, 0, 0, 1, 2, 3, 4, 4, 5\right] \). Left: the best ranking (highest NDCG@5). Right: the worst ranking (lowest NDCG@5). Middle: a random ranking. Notice that the best ranking has the highest possible NDCG@5 of \( 1.00 \), while the worst ranking of the retrieved documents has a non-zero score, because it still has some relevant documents in the list. The only way to get zero NDCG@10 is to have no relevant documents in the list." invertible="true" >}}
 
-In [Figure 3](#fig-ndcg-at-10), you can see how the NDCG@5 metric behaves for different rankings. To get a better intuition on the NDCG metric and see how it behaves under different permutations, feel free to play around with the visualization script: [gist.github.com/hav4ik/100aa247eff4d3075db4f8314461f4c2](https://gist.github.com/hav4ik/100aa247eff4d3075db4f8314461f4c2).
+In the figure above, you can see how the NDCG@5 metric behaves for different rankings. To get a better intuition on the NDCG metric and see how it behaves under different permutations, feel free to play around with the visualization script: [gist.github.com/hav4ik/100aa247eff4d3075db4f8314461f4c2](https://gist.github.com/hav4ik/100aa247eff4d3075db4f8314461f4c2).
 
 <a name="metrics-err"></a>
 **ERR (Expected Reciprocal Rank)** is used when a user is assumed to read down the list of returned search results until they find the one that they like. ERR is defined as:
@@ -707,7 +707,6 @@ User click should be a good indicator that a document is relevant to the user, r
 **Position bias** occurs because users usually clicks on an item only after examining it, and users are more likely to examine the items displayed at the beginning of search results page, i.e. with higher ranks by the ranking model [(Craswell & Taylor, 2008)][experimental_comparison_of_click_models]. The best way to illustrate the effects of position bias is by tracking user's eyes while looking at returned search results:
 
 
-<a name="fig-click-google"></a>
 {{< figure src="eyetrack_heatmap_google.jpg" caption="Eye-tracking heatmaps for Google Search page in 2004 (left) and 2014 (right)." invertible="false" >}}
 
 
@@ -784,7 +783,6 @@ Having so many variables and functions to keep in mind can be confusing and make
 **Partial Information Learning to Rank.** In this setup, we don't know the true relevance \( \boldsymbol{\mathcal{y}}_d \) of each document and have to rely on user clicks, so we need to understand how the click biases plays out in practice. Let's take a look at toy example of a typical user session (also called "impression" in search and recommendation sysmtes) illustrated below:
 
 
-<a name="fig-fullinfo-vs-clickinfo"></a>
 {{< figure src="fullinfo_vs_clickinfo.png" caption="Toy example of a typical user session (also called **impression**). Left: full information setting when you know true relevance \(y(d)\) of each document. Right: partial information setting when you only have user click information and the true relevances \(y(d)\) are not known. If the document is relevant and is observed by the user, then we might observe a click (i.e. \(d_1\)). Non-relevant documents can still get user clicks due to noise or trust bias (i.e. \(d_3\)). Un-observed documents are not getting any clicks at all even if they're relevant (i.e. \(d_4\)). *(Source: [Oosterhuis et al.](https://ilps.github.io/webconf2020-tutorial-unbiased-ltr/WWW2020handout.pdf))*" invertible="true" >}}
 
 

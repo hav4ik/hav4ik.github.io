@@ -5,6 +5,7 @@ date: 2020-02-08T00:00:00+00:00
 # weight: 1
 # aliases: ["/first"]
 tags: ["Math"]
+keywords: ["interview", "tech", "math", "programming"]
 author: "Kha Vu Chan"
 # author: ["Me", "You"] # multiple authors
 showToc: false
@@ -15,7 +16,7 @@ comments: true
 # Migrated from the old blog
 disqus_identifier: "08 Feb 2020/articles/how-to-dominate-on-tech-interviews"
 summary: "Do you want to dominate your interviewer? Wanna bring him to his knees? Make him think that you're superior? I'll tell you how!"
-canonicalURL: "https://canonical.url/to/page"
+# canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs
 disableShare: false
 disableHLJS: false

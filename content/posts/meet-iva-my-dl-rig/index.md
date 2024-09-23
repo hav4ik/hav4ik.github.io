@@ -5,6 +5,7 @@ date: 2023-11-24T00:00:00+00:00
 # weight: 1
 # aliases: ["/first"]
 tags: ["Projects", "Hardware"]
+keywords: ["DL rig", "Deep Learning Rig", "3090 RTX", "Nvidia 3090 RTX"]
 author: "Kha Vu Chan"
 # author: ["Me", "You"] # multiple authors
 showToc: false
@@ -13,12 +14,12 @@ draft: false
 hidemeta: false
 comments: true
 disqus_identifier: hav4ik/meet-iva-my-dl-rig
-canonicalURL: "https://canonical.url/to/page"
+# canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs
 disableShare: false
 disableHLJS: false
 summary: >-
-    I built a cheap-ish 2x3090 RTX Deep Learning rig for my personal projects and experiments. I called it “Iva” — in honor of Oleksii Ivakhnenko from Ukraine, the Godfather of Deep Learning, who first developed an algorithm to train multi-layer perceptrons back in 1965.
+    I built a cheap-ish 2x3090 RTX Deep Learning rig for my personal projects and experiments. In this post, I will share my build philosophy, inspirations, and reasoning behind my component choices.
 hideSummary: false
 hideAuthor: true
 searchHidden: true

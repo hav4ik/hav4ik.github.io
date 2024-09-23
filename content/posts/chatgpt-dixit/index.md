@@ -5,6 +5,7 @@ date: 2023-02-13T00:00:00+00:00
 # weight: 1
 # aliases: ["/first"]
 tags: ["Projects", "LLM"]
+keywords: ["ChatGPT", "Dixit", "GPT-3", "OpenAI", "LLM"]
 author: "Kha Vu Chan"
 # author: ["Me", "You"] # multiple authors
 showToc: false
@@ -14,7 +15,7 @@ hidemeta: false
 comments: true
 disqus_identifier: hav4ik/chatgpt-dixit
 summary: "To celebrate the week of Bing’s integration with ChatGPT, I built an AI bot based on GPT-3 and BLIP-2 to play Dixit and gathered some friends and co-workers to play against it."
-canonicalURL: "https://canonical.url/to/page"
+# canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs
 disableShare: false
 disableHLJS: false

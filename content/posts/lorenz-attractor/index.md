@@ -5,6 +5,7 @@ url: /articles/lorenz-attractor
 # weight: 1
 # aliases: ["/first"]
 tags: ["Math"]
+keywords: ["Lorenz Attractor", "Smale\'s Problems", "Warwick Tucker", "Chaotic Systems", "SRB Measure", "Butterfly Effect"]
 author: "Kha Vu Chan"
 # author: ["Me", "You"] # multiple authors
 showToc: true
@@ -15,7 +16,7 @@ comments: true
 # Migrated from old blog
 disqus_identifier: "07 Jan 2019/articles/lorenz-attractor"
 summary: "The connection between the proof of the existance of the Lorenz Attractor, its Geometric Flow Model, and the Knot Theory Model."
-canonicalURL: "https://canonical.url/to/page"
+# canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs
 disableShare: false
 disableHLJS: false

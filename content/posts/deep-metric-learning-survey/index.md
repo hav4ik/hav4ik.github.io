@@ -5,6 +5,7 @@ date: 2021-06-14T00:00:00+00:00
 # weight: 1
 # aliases: ["/first"]
 tags: ["Information Retrieval", "RecSys", "Survey"]
+keywords: ["Metric Learning", "Deep Metric Learning", "RecSys", "Information Retrieval", "Survey", "Machine Learning"]
 author: "Kha Vu Chan"
 # author: ["Me", "You"] # multiple authors
 showToc: true
@@ -14,8 +15,8 @@ hidemeta: false
 comments: true
 # Migrated from the old blog
 disqus_identifier: "14 Jun 2021/articles/deep-metric-learning-survey"
-summary: "In this post, I'll briefly go over the common approaches for Deep Metric Learning, as well as the new methods proposed in recent years."
-canonicalURL: "https://canonical.url/to/page"
+summary: "A brief survey of common supervised approaches for Deep Metric Learning, as well as the new methods proposed in recent years."
+# canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs
 disableShare: false
 hideSummary: false

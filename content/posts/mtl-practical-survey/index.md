@@ -5,6 +5,7 @@ url: "/articles/mtl-a-practical-survey"
 # weight: 1
 # aliases: ["/first"]
 tags: ["Machine Learning", "Math", "Survey"]
+keywords: ["Multi-Task Learning", "Machine Learning", "Deep Learning", "Neural Networks", "Survey", "Multi-Objective Optimization", "Knowledge Distillation", "Catastrophic Forgetting"]
 author: "Kha Vu Chan"
 # author: ["Me", "You"] # multiple authors
 showToc: true
@@ -15,7 +16,7 @@ comments: true
 # Migrated from old blog
 disqus_identifier: "22 Jan 2019/articles/mtl-a-practical-survey"
 summary: "An in-depth survey on Multi-Task Learning techniques that works like a charm as-is right from the box and are easy to implement – just like instant noodle!"
-canonicalURL: "https://canonical.url/to/page"
+# canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs
 disableShare: false
 disableHLJS: false
