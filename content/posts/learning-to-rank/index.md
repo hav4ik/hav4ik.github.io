@@ -1,5 +1,5 @@
 ---
-title: "At the core of a Search Engine: Learning to Rank"
+title: "Learning to Rank in Web Search"
 url: "/learning-to-rank"
 date: 2024-09-08T00:00:00+00:00
 # weight: 1

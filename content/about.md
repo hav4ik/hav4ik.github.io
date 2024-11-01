@@ -4,7 +4,7 @@ title: "About"
 
 cover:  # this will not be displayed on the web page, but will be used for OG and Twitter
     image: /img/hiking-hor.jpeg # image path/url
-    alt: "Photo of Vu being happy with all the TPUs" # alt text
+    alt: "Photo of Vu hiking with a beautiful scenery of Oregon West Coast in the background" # alt text
 
 avatarImage: /img/hiking-vert.jpeg
 avatarMobileCrop: "top"
@@ -16,7 +16,7 @@ timeline:
     position: "ML Engineer"
     location: "Seattle, USA"
     description: >-
-      Developing web-scale image/video search relevance ranking models at [Bing](https://www.bing.com/images/search?q=cat). I feel incredibly fortunate to work with amazing people who are much smarter than me!
+      Developing web-scale image/video search relevance ranking models at [Bing](https://www.bing.com/images/search?q=cat). I feel incredibly fortunate to work with amazing people who are more experienced than me!
     logoImg:
       src: /img/microsoft.svg
       imgStyle: "width: 60%; border-radius: 25%;"
@@ -43,7 +43,7 @@ timeline:
       logoStyle: "background-color: #034ea2;"
       imgStyle: "width: 80%;"
   - time: "2017 &mdash; 2019"
-    institution: "Taras Shevchenko National University of Kyiv"
+    institution: "Taras Shevchenko National University, Ukraine"
     description: >-
       Master's degree in Applied Mathematics.
       Thesis: [*"Adaptive representation sharing in Multi-Task Networks"*](/files/ms_thesis.pdf)
@@ -51,7 +51,7 @@ timeline:
     logoImg:
       src: /img/knu.png
   - time: "2013 &mdash; 2017"
-    institution: "Taras Shevchenko National University of Kyiv"
+    institution: "Taras Shevchenko National University, Ukraine"
     description: >-
       Bachelor of Science in Applied Mathematics.
       Thesis: *"Breast Cancer Screening by analyzing the Interphase Nuclei of the Buccal Epithelium."*
@@ -89,7 +89,9 @@ otherSections:
 
 Hi, my name is Chan Kha Vu. I'm a ML engineer at [Microsoft][msft] in Seattle Area, currently working on image ranking models at [Bing][bing-image-search]. Every time you search for images on [Bing][bing-image-search], the final results page are formed by the models trained with my code!
 
-Previously, I worked at [Samsung Research][srk] on Monocular 3D Reconstruction, Multi-Task Learning, and optimizing Conv Nets for resource-constrained mobile devices. On a side for fun, I read (a lot of) Manga, [play Go][ogs] (feel free to send me a challenge), and a bit of [Kaggling][kaggle] (let's team up). I'm from Ukraine, by the way!
+Previously, I worked at [Samsung Research][srk] on Monocular 3D Reconstruction, Multi-Task Learning, and optimizing Conv Nets for mobile devices. I will never forget all the love and mentorship that I've received from my colleagues and friends at Samsung.
+
+On a side for fun, I read (a lot of) Manga, [play Go][ogs] (feel free to send me a challenge), and a bit of [Kaggling][kaggle] (let's team up).
 
 [msft]: https://www.microsoft.com
 [srk]: https://research.samsung.com/srukr
