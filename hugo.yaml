@@ -1,6 +1,5 @@
 baseURL: "https://hav4ik.github.io/"
 title: "Chan Kha Vu \U0001F1FA\U0001F1E6"
-paginate: 10
 theme: PaperMod
 
 enableRobotsTXT: true
