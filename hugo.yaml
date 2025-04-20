@@ -30,7 +30,7 @@ params:
   # author: ["Me", "You"] # multiple authors
   images: ["/img/hiking-hor.jpeg"]
   DateFormat: "January 2, 2006"
-  defaultTheme: auto # dark, light
+  defaultTheme: auto  # dark, light
   disableThemeToggle: false
 
   ShowReadingTime: true
