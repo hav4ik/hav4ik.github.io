@@ -151,7 +151,7 @@ menu:
       url: /archive/
       weight: 40
     - identifier: donations
-      name: "Stand with Ukraine \U0001F1FA\U0001F1E6"
+      name: "Stand with Ukraine"
       url: https://savelife.in.ua/en/
       weight: 100
 # Read: https://github.com/adityatelange/hugo-PaperMod/wiki/FAQs#using-hugos-syntax-highlighter-chroma
