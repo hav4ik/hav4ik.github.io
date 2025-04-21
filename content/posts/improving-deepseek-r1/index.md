@@ -284,9 +284,7 @@ I wasn’t able to reproduce the AIME’25 Pass@1 results for `DeepSeek-R1-Disti
 
 ## GRPO Experiments
 
-Now is the part that you came here for, and the main reason I wrote a separate blog post from [our team's short writeup on Kaggle](https://www.kaggle.com/competitions/ai-mathematical-olympiad-progress-prize-2/discussion/573496). I will try to describe some interesting experiments — mostly failed ones, ugly ones, and sometimes relatively good ones. I will even discuss experiments that I don’t even know how to interpret due to the lack of ablation studies (we don’t have budget for ablations, every experiment is a YOLO experiment).
-
-Now for the part you came for—and the main reason I wrote this blog post instead of just linking to [our team’s short write-up on Kaggle](https://www.kaggle.com/competitions/ai-mathematical-olympiad-progress-prize-2/discussion/573496). I’m going to walk through some of our most interesting experiments &mdash; mostly failed, occasionally ugly, and sometimes surprisingly decent. I’ll even include a few that I still don’t know how to interpret. Every experiment was a YOLO experiment since we couldn’t afford proper ablations.
+Now for the part you came for, and the main reason I wrote this blog post instead of just linking to [our team’s short write-up on Kaggle](https://www.kaggle.com/competitions/ai-mathematical-olympiad-progress-prize-2/discussion/573496). I’m going to walk through some of our most interesting experiments &mdash; mostly failed, occasionally ugly, and sometimes relatively good ones. I’ll even include a few that I still don’t know how to interpret. Every experiment was a YOLO experiment since we couldn’t afford proper ablation studies.
 
 {{< figure src="grpo_is_hard_tweet.png" caption="Self-funding long context GRPO runs is the most dumb, but also rewarding things I’ve ever done as a hobby." invertible="false" >}}
 
