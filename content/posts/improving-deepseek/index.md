@@ -1,5 +1,5 @@
 ---
-title: "Improving DeepSeek R1 in Math Olympiads"
+title: "Improving DeepSeek R1 in Math"
 url: "/improving-deepseek"
 date: 2025-04-18T00:00:00+00:00
 # weight: 1
@@ -243,3 +243,106 @@ It's easier to visualize the test-time scaling economy of our models with the fo
 --------------------------------------------
 
 
+## GRPO Experiments
+
+Now is the part that you came here for, and the main reason I wrote a separate blog post from [our team's short writeup on Kaggle](https://www.kaggle.com/competitions/ai-mathematical-olympiad-progress-prize-2/discussion/573496). I will try to describe some interesting experiments — mostly failed ones, ugly ones, and sometimes relatively good ones. I will even discuss experiments that I don’t even know how to interpret due to the lack of ablation studies (we don’t have budget for ablations, every experiment is a YOLO experiment).
+
+{{< figure src="grpo_is_hard_tweet.png" caption="Self-funding long context GRPO runs is the most dumb, but also rewarding things I’ve ever done as a hobby." invertible="false" >}}
+
+### Engineering bits 1: which framework?
+
+Every kid and their mom can GRPO these days thanks to libraries like [Unsloth](https://unsloth.ai/blog/r1-reasoning) or [TRL](https://huggingface.co/docs/trl/en/index) and show gains on GSM8K/MATH with generation length of less than 1K tokens. Doing Reinforcement Learning with reasoning traces of 8K, 16K, or even 24K tokens is a beast on another league!
+
+When DeepSeek-R1 paper was published, many research teams around the world rushed to reproduce their resutls — notably [Open-R1](https://github.com/huggingface/open-r1) with the TRL framework. At the time, the `GRPOTrainer` in TRL had serious scalability issues — only one device per node was used for Actor rollouts, and there was no way to collocate and offload models.
+
+[DeepScaleR-1.5B-Preview](https://www.notion.so/19681902c1468005bed8ca303013a4e2?pvs=21) was the first successful open-source attempt to perform Reinforcement Learning of reasoning LLM on long generations (up to 24K tokens per problem). They used [veRL](https://github.com/volcengine/verl) framework — a research-oriented and battle-tested RL framework for LLMs. It supports everything we need for long-context RL for reasoning models — it is memory optimal thanks to FSDP and CPU offloading, long-context capabilities with Sequence Packing and Ulysses for sequence parallelization, and zero-redundancy is achieved thanks to full model collocation.
+
+{{< figure src="frameworks_comparison.png" caption="Comparison table between HybridFlow (aka veRL framework) and other popular RLHF frameworks. This chart is now outdated &mdash; OpenRLHF now supports full collocation of all models, and TRL now supports most of the veRL features for long-context and zero-redundancy." invertible="true" >}}
+
+Moreover, some of the most recent research ideas like [DAPO](https://dapo-sia.github.io/) are implemented on top of veRL. For this reason, I decided to keep an active fork of veRL during the AIMO-2 competition: [github.com/hav4ik/verl/tree/dapo-lora](https://github.com/hav4ik/verl/tree/dapo-lora). In this branch, I merged the [DAPO](https://dapo-sia.github.io/) code to the most recent release of veRL, merged the [LoRA PR](https://github.com/volcengine/verl/pull/1127) and fixed FSDP wrapping and offloading issues (hope to make a push upstream when I have time), and kept merging the fixes and new techniques that got pushed to veRL’s main branch. This way, I always have the most cutting-edge code to work with.
+
+My teammates [Geremie Yeo](https://www.linkedin.com/in/geremie-yeo/), [Kelvin Soh](https://www.linkedin.com/in/kelvin-soh/), and [Raja Biswas](https://www.linkedin.com/in/raja-biswas/) used [Open-R1](https://github.com/huggingface/open-r1) with the [faster version of trl GRPOTrainer](https://github.com/nhannguyen2709/open-r1) created by user [@andy2709](https://www.kaggle.com/andy2709) on Kaggle, which included most of the features that `GRPOTrainer` lacked compared to veRL. Around the same time, Ulysses support and Dr. GRPO tricks were also added to TRL, making it a solid choice for long-context GRPO on reasoning tasks.
+
+### Engineering bits 2: training bottlenecks
+
+Solving GPU VRAM utilization with Hybrid Engine (collocating Actor, Ref, and vLLM in the same VRAM space) is just a first step. The most painful part of long-context GRPO can be seen on the GPU utilization chart below. This chart is taken from my latest GRPO run of a 14B model with 16K context on a 8xH200 node. For each global step, I generate 256 (32 problems, 8 rollouts) and perform 4 optimization steps (on 96 rollouts per minibatch).
+
+{{< figure src="vram_usage.png" caption="GPU memory allocation chart of a 14B model’s GRPO run with 16K tokens context on a single 8xH200 node. Each global training step is divided into “vLLM rollout” to collect trajectories of current policy, then “offloading” (releasing memory of vLLM and warming up the trainer), followed by “Training” phase where optimization step is performed. First thing you can notice is that vLLM rollout phase takes the longest. If you zoom closer, you can see that one global training step takes 10 minutes. The “Idle GPUs” gap is formed because we have to wait for the longest sequence to finish, and can be as large as the “Training” phase." invertible="true" >}}
+
+One way to make the “Idle GPUs” and “Offload” gap on the chart above shorter, percentage-wise, is to simply increase the number of problems and rollouts per global step. To make the effective training time larger, percentage-wise, we can perform more optimization steps per global step by having minibatch size smaller than global step’s batch, and re-using the rollouts for training (similar to [Data Echoing](https://arxiv.org/abs/1907.05550)). This way we are always training with a lagged policy of up to N steps. In my case, with 2 minibatches per global batch and reusing rollouts twice, effectively training with lagged policy of up to 4 steps, I didn’t find any performance degradation compared to the normal setting.
+
+Actually, there is a simpler solution — I thought about asynchronous RL setting, like the one used by [DeepCodeR](https://www.notion.so/1cf81902c14680b3bee5eb349a512a51?pvs=21) project, but the problem is that our team is GPU poor and can’t afford more nodes 😭. All the Hybrid Engine and Collocation stuff are actually for the GPU poor.
+
+### Engineering bits 3: LoRA is surprisingly hard
+
+- [LoRA](https://magazine.sebastianraschka.com/p/practical-tips-for-finetuning-llms) by itself is easy — it’s the most popular fine-tuning technique, used and loved by everyone. It is one of the first thing people learn when they enter the field of LLMs.
+- LoRA with FSDP1 is much harder, because you’ll need to carefully wrap the layers and adapters, to avoid `dtype` mixing between `DTensor` objects and gradients. I highly recommend going through the code of [Answer.AI’s FSDP-QLoRA](https://github.com/AnswerDotAI/fsdp_qlora) project to understand what it takes to make LoRA work with FSDP1.
+- Now, add vLLM offloading to the mix. To be effective at RL, you will need train Actor model with LoRA while retaining the ability to perform a forward pass on the Ref model (which is basically our Actor without LoRA adapter), and then merge the sharded `DTensor` weights together and send to vLLM engine (which has a completely different wrapping mechanism due to tensor parallelism). In fact, this complexity is the only reason why the [GRPO with LoRA PR in veRL](https://github.com/volcengine/verl/pull/205) is still not merged yet.
+
+I resolved all the issues above for veRL, but there’s no good way to solve the vLLM offloading challenge without sudden VRAM spikes caused by asynchronous gather and merge processes while vLLM is waking up. Placing a few more `torch.distributed.barrier()` and `torch.empty_cache()` with waiting would likely help, but we will lose even more performance and more importantly I didn’t have time to debug that.
+
+{{< figure src="lora_vram_spikes.png" caption="Offloading a 14B model with LoRA adapter to vLLM causes random spikes when model merging occurs at the same time as vLLM waking up." invertible="true" >}}
+
+At the end, I just lowered the memory consumption of both Trainer and vLLM rollouts. It’s ugly, but it worked OK for me — the training speed was comparable or faster than FFT, while consuming less memory (so I can cram more samples into each mini-batch).
+
+### Training hyperparameters
+
+Given the same token-per-gradient-update budget, should we increase prompts per batch at the expense of smaller number of rollouts per prompt, or vice versa?
+
+I still don’t have a definitive answer to this question. Larger number of rollouts per problem are meant to reach harder problems (as there is more chance we will catch a good reasoning trace with positive rewards). Meanwhile, less prompts (i.e. math problems) per batch will cause the gradient to be too biased to those problems, hurting performance.
+
+In our team’s setting, we kept the number of rollouts per problem in all our experiments within the range from 8 to 16. I tried a run with 6, but the performance drop was noticeable. We kept the number of prompts per batch in our experiments between 12 and 24, depending on the budget per training run. I tried 10 and less, and it also had a noticeable drop in the rewards plot.
+
+As for the learning rate, we mostly kept it between `1e-6` and `4e-6`. I had a few 1.5B GRPO run at 8K context with learning rate `5e-6` and more, but found that they produce too unstable results. Furthermore, since our team re-used each batch twice (similar to [Data Echoing](https://arxiv.org/abs/1907.05550)), using larger learning rate will amplify any biases within each batch. Since we already have not that many prompts per batch due to budget, the performance degradation becomes noticeable right from the start.
+
+### Language mixing problem
+
+There is this meme by Andrej Karpathy, saying that a properly trained model through Reinforcement Learning will stop speaking English at some point because it has developed an internal strategy somewhere in the latent space, detached from normal words.
+
+{{< figure src="karpathy_tweet.png" caption="Everyone gangsta until the math reasoning model starts speaking Chinese!" invertible="false" >}}
+
+Well, we did the meme by accident 😭. During the final week, some of my teammates who were using Open-R1 with TRL for GRPO encountered this wild chain-of-thought during the training runs of their 14B model:
+
+{{< figure src="langmix_1.png" caption="Turns out language mixing does not always mean that your model developed some kind of advanced strategy. Most likely, it is as confused about the mathematical problem as you are 😅" invertible="true" >}}
+
+Our team debugged the run together and noticed a few things:
+
+- In the training metrics, we noticed that KL exploded at the same time language mixing starts to occur. Gradient norms exploded too — we have safeguards against that in the form of gradient clipping, but that means something is wrong in the training process.
+- Language mixing only occurs in my teammate’s Open-R1 runs. I never saw anything like that in my veRL runs with DAPO enabled (I never tried to disable DAPO).
+
+We eventually realized that the main culprit is hard problems, where the rewards for all rollouts are 0. The problem is resolved by adding more easy and medium level questions to the dataset.
+
+I didn’t have this problem in my DAPO runs because DAPO filters out too easy and too hard problems in the online fashion — at each global step, DAPO oversamples on more prompts and selects only a fraction for training, throwing away hard and easy problems. It’s like we have an adaptive curriculum learning setting.
+
+Bonus image: well, maybe we just had to let it cook… 🤷
+
+{{< figure src="langmix_2.png" caption="Well, maybe “it” does have some sort of hidden math-solving strategy in its latents LMAO" invertible="false" >}}
+
+
+### Is LoRA any good?
+
+I had this hypothesis that I wanted to try out during the AIMO2 competition. Previously, while playing around with [DeepScaleR-1.5B-Preview](https://www.notion.so/19681902c1468005bed8ca303013a4e2?pvs=21), I noticed that their training process introduced mostly low-rank changes to the linear layers weights, which I documented in this blog post: [Does reasoning exists in low rank?](https://www.notion.so/Does-reasoning-exists-in-low-rank-Part-1-exploratory-analysis-19d105a2faeb801785bcddc5778a5d81?pvs=21) So, I came up with an assumption that a LoRA adapter would act more as a regularization, forcing the training process to find the low-rank steering vector that will force the model to generate shorter CoTs (yes, sounds like a very optimistic dream, I know).
+
+{{< figure src="low_rank_diff.png" caption="Analysis of a good GRPO run — it introduced low-rank changes to the weights even after 5K steps" invertible="true" >}}
+
+Since we decomposed skills aquisition to SFT stage and behavior steering (i.e. more effective reasoning with shorter CoT) to GRPO stage, I thought it is worth giving LoRA a shot, since it is more memory effective than FFT, so we can train on even longer CoTs with the same compute.
+
+My 14B GRPO on 8K context experiments (WandB report shown below) for 40 global steps (which translates to 160 optimization steps) indicates that LoRA is able to converge much faster than FFT.
+
+{{< figure src="lora_vs_fft_14b.png" caption="WandB dashboard comparing FFT and LoRA GRPO training runs of a 14B model with 8K token budget for reasoning CoTs. The LoRA model is a clear winner here." invertible="true" >}}
+
+However, our best 14B GRPO model was still trained with FFT. There are more differences between the FFT and GRPO runs than just “enable lora” flag, and I did not have a chance to do a proper ablation (since one GRPO experiment for 100-200 optimization steps or more costs at least $200), so I can’t say if GRPO is better than FFT. Furthermore, I can’t guarantee that my code is without bugs.
+
+### The Bitter Lesson
+
+Early on, I had high hopes on applying the **iterative context lengthening** from [DeepScaleR-1.5B](https://www.notion.so/19681902c1468005bed8ca303013a4e2?pvs=21), a training technique where we train the LLM on iteratively longer sequences from 8K, to 16K, to 24K. I spent a lot of cloud compute credits on experiments with 8K context, hoping to get accuracy gains for cheap, only to realize that training on much shorter contexts significantly reduced accuracy at longer inference lengths. The [DeepCodeR](https://www.notion.so/1cf81902c14680b3bee5eb349a512a51?pvs=21) team encountered the same problem:
+
+{{< figure src="deepcoder_bitter.png" caption="The [DeepCodeR](https://www.notion.so/1cf81902c14680b3bee5eb349a512a51?pvs=21) encountered the same issue when trying to train their 14B model on iteratively longer context. Turns out, this trick only works for 1.5B models, and not for 7B and 14B. I wish they had published their results sooner 😭." invertible="true" >}}
+
+To make the lesson even more bitter, it turns out that training directly on 16K tokens context will yield the same solution length shortening results, but with better accuracy (both Pass@1 and Maj@32). So there is no point in training on shorter context than 16K, unless you plan on performing inference on shorter context (of around 8K tokens, for example).
+
+Here is a fun but completely useless and cash-burning experiment. If you look at the top left chart, the runs approaching from below are trained on 8K context first, and then on 16K context. The run from above with decreasing accuracy is the one trained with 16K context from the start.
+
+{{< figure src="bitter_14b.png" caption="Completely useless and cash-burning experiment. At least it shattered all of my hopes about iterative context lengthening on 14B models." invertible="true" >}}
+
+The one with 16K context from the start have quite aggressive length penalty, so much that the training process decides that making generated solutions shorter is more beneficial than making the model more accurate. Sounds completely useless, right? But here is the interesting part. When the length reward meets during training, the model that was trained with 16K context from the start still has better validation accuracy (don’t bother looking at the overall rewards, they are not defined in the same way, so comparison is meaningless). This means that performing GRPO on longer context from the start will eventually achieve the same length saving (if we want it to) while retaining more accuracy.
