@@ -4,17 +4,17 @@ url: "/improving-deepseek"
 date: 2025-04-18T00:00:00+00:00
 # weight: 1
 # aliases: ["/first"]
-tags: ["Projects", "LLM", "Reinforcement Learning"]
+tags: ["LLM", "Reasoning", "Reinforcement Learning"]
 keywords: ["Reinforcement Learning", "RLHF", "Machine Learning", "RLVR", "AIME", "AIME 2025", "AIME 2024", "DeepSeek", "R1", "DeepSeek-R1", "DeepSeek R1", "GRPO", "REINFORCE++", "Light-R1", "NuminaMath", "AIMO", "AIMO2", "Kaggle", "Reasoning", "LLM", "Math Olympiads"]
 author: "Kha Vu Chan"
-# author: ["Me", "You"] # multiple authors
+# author: ["Kha Vu Chan", "Geremie Yeo", "Kelvin Soh", "Raja Biswas", "Udbhav Bamba"] # multiple authors
 showToc: true
 TocOpen: false
 draft: true
 hidemeta: false
 comments: true
 disqus_identifier: hav4ik/learning-to-rank
-summary: "We trained a family of math reasoning models, 7B and 14B, finetuned with SFT and GRPO from DeepSeek-Distill-R1 models. Our 14B model achieves **75.8%** Maj@32 accuracy on AIME’25 (**+8.7%** improvement), surpassing twice larger DeepSeek-R1-Distill-32B. Our 7B model achieves **65.8%** Maj@32 (**+7.5%** improvement), comparable to DeepSeek-R1-Distill-14B. A single end-to-end training run (SFT + GRPO) of our 14B model costs less than $800."
+summary: "I joined a team and we trained 7B and 14B math reasoning models based on DeepSeek-R1-Distill using SFT and GRPO. Our 14B model achieved **75.8%** Maj@32 on AIME’25 (**+8.7%** improvement), and our 7B model reached **65.8%** Maj@32 (**+7.5%**). Here is what I've learned."
 # canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs
 disableShare: false
@@ -42,14 +42,16 @@ cover:
 #     appendFilePath: true # to append file path to Edit link
 ---
 
-> Contributors: [**Geremie Yeo**](https://www.linkedin.com/in/geremie-yeo/), [**Kelvin Soh**](https://www.linkedin.com/in/kelvin-soh/), **[Raja Biswas](https://www.linkedin.com/in/raja-biswas/)**, **[Chan Kha Vu](https://hav4ik.github.io/about/)**, [**Udbhav Bamba**](https://ubamba98.github.io).  
+> Model contributors: [**Geremie Yeo**](https://www.linkedin.com/in/geremie-yeo/), [**Kelvin Soh**](https://www.linkedin.com/in/kelvin-soh/), **[Raja Biswas](https://www.linkedin.com/in/raja-biswas/)**, **[Chan Kha Vu](https://hav4ik.github.io/about/)**, [**Udbhav Bamba**](https://ubamba98.github.io).  
 > *Our team are just enthusiasts doing things outside of our full-time jobs (unrelated to LLMs or Reasoning) and other commitments in life. Cloud compute costs are entirely self-funded.*
 
-{{< figure src="featured.png" caption="Majority voting accuracy (Maj@32) on the uncontaminated AIME 2025 math olympiad of our models compared to DeepSeek R1 Distill models." invertible="false" >}}
+{{< figure src="cover.png" caption="Majority voting accuracy (Maj@32) on the uncontaminated AIME 2025 Math Olympiad, comparing our models to the DeepSeek-R1-Distill baselines. See the 'Evaluations' section for details on how this chart was generated." invertible="false" >}}
 
-This blog post is an extended and more personal version of [our team's short writeup on Kaggle](https://www.kaggle.com/competitions/ai-mathematical-olympiad-progress-prize-2/discussion/573496). Here, you will find details that are normally never included in polished papers or tech reports &mdash; system design, failed experiments, and engineering trics.
+This blog post is a more personal and extended version of [our team’s short write-up on Kaggle](https://www.kaggle.com/competitions/ai-mathematical-olympiad-progress-prize-2/discussion/573496). Here, you’ll find the kinds of details that rarely make it into polished papers or tech reports &mdash; system design, failed experiments, engineering details, and other discussions. You’ll also notice some awkward switches between “we” and “I” as I alternate between describing team efforts and my own experiments and thoughts.
+
 
 -------------------
+
 
 ## Preface
 
@@ -68,7 +70,7 @@ Take the [American Invitational Mathematics Examination (AIME)](https://en.wikip
 
 > **AIME 2025 I, problem 13.** Alex divides a disk into four quadrants with two perpendicular diameters intersecting at the center of the disk. He draws \( 25 \) more lines segments through the disk, drawing each segment by selecting two points at random on the perimeter of the disk in different quadrants and connecting those two points. Find the expected number of regions into which these \( 27 \) line segments divide the disk.
 
-*Please pause here for at least 5 minutes. Grab a pen and paper &mdash; try solving it! This fun little problem has more subtlety than it seems 😜. The correct human and AI solutions are included at the end of this post.*
+*Please pause here for at least 5 minutes. Grab a pen and paper &mdash; try solving it! This fun little problem has more subtlety than it seems 😜. Answer is provided at the end of this blog post.*
 
 Due to their complexity, AIME problems have become a standard hard benchmark for LLM reasoning. Just a year ago, any improvement on AIME 2024 performance would make headlines. The best open-weight models, like [DeepSeek Math](https://arxiv.org/abs/2402.03300), could only score 3% &mdash; or 10% with external tools. High-quality human-written solutions are scarce online, and for a while, it felt like real progress in mathematical reasoning would require hundreds of thousands (if not millions) of dollars to produce a usable dataset.
 
@@ -85,9 +87,22 @@ Early reproduction efforts like [DeepScaleR](https://www.notion.so/19681902c1468
 
 [AIMO](https://aimoprize.com) is a prestigious competition hosted on Kaggle with a total prize pool of $2’000’000, designed to push the frontier of open-source reasoning models. The difficulty of the problems are around the National Olympiad level. The problems have also been designed to be 'AI hard' in terms of the mathematical reasoning required, which was tested against open LLMs' capabilities (as of October 2024). Here is one of the [10 publicly available reference problems](https://www.kaggle.com/competitions/ai-mathematical-olympiad-progress-prize-2/data?select=AIMO_Progress_Prize_2_Reference_Problems_Solutions.pdf):
 
-> **AIMO2 reference problem.** Let \( ABC \) be a triangle with \( BC=108 \), \( CA=126 \), and \( AB=39 \). Point \( X \) lies on segment \( AC \) such that \( BX \) bisects \( \angle CBA \). Let \( \omega \) be the circumcircle of triangle \( ABX \). Let \( Y \) be a point on \( \omega \) different from \( X \) such that \( CX=CY \). Line \( XY \) meets \( BC \) at \( E \). The length of the segment \( BE \) can be written as \( \frac{m}{n} \), where \( m \) and \( n \) are coprime positive integers. Find \( m+n \).
+> **AIMO2 reference problem 2.** Let \( ABC \) be a triangle with \( BC=108 \), \( CA=126 \), and \( AB=39 \). Point \( X \) lies on segment \( AC \) such that \( BX \) bisects \( \angle CBA \). Let \( \omega \) be the circumcircle of triangle \( ABX \). Let \( Y \) be a point on \( \omega \) different from \( X \) such that \( CX=CY \). Line \( XY \) meets \( BC \) at \( E \). The length of the segment \( BE \) can be written as \( \frac{m}{n} \), where \( m \) and \( n \) are coprime positive integers. Find \( m+n \).
 
-*Again, I highly encourage you to pause here for at least 5 minutes, grab a pen and a piece of paper, and try to solve it. Correct human solution and AI solution will be provided at the end of this post.*
+*Again, I highly encourage you to pause here for at least 5 minutes, grab a pen and a piece of paper, and try to solve it. Answer is provided at the end of this blog post.*
+
+
+### What makes a problem 'AI hard'?
+
+By analyzing failure cases on medium-level math problems from AIME, we noticed that reasoning models often struggle with problems that have multiple corner cases and Geometry problems (due to the lack of visual understanding). My teammate [Geremie Yeo](https://www.linkedin.com/in/geremie-yeo/) wrote a great analysis on this: [AI outputs Wrong Answers due to Corner Cases for Medium-Level Math Problems](https://www.kaggle.com/competitions/ai-mathematical-olympiad-progress-prize-2/discussion/571769).
+
+I find that many of the model’s mistakes mirror the kinds of errors humans make too. Let’s look at the following problem as an example:
+
+> **AIME 2025 II, problem 7.** Let \( A \) be the set of positive integer divisors of \( 2025 \). Let \( B \) be a randomly selected subset of \( A \). The probability that \( B \) is a nonempty set with the property that the least common multiple of its elements is \( 2025 \) is \( \frac{m}{n} \), where \( m \) and \( n \) are relatively prime positive integers. Find \( m + n \).
+
+*Let's pause here and try to solve it. Did you make the same mistake that the AI made? Answer is provided at the end of this blog post.*
+
+The `DeepSeek-R1-Distill-14B` model often misinterprets the problem and assumes that \( A \) does not contain the empty set, resulting in the answer of \(m = 27904 \) and \( n = 32767 \) (60671 modulo 1000 = 671). I find this mistake to be quite cute.
 
 
 --------------------------------------------
@@ -99,7 +114,7 @@ For our main RL method, we followed the DeepSeek R1 paper and used GRPO &mdash; 
 
 {{< figure src="grpo.png" caption="Comparison between PPO and GRPO, taken from [DeepSeek Math](https://arxiv.org/abs/2402.03300) paper. The Value model (also called the Critic) is omitted, and the advantage is calculated from group statistics rather than per-sample scores." invertible="true" >}}
 
-While I was writing this blog post, Nathan Lambert published an excellent post analyzing GRPO, its main pitfalls, and ways to address them: [*Recent reasoning research: GRPO tweaks, base model RL, and data curation*](https://www.interconnects.ai/p/papers-im-reading-base-model-rl-grpo). During AIMO2, our team was already aware of these issues and we applied techniques from several papers to mitigate them.
+While I was writing this blog post, Nathan Lambert published an excellent post analyzing GRPO, its main pitfalls, and ways to address them: [*Recent reasoning research: GRPO tweaks, base model RL, and data curation*](https://www.interconnects.ai/p/papers-im-reading-base-model-rl-grpo). During the model training period, our team was already aware of these issues and we applied techniques from several papers to mitigate them.
 
 
 ### Length Bias
@@ -108,7 +123,7 @@ Since our goal was to train an effective reasoning model, we quickly identified 
 
 But why are reasoning chains so long? Is verbosity an emergent property of reasoning models? As it turns out, not necessarily. The [REINFORCE++](https://arxiv.org/html/2501.03262v1) paper showed that "length hacking" &mdash; as they called it &mdash; is a GRPO-specific issue. When comparing PPO, GRPO, RLOO, and REINFORCE++, they found that other algorithms achieved higher reward gains per unit of KL divergence without the same explosion in output length. That said, GRPO did show faster convergence.
 
-Fortunately, right before the final week of AIMO2 and just as we began our last GRPO runs, two new papers dropped that tackled the length problem head-on: [DAPO](https://dapo-sia.github.io/) and [Dr. GRPO](https://arxiv.org/abs/2503.20783).
+Fortunately, right just as we began our last GRPO runs, two new papers dropped that tackled the length problem head-on: [DAPO](https://dapo-sia.github.io/) and [Dr. GRPO](https://arxiv.org/abs/2503.20783).
 
 {{< figure src="dr_grpo.png" caption="[DAPO](https://dapo-sia.github.io/) and [Dr. GRPO](https://arxiv.org/abs/2503.20783) papers independently found that there is an implicit length bias in the [original GRPO formulation](https://arxiv.org/abs/2402.03300): longer incorrect solutions gets penalized less (token-wise) than shorter incorrect ones. The solution? Get rid of the per-sample loss normalization term completely!" invertible="true" >}}
 
@@ -165,14 +180,16 @@ Our SFT models were fine-tuned courtesy of [Kelvin Soh](https://www.linkedin.com
 
 During the Reinforcement Learning process, we tried to steer our model's behavior toward shorter reasoning CoTs. We spent considerable time on 7B models, hoping our findings would translate to 14B, only to relearn [the bitter lesson](http://www.incompleteideas.net/IncIdeas/BitterLesson.html) repeatedly &mdash; good tricks at smaller scales don't always work at larger ones.
 
-- For the 7B model, we performed GRPO in two stages: first on 8K context, then on 16K context. We found LoRA converged faster than FFT while being more VRAM-efficient. We used DAPO's clipping and online sample filtering, and length penalty worked well for 7B.
-- For 14B, length penalty severely hurts accuracy, so we removed it. Also, training on much shorter contexts significantly reduced accuracy at intended inference lengths. Model merging helped regain some accuracy, so our final submission is a merged SFT and GRPO on 6K context. We had another 14B GRPO on 16K context trained on the last day of the AIMO2 competition. Our 14B GRPO models were all trained on a single 8xH200 node.
+- For the 7B model, we performed GRPO in two stages: first on 8K context, then on 16K context. We found LoRA converged faster than FFT while being more VRAM-efficient. We used DAPO's clipping and online sample filtering, and length penalty worked well for 7B. We used outcome reward and DAPO's overlong penalty, which we found to be gentler than Cosine length penalty.
+- For 14B, length penalty severely hurts accuracy, so we removed it, leaving only outcome reward. Also, training on much shorter contexts significantly reduced accuracy at intended inference lengths. Model merging helped regain some accuracy, so our final submission is a merged SFT and GRPO on 6K context. We had another 14B GRPO on 16K context trained on the last day of the AIMO2 competition. Our 14B GRPO models were all trained on a single 8xH200 node.
 
 Our GRPO models were trained courtesy of [Geremie Yeo](https://www.linkedin.com/in/geremie-yeo/), [Kelvin Soh](https://www.linkedin.com/in/kelvin-soh/), [Raja Biswas](https://www.linkedin.com/in/raja-biswas/), and [Chan Kha Vu](https://hav4ik.github.io/about/). During the final week of the AIMO2 competition, each of us ran GRPO experiments independently. Every day, we checked in on each other’s progress, compared results, shared what worked, and built on each other’s findings. It was super fun &mdash; and rewarding (pun intended)!
 
 Interestingly, while my teammates used [Open-R1](https://github.com/huggingface/open-r1) with a [faster version of trl’s GRPOTrainer](https://github.com/nhannguyen2709/open-r1) by Kaggle user [@andy2709](https://www.kaggle.com/andy2709), I maintained an [active fork of veRL](https://github.com/hav4ik/verl/tree/dapo-lora) with DAPO, FSDP-LoRA, and Dr. GRPO integrated. Both frameworks supported long-context RL with sequence packing, Ulysses, hybrid trainers with model colocation for memory savings, vLLM rollouts, and more.
 
 ### Model Merging
+
+Our team used [MergeKit](https://github.com/arcee-ai/mergekit) to merge our final SFT and GRPO checkpoints using [TIES](https://arxiv.org/abs/2306.01708) method. We did not play around with any of the hyperparameters and just set all weights to 1 and density to 1. 
 
 We found that for 7B models, merging increases the overall performance: the merged model surpasses both the SFT and all GRPO checkpoints by accuracy and token economy. However, when we moved to 14B, merging becomes more of a compromise.
 
@@ -186,25 +203,27 @@ For evaluation, we used AIME 2025 (released in March 2025) as an uncontaminated 
 
 Reasoning traces are sampled with `BFloat16` precision, `temperature=0.75`, and `top_p=0.95`. We collect 64 traces per question with `max_len=32768`. Length and `Pass@1` metrics were averaged across 64 rollouts per question. For aggregated metrics like `Maj@K` (majority voting accuracy), we sampled `K` traces per problem from our pool of 64 traces. We repeated this process 16 times and reported the average to reduce noise.
 
+We used `stop=['</think>']` for our models, as they were trained with more restricted generation lengths and often produced correct answers before completing the full reasoning chain. Applying the same stopping condition to DeepSeek-R1 models led to noticeable accuracy drops, so their results below are reported using the default (stop at EOS) setting.
+
 You can reproduce our evals using our evaluation code [aime25-aimo2-evals](https://www.kaggle.com/code/chankhavu/aime25-aimo2-evals) and our dataset of collected reasoning traces [reasoning-traces-aime25-aimo25](https://www.kaggle.com/datasets/chankhavu/reasoning-traces-aime25-aimo25).
 
 ### 14B models
 
-- **Merged-14B:** the model we submitted to the Private LB of the AIMO2 competition for both of our final submissions. It's a merge of several SFT and GRPO with 6K context checkpoints.
-- **Last-GRPO-14B:** trained in the final days of the AIMO2 competition. It showed worse results on our local End-to-End whole pipeline validation, despite being better on academic-style benchmarking settings, so we never submitted it to LB.
+- **Merged-14B:** the model we submitted to the Private LB of the AIMO2 competition for both of our final submissions. It's a merge of several SFT and GRPO checkpoints. We uploaded the AWQ of this model on Huggingface: [bogoconic1/aimo2-final-merged-model-14b](https://huggingface.co/bogoconic1/aimo2-final-merged-model-14b).
+- **Last-GRPO-14B:** trained in the final days of the AIMO2 competition. It showed worse results than the merged model on our local End-to-End whole pipeline validation, despite being better on academic-style benchmarking settings, so we never submitted it to LB.
 
 Below are majority voting metrics with generation `max_len` set at 12800 and 32768 tokens:
 
 | Token budget | Model Name | CV Pass@1 | CV Maj@32 | AIME'25 Pass@1 | AIME'25 Maj@32 | Average length |
 | --- | --- | --- | --- | --- | --- | --- |
-| 12800 | DeepSeek-R1-Distill-14B | 0.412 | 0.613 | 0.41 | 0.648 | 9473.66 |
-|  | Light-R1-14B-DS | 0.442 | 0.664 | 0.45 | 0.671 | 9787.01 |
-|  | **Our Merged 14B** | 0.477 | **0.747** | 0.455 | **0.731** | **9251.56** |
-|  | **Our Last GRPO 14B** | **0.482** | 0.736 | **0.468** | **0.738** | 9312.03 |
-| 16384 | DeepSeek-R1-Distill-14B | 0.449 | 0.664 | 0.447 | 0.671 | 10910.2 |
-|  | Light-R1-14B-DS | 0.498 | 0.713 | 0.502 | 0.731 | 11432.1 |
-|  | **Our Merged 14B** | 0.525 | 0.759 | 0.504 | 0.746 | **10552.1** |
-|  | **Our Last GRPO 14B** | **0.541** | **0.762** | **0.521** | **0.758** | **10511.6** |
+| 12800 | DeepSeek-R1-Distill-14B | 0.412 | 0.613 | 0.41 | 0.648 | 9473 |
+|  | Light-R1-14B-DS | 0.442 | 0.664 | 0.45 | 0.671 | 9787 |
+|  | **Our Merged 14B** | 0.477 | **0.747** | 0.455 | **0.731** | **8921** |
+|  | **Our Last GRPO 14B** | **0.482** | 0.736 | **0.468** | **0.738** | **8981** |
+| 16384 | DeepSeek-R1-Distill-14B | 0.449 | 0.664 | 0.447 | 0.671 | 10910 |
+|  | Light-R1-14B-DS | 0.498 | 0.713 | 0.502 | 0.731 | 11432 |
+|  | **Our Merged 14B** | 0.525 | 0.759 | 0.504 | 0.746 | **10125** |
+|  | **Our Last GRPO 14B** | **0.541** | **0.762** | **0.521** | **0.758** | **10071** |
 
 We observe an interesting phenomenon: at 32K tokens budget, all models perform slightly worse on Maj@32 than with 16K tokens budget. The reason is, when given more thinking time the model tends to self-doubt, sometimes leading to wrong answers.
 
@@ -224,20 +243,40 @@ It should be noted that we built on top of [Light-R1](https://huggingface.co/dat
 
 | Token budget | Model name | CV Pass@1 | CV Maj@32 | AIME'25 Pass@1 | AIME'25 Maj@32 | Average length |
 | --- | --- | --- | --- | --- | --- | --- |
-| 12800 | DeepSeek-R1-Distill-7B | 0.345 | 0.55 | 0.353 | 0.562 | **9553.74** |
-|  | Light-R1-7B-DS | 0.36 | 0.606 | 0.371 | 0.606 | 9831.07 |
-|  | **Our Final SFT 7B** | 0.379 | 0.627 | 0.374 | 0.604 | 9751 |
-|  | **Our Merged 7B** | **0.383** | **0.658** | **0.38** | **0.637** | **9583.42** |
-| 16384 | DeepSeek-R1-Distill-7B | 0.368 | 0.58 | 0.377 | 0.583 | **11104.1** |
-|  | Light-R1-7B-DS | 0.391 | 0.611 | 0.401 | 0.631 | 11511.7 |
-|  | **Our Final SFT 7B** | 0.412 | 0.678 | 0.398 | **0.658** | 11449.6 |
-|  | **Our Merged 7B** | **0.422** | **0.686** | **0.409** | **0.654** | **11145.9** |
+| 12800 | DeepSeek-R1-Distill-7B | 0.345 | 0.55 | 0.353 | 0.562 | **9553** |
+|  | Light-R1-7B-DS | 0.36 | 0.606 | 0.371 | 0.606 | 9831 |
+|  | **Our Final SFT 7B** | 0.379 | 0.627 | 0.374 | 0.604 | 9482 |
+|  | **Our Merged 7B** | **0.383** | **0.658** | **0.38** | **0.637** | **9303** |
+| 16384 | DeepSeek-R1-Distill-7B | 0.368 | 0.58 | 0.377 | 0.583 | 11104 |
+|  | Light-R1-7B-DS | 0.391 | 0.611 | 0.401 | 0.631 | 11511 |
+|  | **Our Final SFT 7B** | 0.412 | 0.678 | 0.398 | **0.658** | 11104 |
+|  | **Our Merged 7B** | **0.422** | **0.686** | **0.409** | **0.654** | **10778** |
 
 It's easier to visualize the test-time scaling economy of our models with the following plot:
 
 {{< figure src="tts_7b_aime25.png" caption="Test-time scaling economy of our final merged 7B model. Each “dot” represents accuracy results on AIME 2025 when total token budget is set to one of the following: 8192, 9000, 12800, 16384. Our model reaches the peak Maj@32 of the base DeepSeek-R1-7B 33% faster, and have comparable peak Maj@32 to Light-R1." invertible="true" >}}
 
 {{< figure src="tts_7b_cv.png" caption="Test-time scaling economy of our final merged 7B model. Each “dot” represents accuracy results on our 40 questions **CV** set (AIME'25 + AIMO-2) when total token budget is set to one of the following: 8192, 9000, 12800, 16384. Our model reaches the peak Maj@32 of the base DeepSeek-R1-7B 33% faster, and have better peak Maj@32 to Light-R1." invertible="true" >}}
+
+
+### Evals summary
+
+To produce the chart at the beginning of this post, we used same sampling settings as described above (same prompts, temperature, and top_p). **Pass@1** and **Avg. Length** were measured with `max_len=32768` and averaged over 64 rollouts, while **Maj@32** was calculated with `max_len=16384` across 16 simulated runs.
+
+Why use different `max_len` for these metrics? All models &mdash; especially the distilled DeepSeek-R1 &mdash; show worse Maj@32 at longer token budgets. The most likely reason is that with more room to think, models tend to hallucinate default or overconfident answers.  
+
+**Bottom line:** better Pass@1 does *not* mean better Maj@32!
+
+| Params | Model name | AIME'25 Pass@1 | AIME’25 Maj@32 | Avg. Length |
+|:---:| :--- |:---:|:---:|:---:|
+| 7B | DeepSeek-R1-Distill-Qwen-7B | 0.389 | 0.583 | 14069 |
+| | **Ours 7B** *(Merged)* | **0.422** | **0.654** | **12211** |
+| 14B+ | DeepSeek-R1-Distill-Qwen-14B | 0.485 | 0.671 | 13071 |
+| | DeepSeek-R1-Distill-Qwen-32B | 0.51 | 0.723 | 12440 |
+| | **Ours 14B** *(Final GRPO)* | **0.542** | **0.758** | **10731** |
+
+
+I wasn’t able to reproduce the AIME’25 Pass@1 results for `DeepSeek-R1-Distill-Qwen-32B` reported by [MathArena](https://matharena.ai) (0.51 vs 0.59), though my results for the 14B and 1.5B models match theirs closely. The main difference between our settings is that they used a different prompt &mdash; one that hints the answer should be an integer &mdash; which could boost Pass@1. This prompting difference might have a bigger impact on the 32B model, which follows the system prompt better than smaller models.
 
 
 --------------------------------------------
@@ -357,3 +396,24 @@ Here’s a fun &mdash; but completely useless and cash-burning &mdash; experimen
 The 16K-from-the-start run had a pretty aggressive length penalty &mdash; so aggressive that the model seemed to prioritize shorter solutions over actual correctness. Sounds useless, right? But here’s the twist: once the length reward balances out during training, the 16K model still ends up with better validation accuracy. (Ignore the overall reward scores &mdash; they’re not directly comparable across runs.)
 
 The takeaway? Starting GRPO at 16K context doesn’t just match the length-saving effect &mdash; it does so *while preserving more accuracy*. If your target is long-context inference anyway, you might as well train for it from the start.
+
+
+-------------------------------------------------
+
+
+## Conclusion
+
+We trained a family of math reasoning models, 7B and 14B, finetuned with SFT and GRPO from `DeepSeek-Distill-R1` models. Our 14B model achieves **75.8%** Maj@32 accuracy on AIME’25 (**+8.7%** improvement), surpassing twice larger `DeepSeek-R1-Distill-32B`. Our 7B model achieves **65.8%** Maj@32 (**+7.5%** improvement), comparable to `DeepSeek-R1-Distill-14B` &mdash; a model twice its size. A single end-to-end training run (SFT + GRPO) of our final 14B model costs less than $800.
+
+Our main motivation was the [Kaggle AIMO2 competition](https://www.kaggle.com/competitions/ai-mathematical-olympiad-progress-prize-2/overview). The leaderboard was extremely noisy &mdash; teams placing 3rd to 5th (prize money range) used the base DeepSeek-R1-14B model with no fine-tuning, just clever inference tricks and lucky shots. One major challenge we faced was quantization, which erased a sizeable part of our training gains. Unlike other teams, we didn’t use early stopping on reasoning rollouts and other tricks in our final submission, though we did experiment with it earlier on and found no difference in local testing.
+
+Although luck was not on our side and we didn't achieve the leaderboard results we hoped for this time due to reasons both outside and within our control (not related to model training), we will definitely get it on the next AIMO progress prize! See you at the bleeding edge of open-source reasoning models at AIMO3.
+
+
+-------------------------------------------------
+
+
+Answers to some of the math problems mentioned in this post:
+* **AIME 2025 I, problem 13**: 204
+* **AIMO2 reference problem 2**: 751
+* **AIME 2025 II, problem 7**: 237
