@@ -379,9 +379,9 @@ In my 14B GRPO experiments with 8K context (40 global steps = 160 optimization s
 That said, our best 14B GRPO model was still trained with FFT. There were more differences between the runs than just flipping the “enable LoRA” flag, and I didn’t have the budget for proper ablations &mdash; each 100–200 step GRPO run costs ~$200. So I can’t definitively say LoRA outperforms FFT. And of course, I can’t rule out bugs in my code either.
 
 
-### The Bitter Lesson
+### Small-scale tricks doesn't translate to larger scale
 
-Early on, I had high hopes for **iterative context lengthening**, a technique used in [DeepScaleR-1.5B](https://www.notion.so/19681902c1468005bed8ca303013a4e2?pvs=21), where models are trained on progressively longer sequences &mdash; 8K, then 16K, then 24K. I burned through a lot of cloud credits running 8K &mdash; context experiments, hoping for cheap accuracy gains &mdash; only to find that training on shorter contexts significantly hurt performance at longer inference lengths. Turns out I wasn’t alone. The [DeepCodeR](https://www.notion.so/1cf81902c14680b3bee5eb349a512a51?pvs=21) team ran into the exact same issue:
+Early on, I had high hopes for **iterative context lengthening**, a technique used in [DeepScaleR-1.5B](https://www.notion.so/19681902c1468005bed8ca303013a4e2?pvs=21), where models are trained on progressively longer sequences &mdash; 8K, then 16K, then 24K. I burned through a lot of cloud credits running 8K context experiments, hoping for cheap accuracy gains &mdash; only to find that training on shorter contexts significantly hurt performance at longer inference lengths. Turns out I wasn’t alone. The [DeepCodeR](https://www.notion.so/1cf81902c14680b3bee5eb349a512a51?pvs=21) team ran into the exact same issue:
 
 {{< figure src="deepcoder_bitter.png" caption="The DeepCodeR team discovered the same issue when applying iterative context lengthening to their 14B model. Sadly, this trick seems to work only on 1.5B models &mdash; not on 7B or 14B. Wish they had published this earlier 😭." invertible="true" >}}
 
