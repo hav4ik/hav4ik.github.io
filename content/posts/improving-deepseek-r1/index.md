@@ -1,6 +1,6 @@
 ---
 title: "Improving DeepSeek R1 in Math"
-url: "/improving-deepseek"
+url: "/improving-deepseek-r1"
 date: 2025-04-18T00:00:00+00:00
 # weight: 1
 # aliases: ["/first"]
