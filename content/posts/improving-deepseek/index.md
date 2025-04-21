@@ -10,10 +10,10 @@ author: "Kha Vu Chan"
 # author: ["Kha Vu Chan", "Geremie Yeo", "Kelvin Soh", "Raja Biswas", "Udbhav Bamba"] # multiple authors
 showToc: true
 TocOpen: false
-draft: true
+draft: false
 hidemeta: false
 comments: true
-disqus_identifier: hav4ik/learning-to-rank
+disqus_identifier: hav4ik/improving-deepseek-r1
 summary: "I joined a team and we trained 7B and 14B math reasoning models based on DeepSeek-R1-Distill using SFT and GRPO. Our 14B model achieved **75.8%** Maj@32 on AIME’25 (**+8.7%** improvement), and our 7B model reached **65.8%** Maj@32 (**+7.5%**). Here is what I've learned."
 # canonicalURL: "https://canonical.url/to/page"
 disableHLJS: true # to disable highlightjs
@@ -31,8 +31,8 @@ UseHugoToc: false
 strikethrough: true
 cover:
     image: "featured.png" # image path/url
-    alt: "Web Search" # alt text
-    caption: "Web Search" # display caption under cover
+    alt: "We trained 14B and 7B reasoning model surpassing DeepSeek R1 models twice their size in math olympiads" # alt text
+    caption: "We trained 14B and 7B reasoning model" # display caption under cover
     relative: true # when using page bundles set this to true
     hidden: false # only hide on current single page
     hiddenInList: false # hide in list view
@@ -45,9 +45,9 @@ cover:
 > Model contributors: [**Geremie Yeo**](https://www.linkedin.com/in/geremie-yeo/), [**Kelvin Soh**](https://www.linkedin.com/in/kelvin-soh/), **[Raja Biswas](https://www.linkedin.com/in/raja-biswas/)**, **[Chan Kha Vu](https://hav4ik.github.io/about/)**, [**Udbhav Bamba**](https://ubamba98.github.io).  
 > *Our team are just enthusiasts doing things outside of our full-time jobs (unrelated to LLMs or Reasoning) and other commitments in life. Cloud compute costs are entirely self-funded.*
 
-{{< figure src="cover.png" caption="Majority voting accuracy (Maj@32) on the uncontaminated AIME 2025 Math Olympiad, comparing our models to the DeepSeek-R1-Distill baselines. See the 'Evaluations' section for details on how this chart was generated." invertible="false" >}}
+{{< figure src="cover.png" caption="Majority voting accuracy (Maj@32) on the uncontaminated AIME 2025 Math Olympiad, comparing our models to the DeepSeek-R1-Distill baselines. See the 'Evaluations' section for details on how this click-baity chart was produced." invertible="false" >}}
 
-This blog post is a more personal and extended version of [our team’s short write-up on Kaggle](https://www.kaggle.com/competitions/ai-mathematical-olympiad-progress-prize-2/discussion/573496). Here, you’ll find the kinds of details that rarely make it into polished papers or tech reports &mdash; system design, failed experiments, engineering details, and other discussions. You’ll also notice some awkward switches between “we” and “I” as I alternate between describing team efforts and my own experiments and thoughts.
+This blog post is a more personal and extended version of [our team’s short write-up](https://www.kaggle.com/competitions/ai-mathematical-olympiad-progress-prize-2/discussion/573496), with a stronger focus on what I’ve learned through the process. Here, you’ll find the kinds of details that rarely make it into polished papers or tech reports &mdash; system design, failed experiments, engineering details, and other discussions. You’ll also notice some awkward switches between “we” and “I” as I alternate between describing team efforts and my own experiments and thoughts.
 
 
 -------------------
@@ -57,7 +57,7 @@ This blog post is a more personal and extended version of [our team’s short wr
 
 Mathematical Olympiads hold a special place in my heart. In high school, I competed in math and programming contests, formed friendships that have lasted decades, and eventually moved to the U.S., building a career through the connections I made. A decade later, it still feels surreal that I now improve LLMs to solve olympiad-level problems &mdash; as a side hobby project.
 
-I’m deeply grateful to the best teammates I could’ve asked for &mdash; especially [Geremie Yeo](https://www.linkedin.com/in/geremie-yeo/), [Kelvin Soh](https://www.linkedin.com/in/kelvin-soh/), and [Raja Biswas](https://www.linkedin.com/in/raja-biswas/). They did the heavy lifting, and I feel incredibly lucky to have learned so much from them. This blog post is an extended and more personal version of [our team's short writeup](https://www.kaggle.com/competitions/ai-mathematical-olympiad-progress-prize-2/discussion/573496), with more focus on technical details and additional analysis of successful and failed experiments.
+I’m deeply grateful to the best teammates I could’ve asked for &mdash; especially [Geremie Yeo](https://www.linkedin.com/in/geremie-yeo/), [Kelvin Soh](https://www.linkedin.com/in/kelvin-soh/), and [Raja Biswas](https://www.linkedin.com/in/raja-biswas/) who invited me to the team. They did most of the heavy lifting work. I feel incredibly lucky to have learned so much from them. This blog post is an extended and more personal version of [our team's short writeup](https://www.kaggle.com/competitions/ai-mathematical-olympiad-progress-prize-2/discussion/573496), with more focus on technical details and analysis of our GRPO experiments.
 
 
 ## Introduction
@@ -77,11 +77,11 @@ Due to their complexity, AIME problems have become a standard hard benchmark for
 
 ### Reasoning models
 
-The release of DeepSeek R1 &mdash; a model comparable to OpenAI’s o1 &mdash; alongside a paper detailing its full algorithmic approach, sparked a leap in the reasoning abilities of open-source models. Interestingly, the authors hinted that the distilled R1 models could be further improved through Reinforcement Learning.
+The release of [DeepSeek R1](https://arxiv.org/abs/2501.12948) &mdash; a model comparable to OpenAI’s o1 &mdash; alongside a paper detailing its full algorithmic approach, sparked a leap in the reasoning abilities of open-source models. Interestingly, the authors hinted that the distilled R1 models could be further improved through Reinforcement Learning.
 
-{{< figure src="deepseek_paper_hint.png" caption="Section 3, page 14 of the DeepSeek R1 paper. The authors basically left the further model improvement “as an excercise to the reader.” This paragraph also confirm effectiveness of SFT from reasoning traces of larger model." invertible="true" >}}
+{{< figure src="deepseek_paper_hint.png" caption="Section 3, page 14 of the [DeepSeek R1](https://arxiv.org/abs/2501.12948) paper. The authors basically left the further model improvement “as an excercise to the reader.” This paragraph also confirm effectiveness of SFT from reasoning traces of larger model." invertible="true" >}}
 
-Early reproduction efforts like [DeepScaleR](https://www.notion.so/19681902c1468005bed8ca303013a4e2?pvs=21) by the [Agentica](https://agentica-project.com/) team suggest that fine-tuning models like DeepSeek R1 might be far more affordable than expected. With even better data and a even smarter training curriculum, could we improve the distilled R1 models on a budget? That question led me to enter the [Kaggle's AIMO2 competition](https://www.kaggle.com/competitions/ai-mathematical-olympiad-progress-prize-2/overview).
+Early reproduction efforts like [DeepScaleR](https://www.notion.so/19681902c1468005bed8ca303013a4e2?pvs=21) by the [Agentica](https://agentica-project.com/) team suggest that fine-tuning models like the Distilled DeepSeek R1 might be far more affordable than expected. With even better data and a even smarter training curriculum, could we improve the distilled R1 models on a budget? That question led me to enter the [Kaggle's AIMO2 competition](https://www.kaggle.com/competitions/ai-mathematical-olympiad-progress-prize-2/overview).
 
 ### AIMO Prize
 
@@ -161,7 +161,7 @@ Our team focused on collecting solution traces under 16K tokens. The reasoning w
 - **Initial pool.** First, we filtered math word problems from [**NuminaMath-1.5**](https://huggingface.co/datasets/AI-MO/NuminaMath-1.5), sourcing problems with topics in Algebra, Geometry, Number Theory, and Combinatorics from Olympiads, AoPS forums, AMC and AIME of previous years, olympiad references, and number theory sources. Our goal was to get harder problems in topics that DeepSeek models would likely struggle with.
 - **Joining R1 traces.** We then joined with correct R1 reasoning traces from [**OpenR1-Math-220k**](https://huggingface.co/datasets/open-r1/OpenR1-Math-220k). Together with previous step, this filtered 800K problems down to 27K.
 - **Difficulty filtering.** To filter further, we sampled 8 solutions per problem with `max_len` of 8K tokens using [deepseek-r1-distill-qwen-7b-awq](https://huggingface.co/casperhansen/deepseek-r1-distill-qwen-7b-awq) and removed easy problems. We kept only problems with 7 or fewer correct solutions, leaving 8K problems. To get harder problems for GRPO, we used the 14B AWQ model for similar filtering.
-- **Light R1.** Later, we added a subset of from [**Light-R1**](https://huggingface.co/datasets/qihoo360/Light-R1-SFTData) stage 2 data and removed duplicates with our dataset (after removing CoT with more than 16K tokens). We filter them further filter by difficulty, resulting in around 2K samples.
+- **Light R1.** Later, we added a subset of from [**Light-R1**](https://huggingface.co/datasets/qihoo360/Light-R1-SFTData) stage 2 data and removed duplicates with our dataset (after removing CoT with more than 16K tokens). We then filter them further by difficulty, resulting in around 2K samples.
 
 While sampling our dataset, we purposefuly avoided the following data sources:
 
