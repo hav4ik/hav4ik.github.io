@@ -6,7 +6,7 @@ date: 2025-04-18T00:00:00+00:00
 # aliases: ["/first"]
 tags: ["LLM", "Reasoning", "Reinforcement Learning"]
 keywords: ["Reinforcement Learning", "RLHF", "Machine Learning", "RLVR", "AIME", "AIME 2025", "AIME 2024", "DeepSeek", "R1", "DeepSeek-R1", "DeepSeek R1", "GRPO", "REINFORCE++", "Light-R1", "NuminaMath", "AIMO", "AIMO2", "Kaggle", "Reasoning", "LLM", "Math Olympiads"]
-author: "Kha Vu Chan"
+author: "Kha Vu Chan"  # This is a personal blog post, but team's effort is attributed in the post.
 # author: ["Kha Vu Chan", "Geremie Yeo", "Kelvin Soh", "Raja Biswas", "Udbhav Bamba"] # multiple authors
 showToc: true
 TocOpen: false
@@ -156,7 +156,7 @@ For this reason, we decided to shift our focus on collecting high-quality data a
 
 ### Dataset Curation
 
-Our team focused on collecting solution traces under 16K tokens. The reasoning was simple: most correct DeepSeek R1 outputs are under 6K, and 16K struck a good balance between accuracy and compute cost for our 7B and 14B models according to our teseting.
+Our team focused on collecting solution traces under 16K tokens. The reasoning was simple: most correct DeepSeek R1 outputs are under 6K, and 16K struck a good balance between accuracy and compute cost for our 7B and 14B models according to our testing.
 
 - **Initial pool.** First, we filtered math word problems from [**NuminaMath-1.5**](https://huggingface.co/datasets/AI-MO/NuminaMath-1.5), sourcing problems with topics in Algebra, Geometry, Number Theory, and Combinatorics from Olympiads, AoPS forums, AMC and AIME of previous years, olympiad references, and number theory sources. Our goal was to get harder problems in topics that DeepSeek models would likely struggle with.
 - **Joining R1 traces.** We then joined with correct R1 reasoning traces from [**OpenR1-Math-220k**](https://huggingface.co/datasets/open-r1/OpenR1-Math-220k). Together with previous step, this filtered 800K problems down to 27K.
@@ -178,7 +178,7 @@ Our SFT models were fine-tuned courtesy of [Kelvin Soh](https://www.linkedin.com
 
 ### Stage 2: Reinforcement Learning
 
-During the Reinforcement Learning process, we tried to steer our model's behavior toward shorter reasoning CoTs. We spent considerable time on 7B models, hoping our findings would translate to 14B, only to relearn [the bitter lesson](http://www.incompleteideas.net/IncIdeas/BitterLesson.html) repeatedly &mdash; good tricks at smaller scales don't always work at larger ones.
+During the Reinforcement Learning process, we tried to steer our model's behavior toward shorter reasoning CoTs. We spent considerable time on 7B models, hoping our findings would translate to 14B, only to repeatedly realize that good tricks at smaller scales don't always work at larger ones. As Ilya Sutskever put it, ["the only thing that matters is the ability to run larger experiments."](https://www.youtube.com/watch?v=Yf1o0TQzry8)
 
 - For the 7B model, we performed GRPO in two stages: first on 8K context, then on 16K context. We found LoRA converged faster than FFT while being more VRAM-efficient. We used DAPO's clipping and online sample filtering, and length penalty worked well for 7B. We used outcome reward and DAPO's overlong penalty, which we found to be gentler than Cosine length penalty.
 - For 14B, length penalty severely hurts accuracy, so we removed it, leaving only outcome reward. Also, training on much shorter contexts significantly reduced accuracy at intended inference lengths. Model merging helped regain some accuracy, so our final submission is a merged SFT and GRPO on 6K context. We had another 14B GRPO on 16K context trained on the last day of the AIMO2 competition. Our 14B GRPO models were all trained on a single 8xH200 node.
