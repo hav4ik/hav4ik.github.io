@@ -209,7 +209,7 @@ You can reproduce our evals using our evaluation code [aime25-aimo2-evals](https
 
 ### 14B models
 
-- **Merged-14B:** the model we submitted to the Private LB of the AIMO2 competition for both of our final submissions. It's a merge of several SFT and GRPO checkpoints. We uploaded the AWQ of this model on Huggingface ([bogoconic1/aimo2-final-merged-model-14b](https://huggingface.co/bogoconic1/aimo2-final-merged-model-14b)) and the BF16 on [Kaggle Models](https://www.kaggle.com/models/chankhavu/raja-merge-bf16/).
+- **Merged-14B:** the model we submitted to the Private LB of the AIMO2 competition for both of our final submissions. It's a merge of several SFT and GRPO checkpoints. We uploaded the AWQ to Huggingface ([bogoconic1/aimo2-final-merged-model-14b](https://huggingface.co/bogoconic1/aimo2-final-merged-model-14b)) and the BF16 to [Kaggle Models](https://www.kaggle.com/models/chankhavu/raja-merge-bf16/).
 - **Last-GRPO-14B:** trained in the final days of the AIMO2 competition. It showed worse results than the merged model on our local End-to-End whole pipeline validation, despite being better on academic-style benchmarking settings, so we never submitted it to LB.
 
 Below are majority voting metrics with generation `max_len` set at 12800 and 32768 tokens:
