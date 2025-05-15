@@ -239,7 +239,7 @@ It should be noted that we built on top of [Light-R1](https://huggingface.co/dat
 ### 7B models
 
 * **Final SFT 7B:** trained for 6 epochs on our final dataset mixture. Interestingly, it was much harder to make improvements on the 7B model than the 14B one.
-* **Merged 7B:** a merge of our SFT and several GRPO checkpoints. We never submitted it to the LB as we moved on to 14B models. 7B GRPO was trained in 2 stages: with 8K then with 16K context.
+* **[Merged]((https://www.kaggle.com/datasets/chankhavu/merge-7b-v1)) 7B:** a merge of our SFT and several GRPO checkpoints. We never submitted it to the LB as we moved on to 14B models. 7B GRPO was trained in 2 stages: with 8K then with 16K context. We uploaded the BF16 of this model on [Kaggle Datasets](https://www.kaggle.com/datasets/chankhavu/merge-7b-v1).
 
 | Token budget | Model name | CV Pass@1 | CV Maj@32 | AIME'25 Pass@1 | AIME'25 Maj@32 | Average length |
 | --- | --- | --- | --- | --- | --- | --- |
