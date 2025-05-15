@@ -209,7 +209,7 @@ You can reproduce our evals using our evaluation code [aime25-aimo2-evals](https
 
 ### 14B models
 
-- **Merged-14B:** the model we submitted to the Private LB of the AIMO2 competition for both of our final submissions. It's a merge of several SFT and GRPO checkpoints. We uploaded the AWQ of this model on Huggingface: [bogoconic1/aimo2-final-merged-model-14b](https://huggingface.co/bogoconic1/aimo2-final-merged-model-14b).
+- **Merged-14B:** the model we submitted to the Private LB of the AIMO2 competition for both of our final submissions. It's a merge of several SFT and GRPO checkpoints. We uploaded the AWQ of this model on Huggingface ([bogoconic1/aimo2-final-merged-model-14b](https://huggingface.co/bogoconic1/aimo2-final-merged-model-14b)) and the BF16 on [Kaggle Models](https://www.kaggle.com/models/chankhavu/raja-merge-bf16/).
 - **Last-GRPO-14B:** trained in the final days of the AIMO2 competition. It showed worse results than the merged model on our local End-to-End whole pipeline validation, despite being better on academic-style benchmarking settings, so we never submitted it to LB.
 
 Below are majority voting metrics with generation `max_len` set at 12800 and 32768 tokens:
@@ -239,7 +239,7 @@ It should be noted that we built on top of [Light-R1](https://huggingface.co/dat
 ### 7B models
 
 * **Final SFT 7B:** trained for 6 epochs on our final dataset mixture. Interestingly, it was much harder to make improvements on the 7B model than the 14B one.
-* **[Merged]((https://www.kaggle.com/datasets/chankhavu/merge-7b-v1)) 7B:** a merge of our SFT and several GRPO checkpoints. We never submitted it to the LB as we moved on to 14B models. 7B GRPO was trained in 2 stages: with 8K then with 16K context. We uploaded the BF16 of this model on [Kaggle Datasets](https://www.kaggle.com/datasets/chankhavu/merge-7b-v1).
+* **[Merged 7B]((https://www.kaggle.com/datasets/chankhavu/merge-7b-v1)):** a merge of our SFT and several GRPO checkpoints. We never submitted it to the LB as we moved on to 14B models. 7B GRPO was trained in 2 stages: with 8K then with 16K context. We uploaded the BF16 of this model on [Kaggle Datasets](https://www.kaggle.com/datasets/chankhavu/merge-7b-v1).
 
 | Token budget | Model name | CV Pass@1 | CV Maj@32 | AIME'25 Pass@1 | AIME'25 Maj@32 | Average length |
 | --- | --- | --- | --- | --- | --- | --- |
