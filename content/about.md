@@ -72,19 +72,19 @@ otherSections:
       * **Google Landmarks Challenge (ECCV'20 conference):** [22nd place (solo silver)](https://www.kaggle.com/c/landmark-recognition-2020/discussion/187731) 🥈  
         *Trained ResNet152 & EffNetB6 using ArcFace w/ margin scheduling + DELG/RANSAC re-rank.*
 
-  - sectionName: Talks & teaching
-    sectionContent: |
-      * Talk at Samsung Research: **"Multi-Objective Optimization and Multi-Task Learning"**  
-        *SRK AI Conference 2019, Samsung Research, Ukraine (with an audience of 150+ attendees).*
-
-      * Lecture at Kyiv DS Community: **"Deep Metric Learning"** ([video](https://www.youtube.com/watch?v=aU9yEwgrJ54))  
-        *Kyiv Data Science Community, as part of the "Introduction to ML and Neural Nets" course, 2021.*
-
-      * Talk at Summer IT Camp at KNU: **"Using LLMs: promting, agents, tuning"** ([slides](https://drive.google.com/file/d/1NhCNChywlmFXxQ-KQer4TNFdk044SdBw/view))  
-        *Summer IT Camp, Taras Shevchenko National University of Kyiv, 2023.*
-
-      * Teaching Assistant: **"Pattern Recognition"** course for Master's students.  
-        *Taras Shevchenko University, Fall 2019. Used [d3.js](https://d3js.org/) to make this cool [visualization of HOG](https://hav4ik.github.io/teaching/pr/02-svm-with-hog/)!*
+  # - sectionName: Talks & teaching
+  #   sectionContent: |
+  #     * Talk at Samsung Research: **"Multi-Objective Optimization and Multi-Task Learning"**  
+  #       *SRK AI Conference 2019, Samsung Research, Ukraine (with an audience of 150+ attendees).*
+  # 
+  #     * Lecture at Kyiv DS Community: **"Deep Metric Learning"** ([video](https://www.youtube.com/watch?v=aU9yEwgrJ54))  
+  #       *Kyiv Data Science Community, as part of the "Introduction to ML and Neural Nets" course, 2021.*
+  #
+  #    * Talk at Summer IT Camp at KNU: **"Using LLMs: promting, agents, tuning"** ([slides](https://drive.google.com/file/d/1NhCNChywlmFXxQ-KQer4TNFdk044SdBw/view))  
+  #      *Summer IT Camp, Taras Shevchenko National University of Kyiv, 2023.*
+  #
+  #    * Teaching Assistant: **"Pattern Recognition"** course for Master's students.  
+  #      *Taras Shevchenko University, Fall 2019. Used [d3.js](https://d3js.org/) to make this cool [visualization of HOG](https://hav4ik.github.io/teaching/pr/02-svm-with-hog/)!*
 ---
 
 Hi, my name is Chan Kha Vu. I'm a ML engineer at [Microsoft][msft] in Seattle Area, currently working on image ranking models at [Bing][bing-image-search]. Every time you search for images on [Bing][bing-image-search], the final results page are formed by the models trained with my code!
