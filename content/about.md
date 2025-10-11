@@ -59,18 +59,18 @@ timeline:
       src: /img/knu.png
 
 otherSections:
-  - sectionName: Kaggle
-    sectionContent: |
-      I'm a **Competition Master** on Kaggle &mdash; a platform for Machine Learning challenges. Some of the competitions that I really enjoyed:
+  # - sectionName: Kaggle
+  #   sectionContent: |
+  #     I'm a **Competition Master** on Kaggle &mdash; a platform for Machine Learning challenges. Some of the competitions that I really enjoyed:
 
-      * **Image Matching Challenge (CVPR'22 conference):** [9th place (solo gold medal)](https://www.kaggle.com/competitions/image-matching-challenge-2022/discussion/328796) 🥇  
-        *Late-stage fusion of LoFTR, DKM, and SuperGlue; custom 2-stage ROI boosting + MAGSAC.*
+  #     * **Image Matching Challenge (CVPR'22 conference):** [9th place (solo gold medal)](https://www.kaggle.com/competitions/image-matching-challenge-2022/discussion/328796) 🥇  
+  #       *Late-stage fusion of LoFTR, DKM, and SuperGlue; custom 2-stage ROI boosting + MAGSAC.*
 
-      * **Kaggle LLM Exam 2023:** [8th place public / 18th place private (solo silver)](https://www.kaggle.com/competitions/kaggle-llm-science-exam/discussion/446261) 🥈  
-        *Passage-level BGE/IVF-PQ and BM25 indexes; Trained LMs with RAG on GPT-3.5 outputs.*
+  #     * **Kaggle LLM Exam 2023:** [8th place public / 18th place private (solo silver)](https://www.kaggle.com/competitions/kaggle-llm-science-exam/discussion/446261) 🥈  
+  #       *Passage-level BGE/IVF-PQ and BM25 indexes; Trained LMs with RAG on GPT-3.5 outputs.*
 
-      * **Google Landmarks Challenge (ECCV'20 conference):** [22nd place (solo silver)](https://www.kaggle.com/c/landmark-recognition-2020/discussion/187731) 🥈  
-        *Trained ResNet152 & EffNetB6 using ArcFace w/ margin scheduling + DELG/RANSAC re-rank.*
+  #     * **Google Landmarks Challenge (ECCV'20 conference):** [22nd place (solo silver)](https://www.kaggle.com/c/landmark-recognition-2020/discussion/187731) 🥈  
+  #       *Trained ResNet152 & EffNetB6 using ArcFace w/ margin scheduling + DELG/RANSAC re-rank.*
 
   # - sectionName: Talks & teaching
   #   sectionContent: |

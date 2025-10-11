@@ -142,10 +142,10 @@ menu:
       name: About
       url: /about/
       weight: 20
-    # - identifier: cv
-    #   name: CV
-    #   url: /files/cv.pdf
-    #   weight: 50
+    - identifier: cv
+      name: CV
+      url: /files/cv.pdf
+      weight: 50
     - identifier: archive
       name: Archive
       url: /archive/
